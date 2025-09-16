@@ -1,0 +1,82 @@
+<h3 class="text-2xl font-bold text-gray-800 mb-6">내 업무</h3>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- 오늘 할 일 -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b">
+            <h4 class="text-lg font-medium text-gray-900">오늘 할 일</h4>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center">
+                <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+                <label class="ml-3 text-sm text-gray-900">UI 디자인 검토 완료</label>
+                <span class="ml-auto text-xs text-red-600">마감</span>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" class="h-4 w-4 text-blue-600 rounded border-gray-300">
+                <label class="ml-3 text-sm text-gray-900">팀 회의 참석</label>
+                <span class="ml-auto text-xs text-yellow-600">14:00</span>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" checked class="h-4 w-4 text-blue-600 rounded border-gray-300">
+                <label class="ml-3 text-sm text-gray-900 line-through">이메일 확인</label>
+                <span class="ml-auto text-xs text-green-600">완료</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 이번 주 업무 -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b">
+            <h4 class="text-lg font-medium text-gray-900">이번 주 업무</h4>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="border-l-4 border-blue-500 pl-4">
+                <h5 class="font-medium text-gray-900">웹사이트 리뉴얼</h5>
+                <p class="text-sm text-gray-600">프론트엔드 개발 진행 중</p>
+                <div class="mt-2">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: 65%"></div>
+                    </div>
+                    <span class="text-xs text-gray-500">65% 완료</span>
+                </div>
+            </div>
+            <div class="border-l-4 border-yellow-500 pl-4">
+                <h5 class="font-medium text-gray-900">API 문서 작성</h5>
+                <p class="text-sm text-gray-600">백엔드 API 명세서 작성</p>
+                <div class="mt-2">
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-yellow-600 h-2 rounded-full" style="width: 30%"></div>
+                    </div>
+                    <span class="text-xs text-gray-500">30% 완료</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 최근 활동 -->
+<div class="mt-6 bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b">
+        <h4 class="text-lg font-medium text-gray-900">최근 활동</h4>
+    </div>
+    <div class="p-6">
+        <div class="space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                <p class="text-sm text-gray-600">로그인 페이지 컴포넌트 개발 완료</p>
+                <span class="text-xs text-gray-400">1시간 전</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                <p class="text-sm text-gray-600">데이터베이스 스키마 수정</p>
+                <span class="text-xs text-gray-400">3시간 전</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
+                <p class="text-sm text-gray-600">코드 리뷰 의견 반영</p>
+                <span class="text-xs text-gray-400">어제</span>
+            </div>
+        </div>
+    </div>
+</div>
