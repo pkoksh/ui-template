@@ -1,86 +1,292 @@
-<h3 class="text-2xl font-bold text-gray-800 mb-6">대시보드</h3>
+<h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">대시보드</h3>
+
+<button id="refresh-stats" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mb-6 transition-colors">
+    <i class='bx bx-refresh'></i> 통계 새로고침
+</button>
 
 <!-- 통계 카드들 -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white p-6 rounded-lg shadow">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
         <div class="flex items-center">
-            <div class="p-2 bg-blue-100 rounded-lg">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
             </div>
             <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">총 프로젝트</p>
-                <p class="text-2xl font-semibold text-gray-900">12</p>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">총 프로젝트</p>
+                <p id="total-projects" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">12</p>
             </div>
         </div>
     </div>
     
-    <div class="bg-white p-6 rounded-lg shadow">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
         <div class="flex items-center">
-            <div class="p-2 bg-green-100 rounded-lg">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
             <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">완료된 업무</p>
-                <p class="text-2xl font-semibold text-gray-900">24</p>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">완료된 업무</p>
+                <p id="completed-tasks" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">24</p>
             </div>
         </div>
     </div>
     
-    <div class="bg-white p-6 rounded-lg shadow">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
         <div class="flex items-center">
-            <div class="p-2 bg-yellow-100 rounded-lg">
-                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
             <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">진행 중인 업무</p>
-                <p class="text-2xl font-semibold text-gray-900">8</p>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">진행 중인 업무</p>
+                <p id="active-tasks" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">8</p>
             </div>
         </div>
     </div>
     
-    <div class="bg-white p-6 rounded-lg shadow">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
         <div class="flex items-center">
-            <div class="p-2 bg-red-100 rounded-lg">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                 </svg>
             </div>
             <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">지연된 업무</p>
-                <p class="text-2xl font-semibold text-gray-900">3</p>
+                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">지연된 업무</p>
+                <p id="delayed-tasks" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">3</p>
             </div>
         </div>
     </div>
 </div>
 
 <!-- 최근 활동 -->
-<div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b">
-        <h4 class="text-lg font-medium text-gray-900">최근 활동</h4>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+    <div class="px-6 py-4 border-b dark:border-gray-700">
+        <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">최근 활동</h4>
     </div>
     <div class="p-6">
-        <div class="space-y-4">
+        <div class="space-y-4" id="recent-activities">
             <div class="flex items-center space-x-3">
                 <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
-                <p class="text-sm text-gray-600">프로젝트 A의 설계 문서가 업데이트되었습니다.</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">프로젝트 A의 설계 문서가 업데이트되었습니다.</p>
                 <span class="text-xs text-gray-400">2시간 전</span>
             </div>
             <div class="flex items-center space-x-3">
                 <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                <p class="text-sm text-gray-600">업무 #1234가 완료되었습니다.</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">업무 #1234가 완료되었습니다.</p>
                 <span class="text-xs text-gray-400">4시간 전</span>
             </div>
             <div class="flex items-center space-x-3">
                 <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                <p class="text-sm text-gray-600">새로운 팀 멤버가 추가되었습니다.</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">새로운 팀 멤버가 추가되었습니다.</p>
                 <span class="text-xs text-gray-400">1일 전</span>
             </div>
         </div>
+        <div class="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+            <p>마지막 업데이트: <span id="last-updated">-</span></p>
+        </div>
     </div>
 </div>
+
+<script>
+    // PageManager 대기 함수 (한 번만 선언)
+    if (!window.waitForPageManager) {
+        window.waitForPageManager = function() {
+            return new Promise((resolve) => {
+                // PageManager가 이미 로드된 경우
+                if (window.PageManager) {
+                    resolve();
+                    return;
+                }
+                
+                // PageManager가 로드될 때까지 대기
+                const checkInterval = setInterval(() => {
+                    if (window.PageManager) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 50); // 50ms마다 확인
+                
+                // 5초 후 타임아웃
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    console.error('PageManager 로딩 타임아웃');
+                    resolve(); // 타임아웃되어도 계속 진행 (폴백 처리)
+                }, 5000);
+            });
+        };
+    }
+
+    // 대시보드 페이지 클래스 (한 번만 선언)
+    if (!window.DashboardPage) {
+        window.DashboardPage = class extends (window.PageManager?.BasePage || class BasePage {
+            constructor(pageId) {
+                this.pageId = pageId;
+                this.destroyed = false;
+                this.eventListeners = [];
+                this.timers = [];
+            }
+            
+            // 폴백 메서드들
+            addEventListener(element, event, handler, options) {
+                if (typeof element === 'string') {
+                    element = document.getElementById(element);
+                }
+                if (element) {
+                    element.addEventListener(event, handler, options);
+                    this.eventListeners.push({ element, event, handler, options });
+                }
+            }
+            
+            setInterval(callback, interval) {
+                const timerId = setInterval(callback, interval);
+                this.timers.push(timerId);
+                return timerId;
+            }
+            
+            async fetch(url, options) {
+                return fetch(url, options);
+            }
+            
+            destroy() {
+                this.eventListeners.forEach(({ element, event, handler, options }) => {
+                    element.removeEventListener(event, handler, options);
+                });
+                this.timers.forEach(timerId => clearInterval(timerId));
+                this.destroyed = true;
+            }
+        }) {
+            constructor() {
+                super('dashboard');
+                this.updateInterval = null;
+            }
+
+            // 필수 구현: 초기화 메서드
+            async init() {
+                this.bindEvents();
+                await this.loadStats();
+                
+                // 10초마다 자동 업데이트 (타이머 자동 추적됨)
+                this.updateInterval = this.setInterval(() => {
+                    this.loadStats();
+                }, 10000);
+            }
+
+            // 이벤트 바인딩 (자동 추적됨)
+            bindEvents() {
+                this.addEventListener('refresh-stats', 'click', () => {
+                    this.loadStats();
+                });
+            }
+
+            // 통계 데이터 로드 (시뮬레이션)
+            async loadStats() {
+                try {
+                    // 실제로는 API 호출
+                    // const response = await this.fetch('/api/dashboard/stats');
+                    
+                    // 시뮬레이션 데이터
+                    const stats = {
+                        totalProjects: Math.floor(Math.random() * 20) + 5,
+                        completedTasks: Math.floor(Math.random() * 50) + 20,
+                        activeTasks: Math.floor(Math.random() * 15) + 5,
+                        delayedTasks: Math.floor(Math.random() * 8) + 1
+                    };
+                    
+                    this.updateUI(stats);
+                } catch (error) {
+                    console.error('통계 데이터 로드 실패:', error);
+                }
+            }
+
+            // UI 업데이트
+            updateUI(stats) {
+                if (this.destroyed) return; // 페이지가 정리된 경우 업데이트 중단
+                
+                const elements = {
+                    'total-projects': stats.totalProjects,
+                    'completed-tasks': stats.completedTasks,
+                    'active-tasks': stats.activeTasks,
+                    'delayed-tasks': stats.delayedTasks
+                };
+                
+                for (const [id, value] of Object.entries(elements)) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = value.toLocaleString();
+                    }
+                }
+                
+                const lastUpdated = document.getElementById('last-updated');
+                if (lastUpdated) {
+                    lastUpdated.textContent = new Date().toLocaleTimeString();
+                }
+            }
+
+            // 선택적 구현: 페이지 정리 시 추가 작업
+            onDestroy() {
+                console.log('대시보드 페이지 추가 정리 작업 완료');
+            }
+        };
+    }
+
+    // 대시보드 초기화 함수 (한 번만 선언)
+    if (!window.initDashboard) {
+        window.initDashboard = async function() {
+            try {
+                // PageManager 대기
+                await window.waitForPageManager();
+                
+                // 기존 인스턴스가 있으면 정리
+                if (window.dashboardPageInstance) {
+                    if (window.PageManager) {
+                        PageManager.unregisterPage('dashboard');
+                    } else {
+                        window.dashboardPageInstance.destroy();
+                    }
+                }
+                
+                // 새 페이지 인스턴스 생성
+                window.dashboardPageInstance = new window.DashboardPage();
+                
+                // 페이지 관리자에 등록 (사용 가능한 경우)
+                if (window.PageManager) {
+                    PageManager.registerPage('dashboard', window.dashboardPageInstance);
+                }
+                
+                // 초기화 실행
+                await window.dashboardPageInstance.init();
+                
+                console.log('대시보드 페이지 초기화 완료');
+            } catch (error) {
+                console.error('대시보드 페이지 초기화 실패:', error);
+            }
+        };
+    }
+
+    // 대시보드 정리 함수 (한 번만 선언)
+    if (!window.cleanupDashboard) {
+        window.cleanupDashboard = function() {
+            if (window.PageManager && window.dashboardPageInstance) {
+                PageManager.unregisterPage('dashboard');
+            } else if (window.dashboardPageInstance) {
+                window.dashboardPageInstance.destroy();
+            }
+            
+            window.dashboardPageInstance = null;
+            console.log('대시보드 페이지 정리 완료');
+        };
+    }
+
+    // 페이지 초기화 실행
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.initDashboard);
+    } else {
+        // 즉시 초기화 (동적 로딩의 경우)
+        window.initDashboard();
+    }
+</script>

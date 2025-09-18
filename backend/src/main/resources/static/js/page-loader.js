@@ -37,6 +37,9 @@ function removePageFromCache(contentId) {
     pageStyles.delete(contentId);
     pageAccessTime.delete(contentId);
     
+    // 스크립트 실행 추적 완전 리셋 (페이지 캐시 완전 제거 시에만)
+    resetPageScriptTracking(contentId);
+    
     // 해당 페이지의 DOM 리소스도 정리
     cleanupPageResources(contentId);
 }
@@ -207,42 +210,97 @@ function displayErrorContent(errorMessage) {
 }
 
 // 페이지 내용 표시
-function displayPageContent(content, contentId) {
+async function displayPageContent(content, contentId) {
+    // 환영 화면 숨기기
+    if (window.hideWelcomeScreen) {
+        window.hideWelcomeScreen();
+    }
+    
     contentArea.innerHTML = content;
     
     // 페이지별 스타일 적용
     applyPageStyles(contentId);
     
-    // 페이지별 스크립트 실행
-    executePageScripts(contentId);
+    // 페이지별 스크립트 실행 (순차적으로)
+    await executePageScripts(contentId);
 }
 
-// 페이지 스크립트 실행
-function executePageScripts(contentId) {
+// 외부 스크립트 로드 (Promise 기반)
+function loadExternalScript(src) {
+    return new Promise((resolve, reject) => {
+        // 이미 로드된 스크립트인지 확인
+        if (document.querySelector(`script[src="${src}"]`)) {
+            console.log(`Script already loaded: ${src}`);
+            resolve();
+            return;
+        }
+        
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => {
+            console.log(`Script loaded successfully: ${src}`);
+            resolve();
+        };
+        script.onerror = () => {
+            console.error(`Failed to load script: ${src}`);
+            reject(new Error(`Failed to load script: ${src}`));
+        };
+        document.head.appendChild(script);
+    });
+}
+
+// 실행된 페이지 스크립트 추적
+const executedPageScripts = new Set();
+
+// 페이지 스크립트 실행 (순차적)
+async function executePageScripts(contentId) {
     const scripts = pageScripts.get(contentId);
     if (!scripts || scripts.length === 0) return;
     
-    scripts.forEach((script, index) => {
-        if (script.type === 'external') {
-            // 외부 스크립트 로드
-            const scriptElement = document.createElement('script');
-            scriptElement.src = script.src;
-            scriptElement.setAttribute('data-page', contentId);
-            scriptElement.setAttribute('data-script-index', index);
-            document.head.appendChild(scriptElement);
-        } else if (script.type === 'inline') {
-            // 인라인 스크립트 실행
-            try {
-                const scriptElement = document.createElement('script');
-                scriptElement.textContent = script.content;
-                scriptElement.setAttribute('data-page', contentId);
-                scriptElement.setAttribute('data-script-index', index);
-                document.head.appendChild(scriptElement);
-            } catch (error) {
-                console.error(`페이지 ${contentId}의 스크립트 실행 중 오류:`, error);
+    console.log(`Executing scripts for page: ${contentId}`);
+    
+    // 스크립트 실행 추적 키 생성
+    const scriptKey = `${contentId}-scripts`;
+    
+    // 이미 실행된 스크립트인지 확인 (가장 먼저 체크)
+    if (executedPageScripts.has(scriptKey)) {
+        console.log(`Scripts for page ${contentId} already executed, skipping`);
+        return;
+    }
+    
+    // 기존 페이지 스크립트 정리 (실행이 필요한 경우에만)
+    cleanupPageScripts(contentId);
+    
+    try {
+        // 외부 스크립트를 먼저 순차적으로 로드
+        for (const script of scripts) {
+            if (script.type === 'external') {
+                await loadExternalScript(script.src);
             }
         }
-    });
+        
+        // 모든 외부 스크립트가 로드된 후 인라인 스크립트 실행
+        for (const [index, script] of scripts.entries()) {
+            if (script.type === 'inline') {
+                try {
+                    const scriptElement = document.createElement('script');
+                    scriptElement.textContent = script.content;
+                    scriptElement.setAttribute('data-page', contentId);
+                    scriptElement.setAttribute('data-script-index', index);
+                    document.head.appendChild(scriptElement);
+                    console.log(`Inline script ${index} executed for page: ${contentId}`);
+                } catch (error) {
+                    console.error(`페이지 ${contentId}의 인라인 스크립트 ${index} 실행 중 오류:`, error);
+                }
+            }
+        }
+        
+        // 실행 완료 표시
+        executedPageScripts.add(scriptKey);
+        console.log(`All scripts executed for page: ${contentId}`);
+    } catch (error) {
+        console.error(`페이지 ${contentId}의 스크립트 로딩 중 오류:`, error);
+    }
 }
 
 // 페이지 스타일 적용
@@ -257,6 +315,59 @@ function applyPageStyles(contentId) {
         styleElement.setAttribute('data-style-index', index);
         document.head.appendChild(styleElement);
     });
+}
+
+// 페이지 스크립트 실행 추적 완전 리셋 (페이지 완전 제거 시에만 사용)
+function resetPageScriptTracking(contentId) {
+    const scriptKey = `${contentId}-scripts`;
+    if (executedPageScripts.has(scriptKey)) {
+        executedPageScripts.delete(scriptKey);
+        console.log(`Script execution tracking reset for page: ${contentId}`);
+    }
+}
+
+// 페이지 클래스가 이미 정의되어 있는지 확인
+function isPageClassAlreadyDefined(contentId, scriptContent) {
+    // 페이지별 주요 클래스명 매핑
+    const pageClassMap = {
+        'dashboard': 'DashboardPage',
+        'menu-management': 'MenuManagementPage',
+        'tasks': 'TasksPage',
+        'projects': 'ProjectsPage',
+        'reports': 'ReportsPage',
+        'settings': 'SettingsPage'
+    };
+    
+    const className = pageClassMap[contentId];
+    if (!className) {
+        // 알려진 페이지가 아니면 스크립트 내용에서 클래스명 추출 시도
+        const classMatch = scriptContent.match(/class\s+(\w+)/);
+        if (classMatch) {
+            const detectedClassName = classMatch[1];
+            return window[detectedClassName] !== undefined;
+        }
+        return false;
+    }
+    
+    // 해당 클래스가 이미 전역 스코프에 정의되어 있는지 확인
+    const isClassDefined = window[className] !== undefined;
+    if (isClassDefined) {
+        console.log(`[PageLoader] ${className} 클래스가 이미 정의되어 있음`);
+    }
+    
+    return isClassDefined;
+}
+
+// 페이지 스크립트만 정리 (탭 전환 시 중복 실행 방지용)
+function cleanupPageScripts(contentId) {
+    // 해당 페이지의 기존 스크립트 제거 (중복 실행 방지)
+    const existingScripts = document.querySelectorAll(`script[data-page="${contentId}"]`);
+    existingScripts.forEach(script => {
+        console.log(`Removing existing script for page: ${contentId}`);
+        script.remove();
+    });
+    
+    // 주의: 스크립트 실행 추적은 여기서 초기화하지 않음 (탭 전환 시 재실행 방지)
 }
 
 // 페이지 스크립트 및 스타일 정리
@@ -299,16 +410,17 @@ function initializeCacheEventListeners() {
     const clearCacheBtn = document.getElementById('clear-cache-btn');
     if (clearCacheBtn) {
         clearCacheBtn.addEventListener('click', function() {
-            const clearedCount = clearAllCache();
+            // 강화된 캐시 정리
+            const clearedCount = clearAllCacheEnhanced();
             updateMemoryStatus();
             
             Swal.fire({
                 icon: 'success',
                 title: '캐시 정리 완료',
-                html: `<strong>${clearedCount}개</strong>의 사용하지 않는 페이지 캐시가 정리되었습니다.`,
+                html: `<strong>${clearedCount}개</strong>의 사용하지 않는 페이지 캐시가 정리되었습니다.<br>메모리가 완전히 정리되었습니다.`,
                 confirmButtonText: '확인',
                 confirmButtonColor: '#10B981',
-                timer: 1500,
+                timer: 2000,
                 timerProgressBar: true,
                 toast: true,
                 position: 'top-end',
@@ -321,10 +433,98 @@ function initializeCacheEventListeners() {
     }
 }
 
+// 강화된 캐시 정리 함수
+function clearAllCacheEnhanced() {
+    let clearedCount = 0;
+    
+    // 기존 캐시 정리
+    clearedCount = clearAllCache();
+    
+    // 전역 변수 정리
+    cleanupGlobalVariables();
+    
+    // DOM에서 동적으로 추가된 이벤트 리스너 정리
+    cleanupDynamicEventListeners();
+    
+    // 페이지별 정리 함수 실행
+    cleanupAllPageResources();
+    
+    // 가비지 컬렉션 힌트 (브라우저가 지원하는 경우)
+    if (window.gc && typeof window.gc === 'function') {
+        try {
+            window.gc();
+        } catch (e) {
+            // 가비지 컬렉션이 지원되지 않는 경우 무시
+        }
+    }
+    
+    console.log('강화된 캐시 정리 완료 - 메모리 정리됨');
+    return clearedCount;
+}
+
+// 전역 변수 정리
+function cleanupGlobalVariables() {
+    // 페이지별 정리 함수 객체 정리
+    if (window.pageCleanup) {
+        Object.keys(window.pageCleanup).forEach(pageId => {
+            if (typeof window.pageCleanup[pageId] === 'function') {
+                try {
+                    window.pageCleanup[pageId]();
+                } catch (error) {
+                    console.warn(`페이지 ${pageId} 정리 함수 실행 중 오류:`, error);
+                }
+            }
+        });
+        window.pageCleanup = {};
+    }
+    
+    // 메뉴 관리 관련 정리
+    if (window.cleanupMenuManagement && typeof window.cleanupMenuManagement === 'function') {
+        window.cleanupMenuManagement();
+    }
+    
+    // 기타 전역 변수들 정리
+    const globalVarsToClean = [
+        'menuMgmt',
+        'closeModal',
+        'saveMenu'
+    ];
+    
+    globalVarsToClean.forEach(varName => {
+        if (window[varName]) {
+            delete window[varName];
+        }
+    });
+}
+
+// 동적 이벤트 리스너 정리
+function cleanupDynamicEventListeners() {
+    // 모든 페이지 관련 이벤트 리스너 제거
+    const elementsWithDataPage = document.querySelectorAll('[data-page]');
+    elementsWithDataPage.forEach(element => {
+        // 요소를 복제해서 이벤트 리스너 제거
+        const newElement = element.cloneNode(true);
+        if (element.parentNode) {
+            element.parentNode.replaceChild(newElement, element);
+        }
+    });
+}
+
+// 모든 페이지 리소스 정리
+function cleanupAllPageResources() {
+    // 현재 활성 탭이 아닌 모든 페이지의 리소스 정리
+    loadedPages.forEach((_, pageId) => {
+        if (pageId !== activeTab) {
+            cleanupPageResources(pageId);
+        }
+    });
+}
+
 // 개발자 도구용 함수들 (콘솔에서 사용 가능)
 window.debugCache = {
     status: getCacheStatus,
     clear: clearAllCache,
+    clearEnhanced: clearAllCacheEnhanced,
     list: () => Array.from(loadedPages.keys()),
     remove: removePageFromCache,
     setMaxCache: (size) => { 
@@ -333,5 +533,25 @@ window.debugCache = {
             console.log(`최대 캐시 크기가 ${size}로 설정되었습니다.`);
             updateMemoryStatus();
         }
+    },
+    // 메모리 누수 디버깅 도구
+    checkMemoryLeaks: () => {
+        console.group('메모리 누수 체크');
+        console.log('전역 변수 상태:');
+        console.log('- window.pageCleanup:', window.pageCleanup);
+        console.log('- window.menuMgmt:', window.menuMgmt);
+        console.log('- window.cleanupMenuManagement:', typeof window.cleanupMenuManagement);
+        
+        console.log('\n페이지별 스크립트/스타일:');
+        const pageScripts = document.querySelectorAll('script[data-page]');
+        const pageStyles = document.querySelectorAll('style[data-page]');
+        console.log(`- 페이지 스크립트: ${pageScripts.length}개`);
+        console.log(`- 페이지 스타일: ${pageStyles.length}개`);
+        
+        console.log('\n로드된 페이지 캐시:');
+        console.log(`- 캐시된 페이지: ${loadedPages.size}개`);
+        console.log('- 페이지 목록:', Array.from(loadedPages.keys()));
+        
+        console.groupEnd();
     }
 };

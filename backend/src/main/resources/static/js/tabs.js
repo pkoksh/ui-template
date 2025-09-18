@@ -125,10 +125,25 @@ function closeTab(contentId, removeFromCache = false) {
     
     // 닫은 탭이 활성 탭인 경우 다른 탭으로 전환
     if (activeTab === contentId) {
-        const newActiveTab = openTabs[Math.max(0, tabIndex - 1)];
-        switchToTab(newActiveTab.id);
+        if (openTabs.length > 0) {
+            const newActiveTab = openTabs[Math.max(0, tabIndex - 1)];
+            switchToTab(newActiveTab.id);
+        } else {
+            // 모든 탭이 닫혔을 때 환영 화면 표시
+            activeTab = null;
+            if (window.showWelcomeScreen) {
+                window.showWelcomeScreen();
+            }
+        }
     } else {
         renderTabs();
+    }
+    
+    // 탭이 하나도 없으면 환영 화면 표시
+    if (openTabs.length === 0) {
+        if (window.showWelcomeScreen) {
+            window.showWelcomeScreen();
+        }
     }
 }
 

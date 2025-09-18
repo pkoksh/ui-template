@@ -20,7 +20,6 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="css/style.css">
     <script>
-        debugger;
         tailwind.config = {
             theme: {
                 extend: {}
@@ -28,39 +27,39 @@
         }
     </script>
 </head>
-<body class="bg-gray-100 h-screen overflow-hidden">
+<body class="bg-gray-100 dark:bg-gray-900 h-screen overflow-hidden transition-colors duration-300">
     <!-- 메인 컨테이너 -->
     <div class="flex h-full">
         <!-- 사이드바 -->
-        <aside id="sidebar" class="sidebar-transition bg-white shadow-lg w-64 flex-shrink-0 transform -translate-x-full lg:translate-x-0 fixed lg:relative h-full z-20">
+        <aside id="sidebar" class="sidebar-transition bg-white dark:bg-gray-800 shadow-lg w-64 flex-shrink-0 transform -translate-x-full lg:translate-x-0 fixed lg:relative h-full z-20 border-r border-gray-200 dark:border-gray-700">
             <div class="px-4 py-4">
                 <div class="flex items-center justify-between mb-3">
-                    <h1 class="text-xl font-bold text-gray-800">업무시스템</h1>
+                    <h1 class="text-xl font-bold text-gray-800 dark:text-gray-200">업무시스템</h1>
                     <!-- 사용자 메뉴 -->
                     <div class="relative">
-                        <button id="userMenuButton" class="flex items-center space-x-2 text-gray-600 hover:text-gray-800 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <button id="userMenuButton" class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                             <i class='bx bx-user-circle text-xl'></i>
                             <span id="currentUserName" class="text-sm font-medium hidden lg:block">사용자</span>
                             <i class='bx bx-chevron-down text-xs'></i>
                         </button>
                         
                         <!-- 사용자 드롭다운 메뉴 -->
-                        <div id="userDropdown" class="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden">
+                        <div id="userDropdown" class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 hidden">
                             <div class="py-2">
-                                <div class="px-4 py-2 border-b border-gray-100">
-                                    <div class="text-sm font-medium text-gray-800" id="userDropdownName">사용자명</div>
-                                    <div class="text-xs text-gray-500" id="userDropdownRole">역할</div>
+                                <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                                    <div class="text-sm font-medium text-gray-800 dark:text-gray-200" id="userDropdownName">사용자명</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400" id="userDropdownRole">역할</div>
                                 </div>
-                                <a href="#" id="profileLink" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <a href="#" id="profileLink" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                     <i class='bx bx-user mr-2'></i>
                                     프로필
                                 </a>
-                                <a href="#" id="settingsLink" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <a href="#" id="settingsLink" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                     <i class='bx bx-cog mr-2'></i>
                                     설정
                                 </a>
-                                <div class="border-t border-gray-100 mt-1 pt-1">
-                                    <button id="logoutButton" class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
+                                    <button id="logoutButton" class="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
                                         <i class='bx bx-log-out mr-2'></i>
                                         로그아웃
                                     </button>
@@ -97,55 +96,70 @@
         <!-- 메인 컨텐츠 영역 -->
         <main class="main-content">
             <!-- 헤더 -->
-            <header class="bg-white shadow-sm border-b px-4 py-4 flex items-center justify-between flex-shrink-0">
+            <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-4 py-4 flex items-center justify-between flex-shrink-0">
                 <div class="flex items-center flex-1 max-w-md">
                     <!-- 모바일 메뉴 버튼 -->
-                    <button id="menu-toggle" class="lg:hidden mr-4 p-2 rounded-md hover:bg-gray-100">
-                        <i class='bx bx-menu text-xl'></i>
+                    <button id="menu-toggle" class="lg:hidden mr-4 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class='bx bx-menu text-xl text-gray-600 dark:text-gray-300'></i>
                     </button>
                     
                     <!-- 메뉴 검색 -->
                     <div class="relative flex-1">
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class='bx bx-search text-gray-400'></i>
+                                <i class='bx bx-search text-gray-400 dark:text-gray-500'></i>
                             </div>
                             <input 
                                 id="menu-search" 
                                 type="text" 
                                 placeholder="메뉴 검색... (Ctrl+K)" 
-                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent text-sm placeholder-gray-500 dark:placeholder-gray-400"
                                 autocomplete="off"
                             >
                         </div>
                         
                         <!-- 검색 결과 드롭다운 -->
-                        <div id="search-results" class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden max-h-60 overflow-y-auto">
+                        <div id="search-results" class="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 hidden max-h-60 overflow-y-auto">
                             <!-- 검색 결과가 여기에 동적으로 추가됩니다 -->
                         </div>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <!-- 테마 전환 스위치 -->
+                    <div class="flex items-center space-x-2" title="라이트/다크 테마 전환">
+                        <span class="text-sm text-gray-600 dark:text-gray-300 select-none">☀️</span>
+                        <div class="relative">
+                            <input type="checkbox" id="theme-toggle" class="sr-only">
+                            <label for="theme-toggle" class="flex items-center cursor-pointer">
+                                <div class="relative">
+                                    <div class="w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full shadow-inner transition-colors duration-300"></div>
+                                    <div id="theme-switch-dot" class="absolute w-4 h-4 bg-white rounded-full shadow-md top-1 left-1 transition-transform duration-300 transform"></div>
+                                </div>
+                            </label>
+                        </div>
+                        <span class="text-sm text-gray-600 dark:text-gray-300 select-none">🌙</span>
+                    </div>
+                    
                     <!-- 메모리 상태 표시 -->
-                    <div id="memory-status" class="hidden lg:flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                    <div id="memory-status" class="hidden lg:flex items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
                         <div class="flex items-center space-x-2">
-                            <i class='bx bx-chip text-gray-500 text-base'></i>
+                            <i class='bx bx-chip text-gray-500 dark:text-gray-400 text-base'></i>
                             <div class="flex flex-col">
-                                <span class="text-xs text-gray-500 leading-none">캐시</span>
-                                <span id="cache-info" class="text-sm font-medium text-gray-700 leading-none">0/10</span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400 leading-none">캐시</span>
+                                <span id="cache-info" class="text-sm font-medium text-gray-700 dark:text-gray-300 leading-none">0/10</span>
                             </div>
                         </div>
-                        <div class="ml-3 pl-3 border-l border-gray-300">
-                            <button id="clear-cache-btn" class="inline-flex items-center space-x-1 text-xs px-3 py-1.5 bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 border border-red-200 hover:border-red-300 rounded-md transition-all duration-200 font-medium shadow-sm hover:shadow-md" title="사용하지 않는 캐시 정리">
+                        <div class="ml-3 pl-3 border-l border-gray-300 dark:border-gray-600">
+                            <button id="clear-cache-btn" class="inline-flex items-center space-x-1 text-xs px-3 py-1.5 bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 dark:from-red-900/30 dark:to-red-800/30 dark:hover:from-red-900/50 dark:hover:to-red-800/50 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 hover:border-red-300 dark:hover:border-red-700 rounded-md transition-all duration-200 font-medium shadow-sm hover:shadow-md" title="사용하지 않는 캐시 정리">
                                 <i class='bx bx-trash-alt text-xs'></i>
                                 <span>정리</span>
                             </button>
                         </div>
                     </div>
-                    <button class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
-                        <i class='bx bx-download text-lg text-gray-600'></i>
+                    <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                        <i class='bx bx-download text-lg text-gray-600 dark:text-gray-300'></i>
                     </button>
-                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                    <div class="w-8 h-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm">
                         U
                     </div>
                 </div>
@@ -153,11 +167,20 @@
 
             <!-- 컨텐츠 영역 -->
             <div class="flex-1 overflow-auto min-h-0">
-                <div id="content-area" class="p-6">
+                <div id="content-area" class="p-6 bg-white dark:bg-gray-900 transition-colors duration-300">
                     <!-- 동적으로 로드되는 페이지 콘텐츠가 여기에 표시됩니다 -->
                     <div id="loading-indicator" class="hidden flex items-center justify-center py-8">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <span class="ml-3 text-gray-600">페이지를 로드하는 중...</span>
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                        <span class="ml-3 text-gray-600 dark:text-gray-300">페이지를 로드하는 중...</span>
+                    </div>
+                    
+                    <!-- 기본 환영 화면 -->
+                    <div id="welcome-screen" class="text-center py-20">
+                        <div class="text-6xl text-gray-300 dark:text-gray-600 mb-4">
+                            <i class='bx bx-grid-alt'></i>
+                        </div>
+                        <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2">업무시스템에 오신 것을 환영합니다</h1>
+                        <p class="text-gray-600 dark:text-gray-400">사이드바에서 메뉴를 선택하여 시작하세요.</p>
                     </div>
                 </div>
             </div>
@@ -165,8 +188,8 @@
             <!-- 탭 바 -->
             <div class="tab-footer">
                 <!-- 왼쪽 스크롤 버튼 -->
-                <button id="tab-scroll-left" class="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-white bg-opacity-90 hover:bg-gray-100 rounded-full p-1 shadow-md border opacity-0 transition-opacity duration-200">
-                    <i class='bx bx-chevron-left text-gray-600'></i>
+                <button id="tab-scroll-left" class="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 bg-opacity-90 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-1 shadow-md border border-gray-200 dark:border-gray-600 opacity-0 transition-opacity duration-200">
+                    <i class='bx bx-chevron-left text-gray-600 dark:text-gray-300'></i>
                 </button>
                 
                 <!-- 탭 컨테이너 -->
@@ -177,14 +200,16 @@
                 </div>
                 
                 <!-- 오른쪽 스크롤 버튼 -->
-                <button id="tab-scroll-right" class="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-white bg-opacity-90 hover:bg-gray-100 rounded-full p-1 shadow-md border opacity-0 transition-opacity duration-200">
-                    <i class='bx bx-chevron-right text-gray-600'></i>
+                <button id="tab-scroll-right" class="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-white dark:bg-gray-800 bg-opacity-90 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full p-1 shadow-md border border-gray-200 dark:border-gray-600 opacity-0 transition-opacity duration-200">
+                    <i class='bx bx-chevron-right text-gray-600 dark:text-gray-300'></i>
                 </button>
             </div>
         </main>
     </div>
 
     <!-- JavaScript 모듈들 -->
+    <script src="js/theme.js"></script>
+    <script src="js/page-manager.js"></script>
     <script src="js/page-loader.js"></script>
     <script src="js/menu.js"></script>
     <script src="js/tabs.js"></script>

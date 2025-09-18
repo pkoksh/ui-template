@@ -79,8 +79,12 @@ INSERT INTO menus (menu_id, parent_id, title, url, icon, sort_order, required_ro
 -- 보고서
 ('reports', NULL, '보고서', '/reports', 'bx-bar-chart', 4, NULL),
 
+-- 시스템 관리
+('system', NULL, '시스템 관리', NULL, 'bx-cog', 5, 'ADMIN'),
+('menu-management', 'system', '메뉴 관리', '/menu-management', 'bx-menu', 1, 'ADMIN'),
+
 -- 설정
-('settings', NULL, '설정', '/settings', 'bx-cog', 5, 'ADMIN');
+('settings', NULL, '설정', '/settings', 'bx-cog', 6, 'ADMIN');
 
 -- 세션 테이블 (Spring Session 사용시)
 CREATE TABLE SPRING_SESSION (

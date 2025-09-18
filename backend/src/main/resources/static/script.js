@@ -123,6 +123,41 @@ function getRoleDisplayName(role) {
     return roleNames[role] || role;
 }
 
+// 환영 화면 표시
+function showWelcomeScreen() {
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const contentArea = document.getElementById('content-area');
+    
+    if (welcomeScreen) {
+        welcomeScreen.style.display = 'block';
+    }
+    
+    // 컨텐츠 영역을 비우지 않고 환영 화면만 표시
+    if (contentArea && !welcomeScreen) {
+        contentArea.innerHTML = `
+            <div id="welcome-screen" class="text-center py-20">
+                <div class="text-6xl text-gray-300 dark:text-gray-600 mb-4">
+                    <i class='bx bx-grid-alt'></i>
+                </div>
+                <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2">업무시스템에 오신 것을 환영합니다</h1>
+                <p class="text-gray-600 dark:text-gray-400">사이드바에서 메뉴를 선택하여 시작하세요.</p>
+            </div>
+        `;
+    }
+}
+
+// 환영 화면 숨기기
+function hideWelcomeScreen() {
+    const welcomeScreen = document.getElementById('welcome-screen');
+    if (welcomeScreen) {
+        welcomeScreen.style.display = 'none';
+    }
+}
+
+// 전역으로 노출
+window.showWelcomeScreen = showWelcomeScreen;
+window.hideWelcomeScreen = hideWelcomeScreen;
+
 // 전체 애플리케이션 초기화
 function initializeApplication() {
     // 각 모듈의 이벤트 리스너 초기화
@@ -139,14 +174,13 @@ function initializeApplication() {
     updateTabScrollButtons();
     updateMenuActiveState();
     
-    // 기본 탭 렌더링
+    // 기본 탭 렌더링 (빈 상태)
+    openTabs = [];
+    activeTab = null;
     renderTabs();
     
-    // 대시보드 페이지를 기본으로 열기
-    const dashboardItem = window.findMenuItem('dashboard');
-    if (dashboardItem) {
-        openTab('dashboard', dashboardItem);
-    }
+    // 환영 화면 표시
+    showWelcomeScreen();
 }
 
 // 통합된 탭 전환 함수
@@ -168,7 +202,7 @@ async function switchToTab(contentId) {
     try {
         // 페이지 내용 로드 및 표시
         const content = await loadPage(contentId);
-        displayPageContent(content, contentId);
+        await displayPageContent(content, contentId);
         hideLoadingState();
         updatePageAccessTime(contentId);
         updateMemoryStatus();

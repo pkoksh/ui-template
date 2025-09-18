@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메뉴 관리</title>
+    <style>
+        .menu-management-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .menu-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .menu-table th,
+        .menu-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .menu-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .menu-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        .menu-level-indicator {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .menu-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-inactive {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
+        }
+        
+        .toolbar {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+        
+        .toolbar-left {
+            flex: 1;
+        }
+        
+        .toolbar-right {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .search-box {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            width: 300px;
+            font-size: 14px;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* 다크 모드 스타일 */
+        .dark .menu-management-container {
+            color: #f9fafb;
+        }
+        
+        .dark .menu-table {
+            background: #1f2937;
+            color: #f9fafb;
+        }
+        
+        .dark .menu-table th {
+            background-color: #374151;
+            color: #f9fafb;
+        }
+        
+        .dark .menu-table th,
+        .dark .menu-table td {
+            border-bottom-color: #4b5563;
+        }
+        
+        .dark .menu-table tr:hover {
+            background-color: #374151;
+        }
+        
+        .dark .search-box {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+        
+        .dark .search-box:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+        
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        
+        .close:hover {
+            color: #374151;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-checkbox {
+            margin-right: 8px;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        /* 다크 모드 모달 */
+        .dark .modal-content {
+            background-color: #1f2937;
+            color: #f9fafb;
+        }
+        
+        .dark .modal-header {
+            border-bottom-color: #4b5563;
+        }
+        
+        .dark .modal-title {
+            color: #f9fafb;
+        }
+        
+        .dark .close {
+            color: #d1d5db;
+        }
+        
+        .dark .close:hover {
+            color: #f9fafb;
+        }
+        
+        .dark .form-label {
+            color: #f9fafb;
+        }
+        
+        .dark .form-input,
+        .dark .form-select {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+        
+        .dark .form-input:focus,
+        .dark .form-select:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+        
+        .dark .modal-footer {
+            border-top-color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-management-container">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-0">메뉴 관리</h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">시스템의 메뉴 구조를 관리합니다.</p>
+            </div>
+            <div class="toolbar-right">
+                <input type="text" 
+                       id="search-input" 
+                       class="search-box" 
+                       placeholder="메뉴 검색...">
+                <button id="refresh-btn" class="btn btn-primary">
+                    <i class='bx bx-refresh'></i> 새로고침
+                </button>
+                <button id="add-menu-btn" class="btn btn-success">
+                    <i class='bx bx-plus'></i> 메뉴 추가
+                </button>
+            </div>
+        </div>
+        
+        <div id="menu-table-container">
+            <div id="loading" class="loading">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p>메뉴 목록을 불러오는 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메뉴 추가/편집 모달 -->
+    <div id="menu-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title">메뉴 추가</h2>
+                <button class="close" onclick="menuPage.closeModal()">&times;</button>
+            </div>
+            <form id="menu-form">
+                <input type="hidden" id="menu-id">
+                
+                <div class="form-group">
+                    <label class="form-label" for="menu-menu-id">메뉴 ID *</label>
+                    <input type="text" id="menu-menu-id" class="form-input" required 
+                           placeholder="예: dashboard, menu-management">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="menu-title">메뉴 제목 *</label>
+                    <input type="text" id="menu-title" class="form-input" required 
+                           placeholder="예: 대시보드, 메뉴 관리">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="menu-parent">상위 메뉴</label>
+                    <select id="menu-parent" class="form-select">
+                        <option value="">최상위 메뉴</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="menu-url">URL</label>
+                    <input type="text" id="menu-url" class="form-input" 
+                           placeholder="예: /dashboard, /menu-management">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="menu-icon">아이콘</label>
+                    <input type="text" id="menu-icon" class="form-input" 
+                           placeholder="예: bx-tachometer, bx-menu">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="menu-sort-order">정렬 순서</label>
+                    <input type="number" id="menu-sort-order" class="form-input" 
+                           placeholder="0" min="0" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="menu-required-role">필요 권한</label>
+                    <select id="menu-required-role" class="form-select">
+                        <option value="">전체</option>
+                        <option value="USER">사용자</option>
+                        <option value="MANAGER">관리자</option>
+                        <option value="ADMIN">시스템 관리자</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="menu-enabled" class="form-checkbox" checked>
+                        <span class="form-label">활성화</span>
+                    </label>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="menuPage.closeModal()">취소</button>
+                <button type="button" id="save-menu-btn" class="btn btn-success" onclick="menuPage.saveMenu()">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PageManager 대기 함수 (한 번만 선언)
+        if (!window.waitForPageManager) {
+            window.waitForPageManager = function() {
+                return new Promise((resolve) => {
+                    // PageManager가 이미 로드된 경우
+                    if (window.PageManager) {
+                        resolve();
+                        return;
+                    }
+                    
+                    // PageManager가 로드될 때까지 대기
+                    const checkInterval = setInterval(() => {
+                        if (window.PageManager) {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 50); // 50ms마다 확인
+                    
+                    // 5초 후 타임아웃
+                    setTimeout(() => {
+                        clearInterval(checkInterval);
+                        console.error('PageManager 로딩 타임아웃');
+                        resolve(); // 타임아웃되어도 계속 진행 (폴백 처리)
+                    }, 5000);
+                });
+            };
+        }
+
+        // 메뉴 관리 페이지 클래스 (한 번만 선언)
+        if (!window.MenuManagementPage) {
+        // 메뉴 관리 페이지 클래스 (한 번만 선언)
+        if (!window.MenuManagementPage) {
+            window.MenuManagementPage = class extends (window.PageManager?.BasePage || class BasePage {
+                constructor(pageId) {
+                    this.pageId = pageId;
+                    this.destroyed = false;
+                    this.eventListeners = [];
+                    this.timers = [];
+                    this.abortControllers = [];
+                }
+                
+                // 폴백 메서드들
+                addEventListener(element, event, handler, options) {
+                    if (typeof element === 'string') {
+                        element = document.getElementById(element);
+                    }
+                    if (element) {
+                        element.addEventListener(event, handler, options);
+                        this.eventListeners.push({ element, event, handler, options });
+                    }
+                }
+            
+            addEventListenerToQuery(selector, event, handler, options) {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(element => {
+                    this.addEventListener(element, event, handler, options);
+                });
+            }
+            
+            setTimeout(callback, delay) {
+                const timerId = setTimeout(callback, delay);
+                this.timers.push(timerId);
+                return timerId;
+            }
+            
+            setInterval(callback, interval) {
+                const timerId = setInterval(callback, interval);
+                this.timers.push(timerId);
+                return timerId;
+            }
+            
+            async fetch(url, options = {}) {
+                return fetch(url, options);
+            }
+            
+            destroy() {
+                this.eventListeners.forEach(({ element, event, handler, options }) => {
+                    element.removeEventListener(event, handler, options);
+                });
+                this.timers.forEach(timerId => {
+                    clearTimeout(timerId);
+                    clearInterval(timerId);
+                });
+                this.destroyed = true;
+            }
+        }) {
+            constructor() {
+                super('menu-management');
+                this.menus = [];
+                this.filteredMenus = [];
+            }
+
+            // 필수 구현: 초기화 메서드
+            async init() {
+                this.bindEvents();
+                await this.loadMenus();
+            }
+
+            // 이벤트 바인딩 (자동 추적됨)
+            bindEvents() {
+                // 기본 이벤트들 (자동으로 추적되고 정리됨)
+                this.addEventListener('refresh-btn', 'click', () => {
+                    this.loadMenus();
+                });
+
+                this.addEventListener('search-input', 'input', (e) => {
+                    this.filterMenus(e.target.value);
+                });
+
+                this.addEventListener('add-menu-btn', 'click', () => {
+                    this.showAddMenuModal();
+                });
+            }
+
+            // 메뉴 데이터 로드 (fetch 자동 관리)
+            async loadMenus() {
+                try {
+                    this.showLoading();
+                    
+                    console.log('메뉴 데이터 로드 시작...');
+                    
+                    // PageManager의 fetch 사용 (자동 AbortController 관리)
+                    const response = await this.fetch('/api/menus', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    console.log('API 응답 상태:', response.status);
+                    
+                    if (response.ok) {
+                        const menus = await response.json();
+                        console.log('받은 메뉴 데이터:', menus);
+                        this.menus = this.flattenMenus(menus);
+                        this.filteredMenus = [...this.menus];
+                        this.renderMenuTable();
+                    } else {
+                        const errorText = await response.text();
+                        console.error('API 오류 응답:', errorText);
+                        throw new Error(`메뉴 로드 실패: ${response.status} - ${errorText}`);
+                    }
+                } catch (error) {
+                    console.error('메뉴 로드 오류:', error);
+                    this.showError(`메뉴 목록을 불러오는데 실패했습니다: ${error.message}`);
+                }
+            }
+
+            // 메뉴 평면화
+            flattenMenus(menus, level = 0) {
+                let result = [];
+                
+                menus.forEach(menu => {
+                    const flatMenu = {
+                        ...menu,
+                        level: level,
+                        hasChildren: menu.children && menu.children.length > 0
+                    };
+                    result.push(flatMenu);
+                    
+                    if (menu.children && menu.children.length > 0) {
+                        result = result.concat(this.flattenMenus(menu.children, level + 1));
+                    }
+                });
+                
+                return result;
+            }
+
+            // 메뉴 필터링
+            filterMenus(searchTerm) {
+                if (!searchTerm.trim()) {
+                    this.filteredMenus = [...this.menus];
+                } else {
+                    this.filteredMenus = this.menus.filter(menu => 
+                        menu.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        menu.menuId.toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                }
+                this.renderMenuTable();
+            }
+
+            // 로딩 표시
+            showLoading() {
+                const container = document.getElementById('menu-table-container');
+                container.innerHTML = `
+                    <div id="loading" class="loading">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p>메뉴 목록을 불러오는 중...</p>
+                    </div>
+                `;
+            }
+
+            // 에러 표시
+            showError(message) {
+                const container = document.getElementById('menu-table-container');
+                container.innerHTML = `
+                    <div class="error">
+                        <i class='bx bx-error-circle text-4xl mb-4'></i>
+                        <p>${message}</p>
+                        <button class="btn btn-primary mt-4" onclick="menuPage.loadMenus()">
+                            다시 시도
+                        </button>
+                    </div>
+                `;
+            }
+
+            // 메뉴 테이블 렌더링
+            renderMenuTable() {
+                const container = document.getElementById('menu-table-container');
+                
+                if (this.filteredMenus.length === 0) {
+                    container.innerHTML = `
+                        <div class="error">
+                            <i class='bx bx-search text-4xl mb-4'></i>
+                            <p>검색 결과가 없습니다.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const tableHTML = `
+                    <table class="menu-table">
+                        <thead>
+                            <tr>
+                                <th>메뉴 구조</th>
+                                <th>메뉴 ID</th>
+                                <th>경로</th>
+                                <th>아이콘</th>
+                                <th>순서</th>
+                                <th>상태</th>
+                                <th>권한</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${this.filteredMenus.map(menu => this.renderMenuRow(menu)).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                container.innerHTML = tableHTML;
+                this.bindTableEvents();
+            }
+
+            // 메뉴 행 렌더링
+            renderMenuRow(menu) {
+                const indent = '&nbsp;'.repeat(menu.level * 4);
+                const levelIndicator = menu.level > 0 ? '└─ ' : '';
+                
+                return `
+                    <tr data-menu-id="${menu.menuId}">
+                        <td>
+                            ${indent}${levelIndicator}${menu.title}
+                        </td>
+                        <td><code>${menu.menuId}</code></td>
+                        <td>${menu.path || '-'}</td>
+                        <td>
+                            ${menu.icon ? `<i class='bx ${menu.icon}'></i> ${menu.icon}` : '-'}
+                        </td>
+                        <td>${menu.sortOrder || 0}</td>
+                        <td>
+                            <span class="status-badge ${menu.isActive ? 'status-active' : 'status-inactive'}">
+                                ${menu.isActive ? '활성' : '비활성'}
+                            </span>
+                        </td>
+                        <td>${menu.requiredRole || '전체'}</td>
+                        <td>
+                            <div class="menu-actions">
+                                <button class="btn btn-primary edit-btn" data-menu-id="${menu.menuId}">
+                                    <i class='bx bx-edit'></i>
+                                </button>
+                                <button class="btn btn-danger delete-btn" data-menu-id="${menu.menuId}">
+                                    <i class='bx bx-trash'></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            // 테이블 이벤트 바인딩 (동적 생성된 요소들)
+            bindTableEvents() {
+                // 편집 버튼 이벤트 (자동 추적됨)
+                this.addEventListenerToQuery('.edit-btn', 'click', (e) => {
+                    const menuId = e.target.closest('.edit-btn').dataset.menuId;
+                    this.editMenu(menuId);
+                });
+
+                // 삭제 버튼 이벤트 (자동 추적됨)
+                this.addEventListenerToQuery('.delete-btn', 'click', (e) => {
+                    const menuId = e.target.closest('.delete-btn').dataset.menuId;
+                    this.deleteMenu(menuId);
+                });
+            }
+
+            // 메뉴 편집
+            editMenu(menuId) {
+                const menu = this.menus.find(m => m.menuId === menuId);
+                if (menu) {
+                    this.showEditMenuModal(menu);
+                }
+            }
+
+            // 메뉴 삭제
+            async deleteMenu(menuId) {
+                const menu = this.menus.find(m => m.menuId === menuId);
+                if (menu && confirm(`정말로 "${menu.title}" 메뉴를 삭제하시겠습니까?`)) {
+                    try {
+                        const response = await this.fetch(`/api/menus/${menu.id}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        if (response.ok) {
+                            alert('메뉴가 성공적으로 삭제되었습니다.');
+                            await this.loadMenus();
+                        } else {
+                            throw new Error(`삭제 실패: ${response.status}`);
+                        }
+                    } catch (error) {
+                        console.error('메뉴 삭제 오류:', error);
+                        alert('메뉴 삭제에 실패했습니다.');
+                    }
+                }
+            }
+
+            // 메뉴 추가 모달 표시
+            showAddMenuModal() {
+                document.getElementById('modal-title').textContent = '메뉴 추가';
+                document.getElementById('menu-form').reset();
+                document.getElementById('menu-id').value = '';
+                document.getElementById('menu-enabled').checked = true;
+                this.populateParentOptions();
+                document.getElementById('menu-modal').classList.add('show');
+            }
+
+            // 메뉴 편집 모달 표시
+            showEditMenuModal(menu) {
+                document.getElementById('modal-title').textContent = '메뉴 편집';
+                document.getElementById('menu-id').value = menu.id || '';
+                document.getElementById('menu-menu-id').value = menu.menuId || '';
+                document.getElementById('menu-title').value = menu.title || '';
+                document.getElementById('menu-url').value = menu.path || '';
+                document.getElementById('menu-icon').value = menu.icon || '';
+                document.getElementById('menu-sort-order').value = menu.sortOrder || 0;
+                document.getElementById('menu-enabled').checked = menu.isActive !== false;
+                document.getElementById('menu-required-role').value = menu.requiredRole || '';
+                
+                this.populateParentOptions(menu.menuId);
+                
+                // 상위 메뉴 설정
+                const parentSelect = document.getElementById('menu-parent');
+                parentSelect.value = menu.parentId || '';
+                
+                document.getElementById('menu-modal').classList.add('show');
+            }
+
+            // 상위 메뉴 옵션 채우기
+            populateParentOptions(excludeMenuId = null) {
+                const parentSelect = document.getElementById('menu-parent');
+                parentSelect.innerHTML = '<option value="">최상위 메뉴</option>';
+                
+                // 최상위 메뉴들만 상위 메뉴 옵션으로 추가
+                this.menus.filter(menu => menu.level === 0 && menu.menuId !== excludeMenuId)
+                    .forEach(menu => {
+                        const option = document.createElement('option');
+                        option.value = menu.menuId;
+                        option.textContent = menu.title;
+                        parentSelect.appendChild(option);
+                    });
+            }
+
+            // 모달 닫기
+            closeModal() {
+                const modal = document.getElementById('menu-modal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+            }
+
+            // 메뉴 저장
+            async saveMenu() {
+                const menuData = {
+                    id: document.getElementById('menu-id')?.value || null,
+                    menuId: document.getElementById('menu-menu-id')?.value,
+                    title: document.getElementById('menu-title')?.value,
+                    path: document.getElementById('menu-url')?.value || null,
+                    icon: document.getElementById('menu-icon')?.value || null,
+                    parentId: document.getElementById('menu-parent')?.value || null,
+                    sortOrder: parseInt(document.getElementById('menu-sort-order')?.value) || 0,
+                    isActive: document.getElementById('menu-enabled')?.checked || false,
+                    requiredRole: document.getElementById('menu-required-role')?.value || null
+                };
+
+                // 필수 필드 검증
+                if (!menuData.menuId || !menuData.title) {
+                    alert('메뉴 ID와 제목은 필수입니다.');
+                    return;
+                }
+
+                try {
+                    const isEdit = menuData.id !== null && menuData.id !== '';
+                    const url = isEdit ? `/api/menus/${menuData.id}` : '/api/menus';
+                    const method = isEdit ? 'PUT' : 'POST';
+
+                    const response = await this.fetch(url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(menuData)
+                    });
+
+                    if (response.ok) {
+                        alert(isEdit ? '메뉴가 성공적으로 수정되었습니다.' : '메뉴가 성공적으로 추가되었습니다.');
+                        this.closeModal();
+                        await this.loadMenus();
+                    } else {
+                        throw new Error(`저장 실패: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error('메뉴 저장 오류:', error);
+                    alert('메뉴 저장에 실패했습니다.');
+                }
+            }
+
+            // 선택적 구현: 페이지 정리 시 추가 작업
+            onDestroy() {
+                // 모달 정리
+                const modal = document.getElementById('menu-modal');
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+                
+                // 추가적인 정리 작업이 필요하면 여기에 구현
+                console.log('메뉴 관리 페이지 추가 정리 작업 완료');
+            }
+        };
+        }
+
+        // 메뉴 관리 초기화 함수 (한 번만 선언)
+        if (!window.initMenuManagement) {
+            window.initMenuManagement = async function() {
+                try {
+                    // PageManager 대기
+                    await window.waitForPageManager();
+                    
+                    // 기존 인스턴스가 있으면 정리
+                    if (window.menuManagementPageInstance) {
+                        if (window.PageManager) {
+                            PageManager.unregisterPage('menu-management');
+                        } else {
+                            window.menuManagementPageInstance.destroy();
+                        }
+                    }
+                    
+                    // 새 페이지 인스턴스 생성
+                    window.menuManagementPageInstance = new window.MenuManagementPage();
+                    
+                    // 페이지 관리자에 등록 (사용 가능한 경우)
+                    if (window.PageManager) {
+                        PageManager.registerPage('menu-management', window.menuManagementPageInstance);
+                    }
+                    
+                    // 초기화 실행
+                    await window.menuManagementPageInstance.init();
+                    
+                    console.log('메뉴 관리 페이지 초기화 완료');
+                } catch (error) {
+                    console.error('메뉴 관리 페이지 초기화 실패:', error);
+                }
+            };
+        }
+
+        // 메뉴 관리 정리 함수 (한 번만 선언)
+        if (!window.cleanupMenuManagement) {
+            window.cleanupMenuManagement = function() {
+                if (window.PageManager && window.menuManagementPageInstance) {
+                    PageManager.unregisterPage('menu-management');
+                } else if (window.menuManagementPageInstance) {
+                    window.menuManagementPageInstance.destroy();
+                }
+                
+                window.menuManagementPageInstance = null;
+                console.log('메뉴 관리 페이지 정리 완료');
+            };
+        }
+
+        // 페이지 초기화 실행
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', window.initMenuManagement);
+        } else {
+            // 즉시 초기화 (동적 로딩의 경우)
+            window.initMenuManagement();
+        }
+    </script>
+</body>
+</html>
