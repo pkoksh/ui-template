@@ -1,0 +1,129 @@
+# ==================================
+# 업무시스템 UI Template - GitIgnore
+# ==================================
+
+# ===== IDE 관련 =====
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.project
+.classpath
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# ===== OS 관련 =====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===== 로그 파일 =====
+*.log
+logs/
+log/
+
+# ===== 임시 파일 =====
+*.tmp
+*.temp
+*.cache
+*.swp
+*.swo
+*~
+
+# ===== 압축 파일 =====
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# ===== 빌드 결과물 =====
+dist/
+build/
+target/
+*.war
+*.jar
+*.ear
+
+# ===== 환경 설정 파일 =====
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# ===== 데이터베이스 관련 =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== Node.js 관련 (혹시 사용할 경우) =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ===== 기타 =====
+# 백업 파일
+*.backup
+*.bak
+
+# 설치 파일
+*.exe
+*.msi
+
+# 문서 임시 파일
+~$*
+
+# 테스트 커버리지
+coverage/
+*.lcov
+
+# 캐시 디렉토리
+.cache/

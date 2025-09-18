@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - 업무시스템</title>
+    
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <meta name="theme-color" content="#3B82F6">
+    
+    <!-- CSS 라이브러리 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        /* 커스텀 애니메이션 */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* 배경 그라디언트 */
+        .bg-gradient-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        /* 유리 효과 */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* 입력 필드 효과 */
+        .input-focus:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+        }
+        
+        /* 로딩 스피너 */
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3B82F6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-custom flex items-center justify-center p-4">
+    <!-- 배경 장식 요소 -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-10 -left-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute top-1/4 -right-20 w-60 h-60 bg-white opacity-5 rounded-full"></div>
+        <div class="absolute -bottom-20 left-1/4 w-80 h-80 bg-white opacity-5 rounded-full"></div>
+    </div>
+
+    <!-- 로그인 컨테이너 -->
+    <div class="w-full max-w-md">
+        <!-- 로고 영역 -->
+        <div class="text-center mb-8 fade-in">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg mb-4">
+                <i class='bx bx-grid-alt text-3xl text-blue-600'></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">업무시스템</h1>
+            <p class="text-blue-100">안전하고 효율적인 업무 관리</p>
+        </div>
+
+        <!-- 로그인 폼 -->
+        <div class="glass-effect rounded-2xl shadow-2xl p-8 slide-in">
+            <form id="loginForm" action="/api/auth/login" method="POST" class="space-y-6">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-2">로그인</h2>
+                    <p class="text-gray-600">계정에 로그인하여 업무를 시작하세요</p>
+                </div>
+
+                <!-- 사용자 ID 입력 -->
+                <div class="space-y-2">
+                    <label for="userId" class="block text-sm font-medium text-gray-700">
+                        <i class='bx bx-user mr-1'></i>사용자 ID
+                    </label>
+                    <input 
+                        type="text" 
+                        id="userId" 
+                        name="userId" 
+                        required
+                        autocomplete="username"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 input-focus"
+                        placeholder="사용자 ID를 입력하세요"
+                    >
+                    <div id="userIdError" class="text-red-500 text-sm hidden">
+                        <i class='bx bx-error-circle mr-1'></i>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- 비밀번호 입력 -->
+                <div class="space-y-2">
+                    <label for="password" class="block text-sm font-medium text-gray-700">
+                        <i class='bx bx-lock-alt mr-1'></i>비밀번호
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required
+                            autocomplete="current-password"
+                            class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 input-focus"
+                            placeholder="비밀번호를 입력하세요"
+                        >
+                        <button 
+                            type="button" 
+                            id="togglePassword"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                        >
+                            <i class='bx bx-hide text-xl'></i>
+                        </button>
+                    </div>
+                    <div id="passwordError" class="text-red-500 text-sm hidden">
+                        <i class='bx bx-error-circle mr-1'></i>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- 로그인 옵션 -->
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="rememberMe" name="remember-me" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
+                        <span class="ml-2 text-sm text-gray-600">로그인 상태 유지</span>
+                    </label>
+                    <a href="#" id="forgotPassword" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                        비밀번호 찾기
+                    </a>
+                </div>
+
+                <!-- 로그인 버튼 -->
+                <button 
+                    type="submit" 
+                    id="loginButton"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:translate-y-[-2px] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    <span id="loginButtonText">로그인</span>
+                    <div id="loginButtonSpinner" class="loading-spinner mx-auto hidden"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- 하단 정보 -->
+        <div class="text-center mt-8 text-blue-100">
+            <p class="text-sm">© 2025 업무시스템. All rights reserved.</p>
+            <div class="flex justify-center space-x-4 mt-2 text-xs">
+                <a href="#" class="hover:text-white transition-colors">이용약관</a>
+                <a href="#" class="hover:text-white transition-colors">개인정보처리방침</a>
+                <a href="#" class="hover:text-white transition-colors">고객지원</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/login.js"></script>
+</body>
+</html>

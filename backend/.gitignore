@@ -1,0 +1,157 @@
+# ======================================
+# Spring Boot 프로젝트 전용 GitIgnore
+# ======================================
+
+# ===== Gradle 관련 =====
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+gradle-wrapper.jar
+gradle-wrapper.properties
+!gradle/wrapper/gradle-wrapper.properties
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ===== Maven 관련 (혹시 사용할 경우) =====
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ===== Spring Boot 관련 =====
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Spring Boot DevTools
+.springBeans
+.sts4-cache
+spring-shell.log
+
+# ===== 로그 파일 =====
+*.log
+logs/
+log/
+application*.log
+
+# ===== 설정 파일 =====
+# 프로덕션 설정 파일 (민감한 정보 포함)
+application-prod.yml
+application-prod.properties
+application-production.yml
+application-production.properties
+
+# 로컬 개발 설정 파일
+application-local.yml
+application-local.properties
+
+# 데이터베이스 설정 파일 (비밀번호 포함)
+application-db.yml
+application-db.properties
+
+# ===== 테스트 관련 =====
+# 테스트 결과
+test-results/
+TEST-*.xml
+*.exec
+
+# JaCoCo 테스트 커버리지
+*.exec
+jacoco.xml
+
+# ===== IDE 관련 =====
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+.metadata
+.factorypath
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# ===== 빌드 도구 관련 =====
+# Gradle 캐시
+.gradle
+gradle-app.setting
+!gradle-wrapper.jar
+
+# STS (Spring Tool Suite)
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# ===== 런타임 파일 =====
+# PID 파일
+*.pid
+
+# 히프 덤프
+*.hprof
+
+# JVM 크래시 로그
+hs_err_pid*
+
+# ===== 데이터베이스 관련 =====
+# H2 데이터베이스 파일
+*.db
+*.trace.db
+*.lock.db
+
+# ===== 보안 관련 =====
+# 키 파일
+*.key
+*.pem
+*.crt
+*.jks
+*.keystore
+*.truststore
+
+# ===== 기타 =====
+# 백업 파일
+*.bak
+*.backup
+*.orig
+
+# 임시 파일
+*.tmp
+*.temp
+
+# 업로드된 파일
+uploads/
+upload/
+files/
+
+# 캐시 디렉토리
+.cache/

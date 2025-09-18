@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>업무시스템</title>
+    
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/favicon-180x180.png">
+    <meta name="theme-color" content="#3B82F6">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        debugger;
+        tailwind.config = {
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 h-screen overflow-hidden">
+    <!-- 메인 컨테이너 -->
+    <div class="flex h-full">
+        <!-- 사이드바 -->
+        <aside id="sidebar" class="sidebar-transition bg-white shadow-lg w-64 flex-shrink-0 transform -translate-x-full lg:translate-x-0 fixed lg:relative h-full z-20">
+            <div class="px-4 py-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h1 class="text-xl font-bold text-gray-800">업무시스템</h1>
+                    <!-- 사용자 메뉴 -->
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-2 text-gray-600 hover:text-gray-800 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class='bx bx-user-circle text-xl'></i>
+                            <span id="currentUserName" class="text-sm font-medium hidden lg:block">사용자</span>
+                            <i class='bx bx-chevron-down text-xs'></i>
+                        </button>
+                        
+                        <!-- 사용자 드롭다운 메뉴 -->
+                        <div id="userDropdown" class="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden">
+                            <div class="py-2">
+                                <div class="px-4 py-2 border-b border-gray-100">
+                                    <div class="text-sm font-medium text-gray-800" id="userDropdownName">사용자명</div>
+                                    <div class="text-xs text-gray-500" id="userDropdownRole">역할</div>
+                                </div>
+                                <a href="#" id="profileLink" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class='bx bx-user mr-2'></i>
+                                    프로필
+                                </a>
+                                <a href="#" id="settingsLink" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class='bx bx-cog mr-2'></i>
+                                    설정
+                                </a>
+                                <div class="border-t border-gray-100 mt-1 pt-1">
+                                    <button id="logoutButton" class="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                        <i class='bx bx-log-out mr-2'></i>
+                                        로그아웃
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 전체 아코디언 제어 버튼 -->
+                <div class="flex space-x-2">
+                    <button id="expand-all" class="flex-1 px-3 py-2 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded-lg flex items-center justify-center space-x-1">
+                        <i class='bx bx-chevron-down text-xs'></i>
+                        <span>전체 펼치기</span>
+                    </button>
+                    <button id="collapse-all" class="flex-1 px-3 py-2 text-xs bg-gray-500 hover:bg-gray-600 text-white rounded-lg flex items-center justify-center space-x-1">
+                        <i class='bx bx-chevron-up text-xs'></i>
+                        <span>전체 접기</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 메뉴 리스트 (동적 생성) -->
+            <nav class="mt-4">
+                <ul class="space-y-2 px-4">
+                    <!-- 메뉴가 JavaScript로 동적 생성됩니다 -->
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- 오버레이 (모바일에서 사이드바가 열렸을 때) -->
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden lg:hidden"></div>
+
+        <!-- 메인 컨텐츠 영역 -->
+        <main class="main-content">
+            <!-- 헤더 -->
+            <header class="bg-white shadow-sm border-b px-4 py-4 flex items-center justify-between flex-shrink-0">
+                <div class="flex items-center flex-1 max-w-md">
+                    <!-- 모바일 메뉴 버튼 -->
+                    <button id="menu-toggle" class="lg:hidden mr-4 p-2 rounded-md hover:bg-gray-100">
+                        <i class='bx bx-menu text-xl'></i>
+                    </button>
+                    
+                    <!-- 메뉴 검색 -->
+                    <div class="relative flex-1">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class='bx bx-search text-gray-400'></i>
+                            </div>
+                            <input 
+                                id="menu-search" 
+                                type="text" 
+                                placeholder="메뉴 검색... (Ctrl+K)" 
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                autocomplete="off"
+                            >
+                        </div>
+                        
+                        <!-- 검색 결과 드롭다운 -->
+                        <div id="search-results" class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 hidden max-h-60 overflow-y-auto">
+                            <!-- 검색 결과가 여기에 동적으로 추가됩니다 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- 메모리 상태 표시 -->
+                    <div id="memory-status" class="hidden lg:flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                        <div class="flex items-center space-x-2">
+                            <i class='bx bx-chip text-gray-500 text-base'></i>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-gray-500 leading-none">캐시</span>
+                                <span id="cache-info" class="text-sm font-medium text-gray-700 leading-none">0/10</span>
+                            </div>
+                        </div>
+                        <div class="ml-3 pl-3 border-l border-gray-300">
+                            <button id="clear-cache-btn" class="inline-flex items-center space-x-1 text-xs px-3 py-1.5 bg-gradient-to-r from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 text-red-700 border border-red-200 hover:border-red-300 rounded-md transition-all duration-200 font-medium shadow-sm hover:shadow-md" title="사용하지 않는 캐시 정리">
+                                <i class='bx bx-trash-alt text-xs'></i>
+                                <span>정리</span>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
+                        <i class='bx bx-download text-lg text-gray-600'></i>
+                    </button>
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm">
+                        U
+                    </div>
+                </div>
+            </header>
+
+            <!-- 컨텐츠 영역 -->
+            <div class="flex-1 overflow-auto min-h-0">
+                <div id="content-area" class="p-6">
+                    <!-- 동적으로 로드되는 페이지 콘텐츠가 여기에 표시됩니다 -->
+                    <div id="loading-indicator" class="hidden flex items-center justify-center py-8">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span class="ml-3 text-gray-600">페이지를 로드하는 중...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭 바 -->
+            <div class="tab-footer">
+                <!-- 왼쪽 스크롤 버튼 -->
+                <button id="tab-scroll-left" class="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-white bg-opacity-90 hover:bg-gray-100 rounded-full p-1 shadow-md border opacity-0 transition-opacity duration-200">
+                    <i class='bx bx-chevron-left text-gray-600'></i>
+                </button>
+                
+                <!-- 탭 컨테이너 -->
+                <div id="tab-container" class="overflow-hidden">
+                    <div id="tab-bar" class="transition-transform duration-300 ease-in-out" style="transform: translateX(0px)">
+                        <!-- 탭이 동적으로 생성됩니다 -->
+                    </div>
+                </div>
+                
+                <!-- 오른쪽 스크롤 버튼 -->
+                <button id="tab-scroll-right" class="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-white bg-opacity-90 hover:bg-gray-100 rounded-full p-1 shadow-md border opacity-0 transition-opacity duration-200">
+                    <i class='bx bx-chevron-right text-gray-600'></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript 모듈들 -->
+    <script src="js/page-loader.js"></script>
+    <script src="js/menu.js"></script>
+    <script src="js/tabs.js"></script>
+    <script src="js/search.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

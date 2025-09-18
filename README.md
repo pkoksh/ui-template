@@ -1,22 +1,27 @@
-# 🚀 Business Management System
+# 🏢 Business Management System
 
-Modern, responsive business management system built with vanilla JavaScript and Tailwind CSS.
+**Full-stack** business management system with modern UI and secure backend authentication.
 
 ## ✨ Features
 
 ### 🎯 Core Functionality
+- **User Authentication**: Session-based login with Remember-Me functionality
 - **Dynamic Page Loading**: Fetch-based page system with caching
 - **Smart Memory Management**: LRU cache with automatic cleanup (max 10 pages)
 - **Tab Management**: Multiple tabs with horizontal scrolling support
 - **Responsive Design**: Mobile-first approach with collapsible sidebar
 
 ### 🔧 Technical Features
+- **Backend Security**: Spring Security 6 with BCrypt password encryption
+- **Database Integration**: MySQL with MyBatis ORM
+- **Session Management**: Persistent sessions with Remember-Me cookies
 - **Script & Style Support**: Dynamic execution of page-specific scripts and styles
 - **Resource Cleanup**: Automatic cleanup on tab close to prevent memory leaks
 - **Real-time Monitoring**: Memory usage display in header
 - **Accordion Menus**: Expandable/collapsible navigation with global controls
 
 ### 📱 User Experience
+- **Professional Login**: Secure authentication with elegant UI
 - **Mobile Responsive**: Hamburger menu for mobile devices
 - **Smooth Animations**: CSS transitions and scroll animations
 - **Accessibility**: Keyboard navigation and screen reader support
@@ -24,25 +29,51 @@ Modern, responsive business management system built with vanilla JavaScript and 
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: Vanilla JavaScript (ES6+)
+### Frontend
+- **Framework**: Vanilla JavaScript (ES6+)
 - **Styling**: Tailwind CSS (CDN)
-- **HTTP Client**: Axios
-- **DOM Manipulation**: jQuery
+- **Icons**: Boxicons
+- **Notifications**: SweetAlert2
 - **Module System**: Dynamic ES6 imports
+
+### Backend
+- **Framework**: Spring Boot 3.2.0
+- **Security**: Spring Security 6
+- **Database**: MySQL 8.0
+- **ORM**: MyBatis
+- **Build Tool**: Gradle 8.5
+- **Java Version**: 17+
 
 ## 📁 Project Structure
 
 ```
-├── index.html              # Main application shell
-├── script.js               # Core application logic
-├── pages/                  # Dynamic page components
-│   ├── dashboard.html      # Dashboard with statistics
-│   ├── projects.html       # Project management
-│   ├── project-new.html    # New project form
-│   ├── project-templates.html # Project templates
-│   ├── project-archive.html   # Archived projects
-│   ├── tasks.html          # Task board
-│   ├── task-calendar.html  # Calendar view
+├── README.md               # Project documentation
+├── backend/                # Spring Boot backend
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/
+│   │   │   │   └── com/worksystem/
+│   │   │   │       ├── config/         # Spring Security config
+│   │   │   │       ├── controller/     # REST controllers
+│   │   │   │       ├── model/          # Entity models
+│   │   │   │       ├── mapper/         # MyBatis mappers
+│   │   │   │       └── service/        # Business logic
+│   │   │   └── resources/
+│   │   │       ├── static/             # Frontend assets
+│   │   │       │   ├── index.html      # Main application
+│   │   │       │   ├── login.html      # Login page
+│   │   │       │   ├── script.js       # Core app logic
+│   │   │       │   ├── js/             # JavaScript modules
+│   │   │       │   └── pages/          # Dynamic pages
+│   │   │       ├── mybatis/mapper/     # SQL mappers
+│   │   │       └── application.yml     # App configuration
+│   └── build.gradle        # Gradle build script
+├── index.html              # Frontend-only version
+├── script.js               # Standalone frontend logic
+└── pages/                  # Static page components
+    ├── dashboard.html      # Dashboard with statistics
+    ├── projects.html       # Project management
+    ├── tasks.html          # Task board
 │   ├── task-timeline.html  # Timeline view
 │   ├── task-my.html        # Personal tasks
 │   ├── reports.html        # Reports and analytics
@@ -53,10 +84,13 @@ Modern, responsive business management system built with vanilla JavaScript and 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- HTTP server (for local development)
+- **Java 17+** (for backend)
+- **MySQL 8.0+** (for database)
+- **Modern web browser** (Chrome, Firefox, Safari, Edge)
 
 ### Installation
+
+#### Option 1: Full-Stack (Recommended)
 
 1. **Clone the repository**
    ```bash
@@ -64,22 +98,73 @@ Modern, responsive business management system built with vanilla JavaScript and 
    cd ui-template
    ```
 
-2. **Start a local server**
-   ```bash
-   # Using Python
-   python -m http.server 8000
+2. **Setup Database**
+   ```sql
+   -- Create database
+   CREATE DATABASE worksystem CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    
-   # Using Node.js
-   npx serve .
-   
-   # Using PHP
-   php -S localhost:8000
+   -- Create user (optional)
+   CREATE USER 'worksystem'@'localhost' IDENTIFIED BY 'password';
+   GRANT ALL PRIVILEGES ON worksystem.* TO 'worksystem'@'localhost';
    ```
 
-3. **Open in browser**
+3. **Configure Database Connection**
+   ```bash
+   cd backend/src/main/resources
+   # Edit application.yml with your database settings
+   ```
+
+4. **Run the Application**
+   ```bash
+   cd backend
+   ./gradlew bootRun
+   ```
+
+5. **Access the Application**
+   ```
+   http://localhost:8080
+   ```
+
+6. **Login with Test Accounts**
+   - **Admin**: `admin` / `admin123`
+   - **User**: `user1` / `user123`
+   - **Manager**: `manager` / `manager123`
+
+#### Option 2: Frontend Only
+
+1. **Use the standalone files**
+   ```bash
+   # Start a local server in the root directory
+   python -m http.server 8000
+   # or
+   npx serve .
+   ```
+
+2. **Open in browser**
    ```
    http://localhost:8000
    ```
+
+## 🔧 Configuration
+
+### Database Configuration (backend/src/main/resources/application.yml)
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/worksystem
+    username: your_username
+    password: your_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+```
+
+### Build Configuration (backend/build.gradle)
+```gradle
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+```
 
 ## 💡 Key Features Explained
 

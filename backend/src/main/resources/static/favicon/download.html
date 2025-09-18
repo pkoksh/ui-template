@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>파비콘 다운로드</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        button { background: #3B82F6; color: white; border: none; padding: 10px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>파비콘 생성 및 다운로드</h2>
+    <div id="canvases"></div>
+    <button onclick="downloadAll()">모든 파비콘 다운로드</button>
+
+    <script>
+        function createCanvas(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            canvas.id = 'favicon' + size;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // 배경 그라디언트
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#3B82F6');
+            gradient.addColorStop(1, '#1D4ED8');
+            
+            // 라운드 사각형 배경
+            ctx.fillStyle = gradient;
+            roundRect(ctx, 0, 0, size, size, size * 0.1875);
+            ctx.fill();
+            
+            // 격자 요소들
+            const unit = size / 32;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            roundRect(ctx, 6*unit, 6*unit, 8*unit, 8*unit, unit);
+            ctx.fill();
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            roundRect(ctx, 18*unit, 6*unit, 8*unit, 8*unit, unit);
+            ctx.fill();
+            
+            roundRect(ctx, 6*unit, 18*unit, 8*unit, 8*unit, unit);
+            ctx.fill();
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            roundRect(ctx, 18*unit, 18*unit, 8*unit, 8*unit, unit);
+            ctx.fill();
+            
+            // 연결선
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = unit;
+            ctx.beginPath();
+            ctx.moveTo(14*unit, 10*unit);
+            ctx.lineTo(18*unit, 10*unit);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(10*unit, 14*unit);
+            ctx.lineTo(10*unit, 18*unit);
+            ctx.stroke();
+            
+            return canvas;
+        }
+        
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+        
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+        
+        function downloadAll() {
+            const sizes = [16, 32, 48, 64];
+            sizes.forEach((size, index) => {
+                setTimeout(() => {
+                    const canvas = createCanvas(size);
+                    downloadCanvas(canvas, `favicon-${size}x${size}.png`);
+                }, index * 500);
+            });
+        }
+        
+        // 미리보기 생성
+        window.onload = function() {
+            const container = document.getElementById('canvases');
+            [16, 32, 48, 64].forEach(size => {
+                const canvas = createCanvas(size);
+                const div = document.createElement('div');
+                div.style.display = 'inline-block';
+                div.style.margin = '10px';
+                div.style.textAlign = 'center';
+                
+                const label = document.createElement('div');
+                label.textContent = size + 'x' + size;
+                label.style.marginBottom = '5px';
+                
+                const btn = document.createElement('button');
+                btn.textContent = '다운로드';
+                btn.onclick = () => downloadCanvas(canvas, `favicon-${size}x${size}.png`);
+                
+                div.appendChild(label);
+                div.appendChild(canvas);
+                div.appendChild(btn);
+                container.appendChild(div);
+            });
+        };
+    </script>
+</body>
+</html>
