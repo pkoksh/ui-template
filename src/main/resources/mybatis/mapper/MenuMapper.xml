@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.worksystem.repository.MenuRepository">
+
+    <!-- Result Map 정의 -->
+    <resultMap id="MenuResultMap" type="com.worksystem.entity.Menu">
+        <id property="id" column="id"/>
+        <result property="menuId" column="menu_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="title" column="title"/>
+        <result property="url" column="url"/>
+        <result property="icon" column="icon"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="enabled" column="enabled"/>
+        <result property="requiredRole" column="required_role"/>
+        <result property="description" column="description"/>
+    </resultMap>
+
+    <!-- 모든 메뉴 조회 (정렬 순서대로) -->
+    <select id="findAllByOrderBySortOrderAsc" resultMap="MenuResultMap">
+        SELECT * FROM menus ORDER BY sort_order ASC
+    </select>
+
+    <!-- 활성화된 메뉴만 조회 (정렬 순서대로) -->
+    <select id="findByEnabledTrueOrderBySortOrderAsc" resultMap="MenuResultMap">
+        SELECT * FROM menus WHERE enabled = true ORDER BY sort_order ASC
+    </select>
+
+    <!-- ID로 메뉴 조회 -->
+    <select id="findById" parameterType="long" resultMap="MenuResultMap">
+        SELECT * FROM menus WHERE id = #{id}
+    </select>
+
+    <!-- 메뉴 ID로 메뉴 조회 -->
+    <select id="findByMenuId" parameterType="string" resultMap="MenuResultMap">
+        SELECT * FROM menus WHERE menu_id = #{menuId}
+    </select>
+
+    <!-- 메뉴 추가 -->
+    <insert id="insert" parameterType="com.worksystem.entity.Menu" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO menus (
+            menu_id, 
+            parent_id, 
+            title, 
+            url, 
+            icon, 
+            sort_order, 
+            enabled, 
+            required_role, 
+            description
+        ) VALUES (
+            #{menuId}, 
+            #{parentId}, 
+            #{title}, 
+            #{url}, 
+            #{icon}, 
+            #{sortOrder}, 
+            #{enabled}, 
+            #{requiredRole}, 
+            #{description}
+        )
+    </insert>
+
+    <!-- 메뉴 수정 -->
+    <update id="update" parameterType="com.worksystem.entity.Menu">
+        UPDATE menus SET 
+            title = #{title},
+            url = #{url},
+            icon = #{icon},
+            parent_id = #{parentId},
+            sort_order = #{sortOrder},
+            enabled = #{enabled},
+            required_role = #{requiredRole},
+            description = #{description}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 메뉴 삭제 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM menus WHERE id = #{id}
+    </delete>
+
+</mapper>

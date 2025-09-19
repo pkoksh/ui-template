@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div class="p-6">
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-6">대시보드</h3>
+
+        <button id="refresh-stats" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mb-6 transition-colors">
+            <i class='bx bx-refresh'></i> 통계 새로고침
+        </button>
+
+        <!-- 통계 카드들 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div class="flex items-center">
+                    <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">총 프로젝트</p>
+                        <p id="total-projects" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">12</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div class="flex items-center">
+                    <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">완료된 업무</p>
+                        <p id="completed-tasks" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">24</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div class="flex items-center">
+                    <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">진행 중인 업무</p>
+                        <p id="active-tasks" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">8</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div class="flex items-center">
+                    <div class="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">지연된 업무</p>
+                        <p id="delayed-tasks" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">3</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 최근 활동 -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+            <div class="px-6 py-4 border-b dark:border-gray-700">
+                <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">최근 활동</h4>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4" id="recent-activities">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">프로젝트 A의 설계 문서가 업데이트되었습니다.</p>
+                        <span class="text-xs text-gray-400">2시간 전</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">업무 #1234가 완료되었습니다.</p>
+                        <span class="text-xs text-gray-400">4시간 전</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">새로운 팀 멤버가 추가되었습니다.</p>
+                        <span class="text-xs text-gray-400">1일 전</span>
+                    </div>
+                </div>
+                <div class="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">
+                    <p>마지막 업데이트: <span id="last-updated">-</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 간단한 대시보드 스크립트
+        let updateInterval;
+
+        // 통계 데이터 로드 (시뮬레이션)
+        function loadStats() {
+            try {
+                // 실제로는 API 호출
+                // const response = await fetch('/api/dashboard/stats');
+                
+                // 시뮬레이션 데이터
+                const stats = {
+                    totalProjects: Math.floor(Math.random() * 20) + 5,
+                    completedTasks: Math.floor(Math.random() * 50) + 20,
+                    activeTasks: Math.floor(Math.random() * 15) + 5,
+                    delayedTasks: Math.floor(Math.random() * 8) + 1
+                };
+                
+                updateUI(stats);
+            } catch (error) {
+                console.error('통계 데이터 로드 실패:', error);
+            }
+        }
+
+        // UI 업데이트
+        function updateUI(stats) {
+            const elements = {
+                'total-projects': stats.totalProjects,
+                'completed-tasks': stats.completedTasks,
+                'active-tasks': stats.activeTasks,
+                'delayed-tasks': stats.delayedTasks
+            };
+            
+            for (const [id, value] of Object.entries(elements)) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value.toLocaleString();
+                }
+            }
+            
+            const lastUpdated = document.getElementById('last-updated');
+            if (lastUpdated) {
+                lastUpdated.textContent = new Date().toLocaleTimeString();
+            }
+        }
+
+        // 이벤트 리스너
+        document.getElementById('refresh-stats').addEventListener('click', loadStats);
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            
+            // 10초마다 자동 업데이트
+            updateInterval = setInterval(loadStats, 10000);
+        });
+
+        // 페이지 언로드 시 정리
+        window.addEventListener('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html>

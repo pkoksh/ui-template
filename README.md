@@ -1,321 +1,192 @@
-# 🏢 Business Management System
+# 업무시스템 Backend
 
-**Full-stack** business management system with modern UI and secure backend authentication.
+SpringBoot 3 기반의 업무관리 시스템 백엔드입니다.
 
-## ✨ Features
+## 🚀 기술 스택
 
-### 🎯 Core Functionality
-- **User Authentication**: Session-based login with Remember-Me functionality
-- **Dynamic Page Loading**: Fetch-based page system with caching
-- **Smart Memory Management**: LRU cache with automatic cleanup (max 10 pages)
-- **Tab Management**: Multiple tabs with horizontal scrolling support
-- **Responsive Design**: Mobile-first approach with collapsible sidebar
-
-### 🔧 Technical Features
-- **Backend Security**: Spring Security 6 with BCrypt password encryption
-- **Database Integration**: MySQL with MyBatis ORM
-- **Session Management**: Persistent sessions with Remember-Me cookies
-- **Script & Style Support**: Dynamic execution of page-specific scripts and styles
-- **Resource Cleanup**: Automatic cleanup on tab close to prevent memory leaks
-- **Real-time Monitoring**: Memory usage display in header
-- **Accordion Menus**: Expandable/collapsible navigation with global controls
-
-### 📱 User Experience
-- **Professional Login**: Secure authentication with elegant UI
-- **Mobile Responsive**: Hamburger menu for mobile devices
-- **Smooth Animations**: CSS transitions and scroll animations
-- **Accessibility**: Keyboard navigation and screen reader support
-- **Performance**: Optimized loading with smart caching
-
-## 🛠️ Technology Stack
-
-### Frontend
-- **Framework**: Vanilla JavaScript (ES6+)
-- **Styling**: Tailwind CSS (CDN)
-- **Icons**: Boxicons
-- **Notifications**: SweetAlert2
-- **Module System**: Dynamic ES6 imports
-
-### Backend
 - **Framework**: Spring Boot 3.2.0
-- **Security**: Spring Security 6
+- **Security**: Spring Security 6 (세션 기반)
+- **Template Engine**: Thymeleaf
 - **Database**: MySQL 8.0
 - **ORM**: MyBatis
 - **Build Tool**: Gradle 8.5
-- **Java Version**: 17+
+- **Java Version**: 17
 
-## 📁 Project Structure
+## 📁 프로젝트 구조
 
 ```
-├── README.md               # Project documentation
-├── backend/                # Spring Boot backend
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/worksystem/
-│   │   │   │       ├── config/         # Spring Security config
-│   │   │   │       ├── controller/     # REST controllers
-│   │   │   │       ├── model/          # Entity models
-│   │   │   │       ├── mapper/         # MyBatis mappers
-│   │   │   │       └── service/        # Business logic
-│   │   │   └── resources/
-│   │   │       ├── static/             # Frontend assets
-│   │   │       │   ├── index.html      # Main application
-│   │   │       │   ├── login.html      # Login page
-│   │   │       │   ├── script.js       # Core app logic
-│   │   │       │   ├── js/             # JavaScript modules
-│   │   │       │   └── pages/          # Dynamic pages
-│   │   │       ├── mybatis/mapper/     # SQL mappers
-│   │   │       └── application.yml     # App configuration
-│   └── build.gradle        # Gradle build script
-├── index.html              # Frontend-only version
-├── script.js               # Standalone frontend logic
-└── pages/                  # Static page components
-    ├── dashboard.html      # Dashboard with statistics
-    ├── projects.html       # Project management
-    ├── tasks.html          # Task board
-│   ├── task-timeline.html  # Timeline view
-│   ├── task-my.html        # Personal tasks
-│   ├── reports.html        # Reports and analytics
-│   └── settings.html       # Application settings
-└── README.md               # Project documentation
+/
+├── src/main/java/com/worksystem/
+│   ├── WorkSystemApplication.java          # 메인 애플리케이션
+│   ├── config/                            # 설정 클래스들
+│   │   ├── SecurityConfig.java            # Spring Security 설정
+│   │   ├── MyBatisConfig.java             # MyBatis 설정
+│   │   ├── WebConfig.java                 # Web MVC 설정
+│   │   ├── CustomAuthenticationSuccessHandler.java
+│   │   └── CustomAuthenticationFailureHandler.java
+│   ├── controller/                        # 컨트롤러
+│   │   └── MainController.java
+│   ├── service/                           # 서비스 레이어
+│   │   └── UserService.java
+│   ├── mapper/                            # MyBatis 매퍼 인터페이스
+│   │   └── UserMapper.java
+│   ├── entity/                            # 엔터티 클래스
+│   │   └── User.java
+│   └── dto/                               # DTO 클래스
+│       └── UserDto.java
+├── src/main/resources/
+│   ├── application.properties             # 애플리케이션 설정
+│   ├── schema.sql                         # 데이터베이스 스키마
+│   ├── static/                           # 정적 리소스 (프론트엔드)
+│   ├── templates/                        # Thymeleaf 템플릿
+│   └── mybatis/mapper/                   # MyBatis XML 매퍼
+│       └── UserMapper.xml
+└── build.gradle                          # Gradle 빌드 설정
 ```
 
-## 🚀 Quick Start
+## 🔧 설치 및 실행
 
-### Prerequisites
-- **Java 17+** (for backend)
-- **MySQL 8.0+** (for database)
-- **Modern web browser** (Chrome, Firefox, Safari, Edge)
+### 1. 사전 요구사항
+- Java 17 이상
+- MySQL 8.0 이상
+- Gradle 8.5 이상
 
-### Installation
+### 2. 데이터베이스 설정
 
-#### Option 1: Full-Stack (Recommended)
+MySQL에 데이터베이스와 사용자를 생성합니다:
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/pkoksh/ui-template.git
-   cd ui-template
-   ```
-
-2. **Setup Database**
-   ```sql
-   -- Create database
-   CREATE DATABASE worksystem CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   
-   -- Create user (optional)
-   CREATE USER 'worksystem'@'localhost' IDENTIFIED BY 'password';
-   GRANT ALL PRIVILEGES ON worksystem.* TO 'worksystem'@'localhost';
-   ```
-
-3. **Configure Database Connection**
-   ```bash
-   cd backend/src/main/resources
-   # Edit application.yml with your database settings
-   ```
-
-4. **Run the Application**
-   ```bash
-   cd backend
-   ./gradlew bootRun
-   ```
-
-5. **Access the Application**
-   ```
-   http://localhost:8080
-   ```
-
-6. **Login with Test Accounts**
-   - **Admin**: `admin` / `admin123`
-   - **User**: `user1` / `user123`
-   - **Manager**: `manager` / `manager123`
-
-#### Option 2: Frontend Only
-
-1. **Use the standalone files**
-   ```bash
-   # Start a local server in the root directory
-   python -m http.server 8000
-   # or
-   npx serve .
-   ```
-
-2. **Open in browser**
-   ```
-   http://localhost:8000
-   ```
-
-## 🔧 Configuration
-
-### Database Configuration (backend/src/main/resources/application.yml)
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/worksystem
-    username: your_username
-    password: your_password
-    driver-class-name: com.mysql.cj.jdbc.Driver
+```sql
+-- schema.sql 파일 실행
+mysql -u root -p < src/main/resources/schema.sql
 ```
 
-### Build Configuration (backend/build.gradle)
-```gradle
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
+### 3. 애플리케이션 설정
+
+`src/main/resources/application.properties` 파일에서 데이터베이스 연결 정보를 확인/수정합니다:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/worksystem?useSSL=false&useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+spring.datasource.username=worksystem
+spring.datasource.password=worksystem123
 ```
 
-## 💡 Key Features Explained
+### 4. 애플리케이션 실행
 
-### Dynamic Page Loading
-- Pages are loaded asynchronously using the Fetch API
-- Scripts and styles are extracted and executed dynamically
-- Smart caching prevents unnecessary network requests
+```bash
+# Gradle로 실행
+./gradlew bootRun
 
-### LRU Cache Management
-- Maximum 10 pages cached in memory
-- Least recently used pages are automatically removed
-- Open tabs are protected from cache cleanup
-- Real-time memory usage monitoring
-
-### Tab Scrolling System
-- Horizontal scrolling for many open tabs
-- Smooth scroll animations
-- Mouse wheel support
-- Auto-scroll to active tab
-
-### Resource Management
-- Automatic cleanup of page-specific scripts and styles
-- Memory leak prevention
-- Configurable cache size
-- Debug tools for monitoring
-
-## 🎮 Usage
-
-### Navigation
-- **Sidebar**: Click menu items to open pages
-- **Tabs**: Switch between open pages
-- **Mobile**: Use hamburger menu on small screens
-
-### Tab Management
-- **Open**: Click any menu item
-- **Close**: Click × on tab (protects last tab)
-- **Scroll**: Use scroll buttons or mouse wheel
-
-### Memory Management
-- **Monitor**: Check cache status in header
-- **Clean**: Click "정리" button to clear unused cache
-- **Configure**: Use `debugCache.setMaxCache(size)` in console
-
-### Developer Tools
-Open browser console and use:
-```javascript
-// Check cache status
-debugCache.status()
-
-// List cached pages
-debugCache.list()
-
-// Clear all cache
-debugCache.clear()
-
-// Remove specific page
-debugCache.remove('projects')
-
-// Set cache limit
-debugCache.setMaxCache(15)
 ```
 
-## 🎨 Customization
+### 5. 접속 확인
 
-### Adding New Pages
-1. Create HTML file in `pages/` directory
-2. Add entry to `menuItems` object in `script.js`
-3. Add menu item to sidebar in `index.html`
+브라우저에서 `http://localhost:8080`에 접속합니다.
 
-### Styling
-- Modify Tailwind classes directly in HTML
-- Add custom CSS in `<style>` tags
-- Use Tailwind configuration for theme changes
+## 👤 기본 계정
 
-### Configuration
-- `MAX_CACHED_PAGES`: Maximum cache size
-- `TAB_SCROLL_AMOUNT`: Scroll distance per click
-- CDN links for external libraries
+| 계정 | 비밀번호 | 역할 | 부서 |
+|------|----------|------|------|
+| admin | admin123 | 관리자 | 시스템관리부 |
+| user1 | user123 | 사용자 | 영업부 |
+| manager | manager123 | 팀장 | 기획부 |
 
-## 🔧 Advanced Features
+## 🔐 보안 설정
 
-### Page-Specific Scripts
-```html
-<!-- In any page file -->
-<script>
-// Page-specific JavaScript
-(function() {
-    console.log('Page loaded');
-    
-    // Register cleanup function
-    window.pageCleanup = window.pageCleanup || {};
-    window.pageCleanup.pageName = function() {
-        // Cleanup code here
-    };
-})();
-</script>
+- **인증 방식**: 세션 기반 인증
+- **비밀번호 암호화**: BCrypt
+- **세션 관리**: HttpSession 사용
+- **CSRF 보호**: API 요청 제외하고 활성화
+- **권한 관리**: 역할 기반 접근 제어 (RBAC)
+
+## 📡 API 엔드포인트
+
+### 인증 관련
+- `POST /api/auth/login` - 로그인
+- `POST /api/auth/logout` - 로그아웃
+
+### 사용자 관련
+- `GET /api/user/current` - 현재 사용자 정보 조회
+
+### 시스템 관련
+- `GET /api/system/status` - 시스템 상태 조회
+
+## 🗄️ 데이터베이스 스키마
+
+### users 테이블
+```sql
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(20) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    email VARCHAR(100),
+    department VARCHAR(50),
+    role VARCHAR(20) NOT NULL DEFAULT 'USER',
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    last_login_at TIMESTAMP NULL
+);
 ```
 
-### Custom Styles
-```html
-<!-- In any page file -->
-<style>
-.custom-animation {
-    transition: all 0.3s ease;
-}
-</style>
+### menus 테이블
+```sql
+CREATE TABLE menus (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    menu_id VARCHAR(50) NOT NULL UNIQUE,
+    parent_id VARCHAR(50),
+    title VARCHAR(100) NOT NULL,
+    url VARCHAR(200),
+    icon VARCHAR(50),
+    sort_order INT DEFAULT 0,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    required_role VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 ```
 
-## 📊 Performance
+## 🛠️ 개발 환경
 
-- **Initial Load**: ~50KB (minified)
-- **Page Load**: ~2-5KB per page
-- **Memory Usage**: Scales with cache size
-- **Mobile Performance**: Optimized for 3G networks
+### 개발 도구
+- **IDE**: IntelliJ IDEA, VS Code
+- **Database Tool**: MySQL Workbench, DBeaver
+- **API Testing**: Postman, Insomnia
 
-## 🌟 Browser Support
+### 로깅
+- 개발 환경에서는 DEBUG 레벨 로깅 활성화
+- MyBatis SQL 쿼리 로깅 활성화
+- Spring Security 디버그 모드 활성화
 
-- ✅ Chrome 60+
-- ✅ Firefox 55+
-- ✅ Safari 12+
-- ✅ Edge 79+
+## 📝 추가 구현 예정
 
-## 🤝 Contributing
+- [ ] JWT 토큰 기반 API 인증 (옵션)
+- [ ] Redis 세션 스토어 연동
+- [ ] 메뉴 관리 기능
+- [ ] 사용자 관리 기능
+- [ ] 업무/프로젝트 관리 기능
+- [ ] 파일 업로드 기능
+- [ ] 이메일 알림 기능
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+## 🔍 문제 해결
 
-## 📝 License
+### 1. 데이터베이스 연결 오류
+- MySQL 서비스가 실행 중인지 확인
+- 데이터베이스와 사용자가 올바르게 생성되었는지 확인
+- 방화벽 설정 확인
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### 2. 로그인 실패
+- 데이터베이스에 사용자 데이터가 올바르게 입력되었는지 확인
+- 비밀번호가 BCrypt로 암호화되어 있는지 확인
 
-## 🎯 Roadmap
+### 3. 정적 리소스 로딩 실패
+- 프론트엔드 파일들이 `src/main/resources/static/` 경로에 있는지 확인
+- WebConfig 설정이 올바른지 확인
 
-- [ ] Dark mode support
-- [ ] Drag & drop tab reordering
-- [ ] Bookmark/favorite pages
-- [ ] Search functionality
-- [ ] Offline support with Service Workers
-- [ ] TypeScript migration
-- [ ] Component-based architecture
+## 📞 지원
 
-## 📞 Support
-
-For questions or issues:
-- Create an issue on GitHub
-- Check existing documentation
-- Review console debug tools
+문제가 발생하거나 질문이 있으시면 개발팀에 문의해주세요.
 
 ---
 
-**Built with ❤️ using modern web technologies**
+© 2025 업무시스템. All rights reserved.

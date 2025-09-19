@@ -13,7 +13,7 @@ git add .
 
 # 또는 선택적으로 추가
 git add .gitignore
-git add backend/
+git add /src/main/java/...
 git add README.md
 ```
 
@@ -25,9 +25,9 @@ git add -u
 
 ## 커밋 생성
 ```bash
-git commit -m "feat: Full-stack business system with Spring Boot backend
+git commit -m "feat: Full-stack business system with Spring Boot
 
-- Add Spring Boot 3.2.0 backend with Spring Security 6
+- Add Spring Boot 3.2.0 with Spring Security 6
 - Implement BCrypt password encryption
 - Add MySQL integration with MyBatis
 - Create session-based authentication with Remember-Me
