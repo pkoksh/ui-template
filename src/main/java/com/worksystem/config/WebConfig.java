@@ -14,26 +14,32 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 개발 환경에서 정적 리소스 캐시 완전 비활성화
-        registry.addResourceHandler("/css/**")
-                .addResourceLocations("file:src/main/resources/static/css/", "classpath:/static/css/")
+        
+        // CSS 리소스 (assets 경로 추가)
+        registry.addResourceHandler("/assets/css/**")
+                .addResourceLocations("file:src/main/resources/static/assets/css/", "classpath:/static/assets/css/")
                 .setCachePeriod(0)
                 .resourceChain(false);
         
-        registry.addResourceHandler("/js/**")
-                .addResourceLocations("file:src/main/resources/static/js/", "classpath:/static/js/")
+        // JS 리소스 (assets 경로 추가)
+        registry.addResourceHandler("/assets/js/**")
+                .addResourceLocations("file:src/main/resources/static/assets/js/", "classpath:/static/assets/js/")
                 .setCachePeriod(0)
                 .resourceChain(false);
         
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:src/main/resources/static/images/", "classpath:/static/images/")
+        // 이미지 리소스
+        registry.addResourceHandler("/assets/images/**")
+                .addResourceLocations("file:src/main/resources/static/assets/images/", "classpath:/static/assets/images/")
                 .setCachePeriod(0)
                 .resourceChain(false);
         
-        registry.addResourceHandler("/favicon/**")
-                .addResourceLocations("file:src/main/resources/static/favicon/", "classpath:/static/favicon/")
+        // 파비콘 리소스
+        registry.addResourceHandler("/assets/favicon/**")
+                .addResourceLocations("file:src/main/resources/static/assets/favicon/", "classpath:/static/assets/favicon/")
                 .setCachePeriod(0)
                 .resourceChain(false);
         
+        // 페이지 리소스
         registry.addResourceHandler("/pages/**")
                 .addResourceLocations("file:src/main/resources/static/pages/", "classpath:/static/pages/")
                 .setCachePeriod(0)

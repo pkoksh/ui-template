@@ -51,7 +51,8 @@ public class MainController {
         
         // 개발 환경 설정
         model.addAttribute("isDevelopment", isDevEnvironment());
-        model.addAttribute("jsVersion", System.currentTimeMillis()); // 캐시 버스팅용
+        // model.addAttribute("jsVersion", System.currentTimeMillis() ); // 캐시 버스팅용
+        model.addAttribute("jsVersion", "prod" ); // 캐시 버스팅용
         
         return "index";
     }
@@ -67,6 +68,19 @@ public class MainController {
         model.addAttribute("currentUser", auth != null ? auth.getName() : "guest");
         
         return "pages/dashboard";
+    }
+    
+    /**
+     * 메뉴 관리 페이지
+     */
+    @GetMapping("/menu-management")
+    public String menuManagement(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        model.addAttribute("pageTitle", "메뉴 관리");
+        model.addAttribute("currentUser", auth != null ? auth.getName() : "guest");
+        
+        return "pages/menu-management";
     }
     
     /**

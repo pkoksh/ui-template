@@ -3,33 +3,36 @@ package com.worksystem.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class MenuDTO {
     private Long id;
     private String menuId;
     private String title;
-    private String path;
+    private String url;
     private String icon;
     private String parentId; // String 타입으로 변경
     private Integer sortOrder;
     private Boolean isActive;
     private String requiredRole; // 추가
-    private List<MenuDTO> children;
+    @JsonProperty("Items")
+    private List<MenuDTO> items;
 
     public MenuDTO() {
-        this.children = new ArrayList<>();
+        this.items = new ArrayList<>();
     }
 
-    public MenuDTO(Long id, String menuId, String title, String path, String icon, 
+    public MenuDTO(Long id, String menuId, String title, String url, String icon, 
                    String parentId, Integer sortOrder, Boolean isActive) {
         this.id = id;
         this.menuId = menuId;
         this.title = title;
-        this.path = path;
+        this.url = url;
         this.icon = icon;
         this.parentId = parentId;
         this.sortOrder = sortOrder;
         this.isActive = isActive;
-        this.children = new ArrayList<>();
+        this.items = new ArrayList<>();
     }
 
     // Getters and Setters
@@ -57,12 +60,12 @@ public class MenuDTO {
         this.title = title;
     }
 
-    public String getPath() {
-        return path;
+    public String getUrl() {
+        return url;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getIcon() {
@@ -97,20 +100,20 @@ public class MenuDTO {
         this.isActive = isActive;
     }
 
-    public List<MenuDTO> getChildren() {
-        return children;
+    public List<MenuDTO> getItems() {
+        return items;
     }
 
-    public void setChildren(List<MenuDTO> children) {
-        this.children = children;
+    public void setItems(List<MenuDTO> items) {
+        this.items = items;
     }
 
     public void addChild(MenuDTO child) {
-        this.children.add(child);
+        this.items.add(child);
     }
 
-    public boolean hasChildren() {
-        return children != null && !children.isEmpty();
+    public boolean hasItems() {
+        return items != null && !items.isEmpty();
     }
 
     public String getRequiredRole() {

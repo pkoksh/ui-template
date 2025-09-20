@@ -1,0 +1,16 @@
+📁 Fragment 사용법:
+
+<!-- IBSheet만 필요한 경우 -->
+<head th:replace="~{fragments/common :: ibsheet-head}"></head>
+
+<!-- Chart.js만 필요한 경우 -->
+<head th:replace="~{fragments/common :: chart-head}"></head>
+
+<!-- DataTables만 필요한 경우 -->
+<head th:replace="~{fragments/common :: datatable-head}"></head>
+
+<!-- 여러 라이브러리가 필요한 경우 -->
+<head th:replace="~{fragments/common :: multi-library-head(libraries='ibsheet,chartjs')}"></head>
+
+<!-- 동적 로딩이 특별히 필요한 경우만 -->
+<head th:replace="~{fragments/common :: common-head-with-loader}"></head>

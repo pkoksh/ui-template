@@ -60,6 +60,7 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
                 .requestMatchers("/js/**", "/css/**", "/images/**", "/favicon/**")
+                .requestMatchers("/assets/**") // assets 하위 모든 경로 허용
                 .requestMatchers("/static/**", "/resources/**", "/webjars/**")
                 .requestMatchers("/favicon.ico", "/script.js")
                 .requestMatchers("/error");
@@ -90,6 +91,7 @@ public class SecurityConfig {
                 .requestMatchers("/css/**").permitAll()
                 .requestMatchers("/images/**").permitAll()
                 .requestMatchers("/favicon/**").permitAll()
+                .requestMatchers("/assets/**").permitAll() // assets 하위 모든 경로 허용
                 .requestMatchers("/static/**").permitAll()
                 .requestMatchers("/resources/**").permitAll()
                 .requestMatchers("/webjars/**").permitAll()
@@ -151,7 +153,7 @@ public class SecurityConfig {
             
             // iframe 허용을 위한 헤더 설정
             .headers(headers -> headers
-                .frameOptions().sameOrigin() // 같은 도메인에서 iframe 허용
+                .frameOptions(frameOptions -> frameOptions.sameOrigin()) // 같은 도메인에서 iframe 허용
             )
             
             // 인증 제공자 설정

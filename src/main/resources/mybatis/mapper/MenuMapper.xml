@@ -22,6 +22,20 @@
         SELECT * FROM menus ORDER BY sort_order ASC
     </select>
 
+    <!-- 이름 또는 URL로 메뉴 검색 -->
+    <select id="findByNameOrUrl" parameterType="map" resultMap="MenuResultMap">
+        SELECT * FROM menus 
+        WHERE 1 = 1
+            <if test="name != null and name != ''">
+                AND title LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="url != null and url != ''">
+                AND url LIKE CONCAT('%', #{url}, '%')
+            </if>
+        ORDER BY sort_order ASC 
+    </select>
+
+
     <!-- 활성화된 메뉴만 조회 (정렬 순서대로) -->
     <select id="findByEnabledTrueOrderBySortOrderAsc" resultMap="MenuResultMap">
         SELECT * FROM menus WHERE enabled = true ORDER BY sort_order ASC

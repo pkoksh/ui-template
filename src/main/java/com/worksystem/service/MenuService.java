@@ -26,6 +26,14 @@ public class MenuService {
     }
 
     /**
+     * 특정 메뉴명 또는 URL로 메뉴 검색
+     */
+    public List<MenuDTO> searchMenus(String name, String url) {
+        List<Menu> matchedMenus = menuRepository.findByNameOrUrl(name, url);
+        return buildMenuHierarchy(matchedMenus);
+    }
+
+    /**
      * 활성화된 메뉴만 계층 구조로 반환
      */
     public List<MenuDTO> getActiveMenusHierarchy() {
@@ -82,7 +90,7 @@ public class MenuService {
         dto.setId(menu.getId());
         dto.setMenuId(menu.getMenuId());
         dto.setTitle(menu.getTitle());
-        dto.setPath(menu.getUrl()); // url을 path로 매핑
+        dto.setUrl(menu.getUrl()); // url을 path로 매핑
         dto.setIcon(menu.getIcon());
         dto.setParentId(menu.getParentId()); // String to String
         dto.setSortOrder(menu.getSortOrder());
@@ -140,7 +148,7 @@ public class MenuService {
         menu.setId(dto.getId());
         menu.setMenuId(dto.getMenuId());
         menu.setTitle(dto.getTitle());
-        menu.setUrl(dto.getPath()); // path를 url로 매핑
+        menu.setUrl(dto.getUrl()); // path를 url로 매핑
         menu.setIcon(dto.getIcon());
         menu.setParentId(dto.getParentId());
         menu.setSortOrder(dto.getSortOrder());

@@ -29,6 +29,22 @@ public class MenuController {
     }
 
     /**
+     * 특정 메뉴명 또는 Url 검색
+     * @param userId
+     * @return
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<MenuDTO>> searchMenus(@RequestParam(required = false) String title,
+                                                     @RequestParam(required = false) String url) {
+        try {
+            List<MenuDTO> menus = menuService.searchMenus(title, url);
+            return ResponseEntity.ok(menus);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * 특정 사용자의 권한에 따른 메뉴 조회
      */
     @GetMapping("/user/{userId}")

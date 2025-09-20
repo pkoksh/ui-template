@@ -1,31 +1,19 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block th:replace="~{fragments/common :: common-head}"></th:block>
+    
     <title th:text="${systemName}">업무시스템</title>
     
     <!-- 파비콘 -->
-    <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="favicon/favicon-180x180.png">
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/favicon-180x180.png">
     <meta name="theme-color" content="#3B82F6">
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <!-- 추가 라이브러리 -->
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="css/style.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {}
-            }
-        }
-    </script>
     
     <!-- LiveReload 스크립트 (개발 환경에서만) -->
     <script th:if="${isDevelopment}">
@@ -36,8 +24,9 @@
     
     <!-- 시스템 정보 및 설정을 JavaScript 전역 변수로 제공 -->
     <script th:inline="javascript">
+        const now = Date.now();
         // 개발 환경에서 JS 파일 캐시 무효화를 위한 동적 버전
-        window.jsVersion = /*[[${jsVersion}]]*/ Date.now();
+        window.jsVersion = /*[[${jsVersion}]]*/ now;
         
         // 시스템 정보
         window.systemInfo = {
@@ -240,11 +229,12 @@
         </main>
     </div>
 
-    <script th:src="@{'/js/theme.js?v=' + ${jsVersion}}"></script>
-    <script th:src="@{'/js/page-loader.js?v=' + ${jsVersion}}"></script>
-    <script th:src="@{'/js/menu.js?v=' + ${jsVersion}}"></script>
-    <script th:src="@{'/js/tabs.js?v=' + ${jsVersion}}"></script>
-    <script th:src="@{'/js/search.js?v=' + ${jsVersion}}"></script>
-    <script th:src="@{'/script.js?v=' + ${jsVersion}}"></script>
+    <!-- 페이지별 스크립트 -->
+    <script th:src="@{'/assets/js/theme.js?v=' + ${jsVersion}}"></script>
+    <script th:src="@{'/assets/js/page-loader.js?v=' + ${jsVersion}}"></script>
+    <script th:src="@{'/assets/js/menu.js?v=' + ${jsVersion}}"></script>
+    <script th:src="@{'/assets/js/tabs.js?v=' + ${jsVersion}}"></script>
+    <script th:src="@{'/assets/js/search.js?v=' + ${jsVersion}}"></script>
+    <script th:src="@{'/assets/js/script.js?v=' + ${jsVersion}}"></script>
 </body>
 </html>

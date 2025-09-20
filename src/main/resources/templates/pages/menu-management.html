@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common :: ibsheet-head}"></th:block>
+    <title>메뉴 관리</title>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">메뉴 관리</h3>
+            <div class="flex items-center space-x-2">
+                <button id="save-all-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                    <i class='bx bx-save text-lg'></i>
+                    <span class="font-medium">저장</span>
+                </button>
+                <button id="refresh-btn" class="bg-slate-500 hover:bg-slate-600 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                    <i class='bx bx-refresh text-lg'></i>
+                    <span class="font-medium">조회</span>
+                </button>
+                <button id="add-menu-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                    <i class='bx bx-plus text-lg'></i>
+                    <span class="font-medium">메뉴 추가</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 검색 필터 -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">메뉴명 검색</label>
+                    <input type="text" id="search-title" placeholder="메뉴명을 입력하세요" 
+                           class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">URL 검색</label>
+                    <input type="text" id="search-url" placeholder="URL을 입력하세요" 
+                           class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                </div>
+            </div>
+        </div>
+
+        <!-- IBSheet 그리드 영역 -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div id="menu-grid" style="height: 500px;"></div>
+        </div>
+
+        <!-- 로딩 표시 -->
+        <th:block th:replace="~{fragments/common :: loading-spinner}"></th:block>
+    </div>
+
+    <!-- 페이지별 스크립트 -->
+    <script>
+        let editingMenuId = null;
+        let menuGrid = null; // IBSheet 그리드 객체
+
+        // API 기본 설정
+        const API_BASE = '/api/menus';
+
+        // 페이지 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initGrid();
+            loadMenus();
+            setupEventListeners();
+        });
+
+        // IBSheet 그리드 초기화
+        function initGrid() {
+            const gridConfig = {
+                Cfg: {
+                    SearchMode: 2,
+                    Page: 10000,
+                    MainCol: "title",
+                },
+                Def: {
+                    Row: {
+                        CanFormula: 1
+                    },
+                    Col: {
+                        RelWidth: 1
+                    }
+                },
+                Cols: [
+                    { Header: "No", Type: "Int", Name: "SEQ", MinWidth: 50, Align: "Center", CanEdit: 0 },
+                    { Header: "", Name: "status", Extend: IB_Preset.STATUS},
+                    { Header: "메뉴명", Type: "Text", Name: "title", MinWidth: 200, CanEdit: 1 },
+                    { Header: "메뉴ID", Type: "Text", Name: "menuId", MinWidth: 150, CanEdit: 1 },
+                    { Header: "아이콘", Type: "Text", Name: "icon", MinWidth: 150, CanEdit: 1 },
+                    { Header: "URL", Type: "Text", Name: "url", MinWidth: 150, CanEdit: 1 },
+                    { Header: "표시순서", Type: "Int", Name: "sortOrder", MinWidth: 80, CanEdit: 1 },
+                    { Header: "활성화", Type: "Bool", Name: "isActive", MinWidth: 80, Align: "Center", CanEdit: 1 },
+                    { Header: "권한", Type: "String", Name: "requriedRole", MinWidth: 150, Align: "Center", CanEdit: 1 },
+                ]
+            };
+
+            menuGrid = IBSheet.create({
+                id: "menu-grid",
+                el: "menu-grid",
+                options: gridConfig
+            });
+
+            // 버튼 클릭 이벤트
+            menuGrid.bind("buttonclick", function(evt) {
+                const row = evt.row;
+                const col = evt.col;
+                const menuId = menuGrid.getValue(row, "id");
+                
+                if (col === "actions") {
+                    if (evt.buttonindex === 0) { // 편집
+                        editMenu(menuId);
+                    } else if (evt.buttonindex === 1) { // 삭제
+                        deleteMenu(menuId);
+                    }
+                }
+            });
+        }
+
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            document.getElementById('add-menu-btn').addEventListener('click', () => openModal());
+            document.getElementById('save-all-btn').addEventListener('click', saveAllMenus);
+            document.getElementById('refresh-btn').addEventListener('click', performSearch);
+            
+            // 검색 필드에서 엔터키 이벤트
+            document.getElementById('search-title').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') performSearch();
+            });
+            
+            document.getElementById('search-url').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') performSearch();
+            });
+            
+        }
+
+        // 메뉴 데이터 로드
+        async function loadMenus() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const response = await axios.get(API_BASE);
+                renderGrid(response.data);
+            } catch (error) {
+                console.error('메뉴 데이터 로드 실패:', error);
+                showError('메뉴 데이터를 불러올 수 없습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 그리드 렌더링
+        function renderGrid(data) {
+          menuGrid.loadSearchData(data);
+        }
+
+        // 검색 수행
+        async function performSearch() {
+            const titleSearch = document.getElementById('search-title').value.toLowerCase().trim();
+            const urlSearch = document.getElementById('search-url').value.toLowerCase().trim();
+            
+             try {
+                const response = await axios.get(API_BASE +"/search", {
+                    params: {
+                        title: titleSearch,
+                        url: urlSearch
+                    }
+                });
+                renderGrid(response.data);
+            } catch (error) {
+                console.error('메뉴 데이터 로드 실패:', error);
+                showError('메뉴 데이터를 불러올 수 없습니다.');
+            } finally {
+            }
+        }
+
+
+        // 전체 메뉴 저장
+        async function saveAllMenus() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                
+                // 그리드에서 변경된 데이터 가져오기
+                const changedData = menuGrid.getChangedData();
+                
+                if (changedData.length === 0) {
+                    showInfo('변경된 데이터가 없습니다.');
+                    return;
+                }
+                
+                const updatePromises = changedData.map(menu => {
+                    return axios.put(`${API_BASE}/${menu.id}`, menu);
+                });
+                
+                await Promise.all(updatePromises);
+                showSuccess('모든 메뉴가 성공적으로 저장되었습니다.');
+                loadMenus();
+            } catch (error) {
+                console.error('메뉴 저장 실패:', error);
+                showError('메뉴 저장에 실패했습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+
+        // 메뉴 삭제
+        async function deleteMenu(id) {
+            const result = await Swal.fire({
+                title: '메뉴 삭제',
+                text: '정말로 이 메뉴를 삭제하시겠습니까?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: '삭제',
+                cancelButtonText: '취소'
+            });
+            
+            if (result.isConfirmed) {
+                try {
+                    await axios.delete(`${API_BASE}/${id}`);
+                    showSuccess('메뉴가 성공적으로 삭제되었습니다.');
+                    loadMenus();
+                } catch (error) {
+                    console.error('메뉴 삭제 실패:', error);
+                    showError('메뉴 삭제에 실패했습니다.');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

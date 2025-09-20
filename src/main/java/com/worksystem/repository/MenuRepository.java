@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface MenuRepository {
 
     List<Menu> findAllByOrderBySortOrderAsc();
+    
+    List<Menu> findByNameOrUrl(@Param("name") String name, @Param("url") String url);
 
     List<Menu> findByEnabledTrueOrderBySortOrderAsc();
 
