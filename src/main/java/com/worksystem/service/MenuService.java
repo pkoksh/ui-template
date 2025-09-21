@@ -5,6 +5,9 @@ import com.worksystem.entity.Menu;
 import com.worksystem.repository.MenuRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +16,8 @@ import java.util.Map;
 
 @Service
 public class MenuService {
+
+    private static final Logger log = LoggerFactory.getLogger(MenuService.class);
 
     @Autowired
     private MenuRepository menuRepository;
@@ -41,14 +46,7 @@ public class MenuService {
         return buildMenuHierarchy(activeMenus);
     }
 
-    /**
-     * 특정 사용자의 권한에 따른 메뉴 반환
-     */
-    public List<MenuDTO> getMenusByUser(Long userId) {
-        // TODO: 사용자 권한에 따른 메뉴 필터링 로직 구현
-        // 현재는 활성화된 메뉴만 반환
-        return getActiveMenusHierarchy();
-    }
+
 
     /**
      * 메뉴 리스트를 계층 구조로 변환
@@ -94,26 +92,33 @@ public class MenuService {
         dto.setIcon(menu.getIcon());
         dto.setParentId(menu.getParentId()); // String to String
         dto.setSortOrder(menu.getSortOrder());
-        dto.setIsActive(menu.getEnabled()); // enabled를 isActive로 매핑
+        dto.setIsActive(menu.getIsActive()); // enabled를 isActive로 매핑
         dto.setRequiredRole(menu.getRequiredRole()); // requiredRole 매핑 추가
         return dto;
     }
-
-    /**
-     * 특정 메뉴 조회
-     */
-    public MenuDTO getMenuById(Long id) {
-        Menu menu = menuRepository.findById(id).orElse(null);
-        return menu != null ? convertToDTO(menu) : null;
+    
+    public boolean saveMenu(List<MenuDTO> menus) {
+        try {
+            
+            for (MenuDTO menuDTO : menus) {
+                if (menuDTO.getStatus().equals("I")) {
+                    // 신규 메뉴 생성
+                    createMenu(menuDTO);
+                } else if (menuDTO.getStatus().equals("D")) {
+                    // 삭제 처리
+                    deleteMenu(menuDTO.getId());
+                } else {
+                    // 기존 메뉴 수정
+                    updateMenu(menuDTO);
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    /**
-     * 메뉴 ID로 메뉴 조회
-     */
-    public MenuDTO getMenuByMenuId(String menuId) {
-        Menu menu = menuRepository.findByMenuId(menuId);
-        return menu != null ? convertToDTO(menu) : null;
-    }
 
     /**
      * 메뉴 생성
@@ -152,7 +157,7 @@ public class MenuService {
         menu.setIcon(dto.getIcon());
         menu.setParentId(dto.getParentId());
         menu.setSortOrder(dto.getSortOrder());
-        menu.setEnabled(dto.getIsActive()); // isActive를 enabled로 매핑
+        menu.setIsActive(dto.getIsActive()); // isActive를 enabled로 매핑
         menu.setRequiredRole(dto.getRequiredRole()); // requiredRole 매핑 추가
         return menu;
     }

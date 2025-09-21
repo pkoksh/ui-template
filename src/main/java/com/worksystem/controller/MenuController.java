@@ -45,17 +45,23 @@ public class MenuController {
     }
 
     /**
-     * 특정 사용자의 권한에 따른 메뉴 조회
+     * 메뉴 입력/수정/삭제
      */
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<MenuDTO>> getMenusByUser(@PathVariable Long userId) {
+    @PostMapping
+    public ResponseEntity<MenuDTO> saveMenus(@RequestBody List<MenuDTO> menus) {
         try {
-            List<MenuDTO> menus = menuService.getMenusByUser(userId);
-            return ResponseEntity.ok(menus);
+            boolean result = menuService.saveMenu(menus);
+            if (result) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.badRequest().build();
+            }
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+
 
     /**
      * 활성화된 메뉴만 조회
@@ -70,60 +76,5 @@ public class MenuController {
         }
     }
 
-    /**
-     * 메뉴 생성
-     */
-    @PostMapping
-    public ResponseEntity<MenuDTO> createMenu(@RequestBody MenuDTO menuDTO) {
-        try {
-            MenuDTO createdMenu = menuService.createMenu(menuDTO);
-            return ResponseEntity.ok(createdMenu);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    /**
-     * 메뉴 수정
-     */
-    @PutMapping("/{id}")
-    public ResponseEntity<MenuDTO> updateMenu(@PathVariable Long id, @RequestBody MenuDTO menuDTO) {
-        try {
-            menuDTO.setId(id);
-            MenuDTO updatedMenu = menuService.updateMenu(menuDTO);
-            return ResponseEntity.ok(updatedMenu);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    /**
-     * 메뉴 삭제
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMenu(@PathVariable Long id) {
-        try {
-            menuService.deleteMenu(id);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    /**
-     * 특정 메뉴 조회
-     */
-    @GetMapping("/{id}")
-    public ResponseEntity<MenuDTO> getMenuById(@PathVariable Long id) {
-        try {
-            MenuDTO menu = menuService.getMenuById(id);
-            if (menu != null) {
-                return ResponseEntity.ok(menu);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+ 
 }

@@ -12,9 +12,8 @@
         <result property="url" column="url"/>
         <result property="icon" column="icon"/>
         <result property="sortOrder" column="sort_order"/>
-        <result property="enabled" column="enabled"/>
+        <result property="isActive" column="is_active"/>
         <result property="requiredRole" column="required_role"/>
-        <result property="description" column="description"/>
     </resultMap>
 
     <!-- 모든 메뉴 조회 (정렬 순서대로) -->
@@ -38,7 +37,7 @@
 
     <!-- 활성화된 메뉴만 조회 (정렬 순서대로) -->
     <select id="findByEnabledTrueOrderBySortOrderAsc" resultMap="MenuResultMap">
-        SELECT * FROM menus WHERE enabled = true ORDER BY sort_order ASC
+        SELECT * FROM menus WHERE is_active = true ORDER BY sort_order ASC
     </select>
 
     <!-- ID로 메뉴 조회 -->
@@ -60,9 +59,8 @@
             url, 
             icon, 
             sort_order, 
-            enabled, 
-            required_role, 
-            description
+            is_active, 
+            required_role 
         ) VALUES (
             #{menuId}, 
             #{parentId}, 
@@ -70,9 +68,8 @@
             #{url}, 
             #{icon}, 
             #{sortOrder}, 
-            #{enabled}, 
-            #{requiredRole}, 
-            #{description}
+            #{isActive}, 
+            #{requiredRole}
         )
     </insert>
 
@@ -84,9 +81,8 @@
             icon = #{icon},
             parent_id = #{parentId},
             sort_order = #{sortOrder},
-            enabled = #{enabled},
-            required_role = #{requiredRole},
-            description = #{description}
+            is_active = #{isActive},
+            required_role = #{requiredRole}
         WHERE id = #{id}
     </update>
 

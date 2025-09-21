@@ -9,7 +9,7 @@ public class Menu {
     private String url; // path 대신 url 사용
     private String icon;
     private Integer sortOrder = 0;
-    private Boolean enabled = true; // isActive 대신 enabled 사용
+    private Boolean isActive = true; 
     private String requiredRole;
     private String description;
 
@@ -18,14 +18,14 @@ public class Menu {
 
     // 생성자
     public Menu(String menuId, String title, String url, String icon, 
-                String parentId, Integer sortOrder, Boolean enabled) {
+                String parentId, Integer sortOrder, Boolean isActive) {
         this.menuId = menuId;
         this.title = title;
         this.url = url;
         this.icon = icon;
         this.parentId = parentId;
         this.sortOrder = sortOrder;
-        this.enabled = enabled;
+        this.isActive = isActive;
     }
 
     // Getters and Setters
@@ -85,12 +85,12 @@ public class Menu {
         this.sortOrder = sortOrder;
     }
 
-    public Boolean getEnabled() {
-        return enabled;
+    public Boolean getIsActive() {
+        return isActive;
     }
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     public String getRequiredRole() {

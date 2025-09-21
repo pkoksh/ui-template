@@ -17,13 +17,15 @@ public class MenuDTO {
     private String requiredRole; // 추가
     @JsonProperty("Items")
     private List<MenuDTO> items;
+    private String status; // For IBSheet 상태 관리
+
 
     public MenuDTO() {
         this.items = new ArrayList<>();
     }
 
     public MenuDTO(Long id, String menuId, String title, String url, String icon, 
-                   String parentId, Integer sortOrder, Boolean isActive) {
+                   String parentId, Integer sortOrder, Boolean isActive, String requiredRole, String status) {
         this.id = id;
         this.menuId = menuId;
         this.title = title;
@@ -33,6 +35,8 @@ public class MenuDTO {
         this.sortOrder = sortOrder;
         this.isActive = isActive;
         this.items = new ArrayList<>();
+        this.requiredRole = requiredRole;
+        this.status = status;
     }
 
     // Getters and Setters
@@ -123,4 +127,12 @@ public class MenuDTO {
     public void setRequiredRole(String requiredRole) {
         this.requiredRole = requiredRole;
     }
+
+    public String getStatus() {
+        return status;
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    
 }

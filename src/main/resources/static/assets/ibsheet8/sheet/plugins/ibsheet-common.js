@@ -26,6 +26,7 @@ Fn.PluginVers.ibcommon = {
 
 _IBSheet.CommonOptions = {
   Cfg: {
+    DebugMode: "info,error",
     Export: {
       Url: "../assets/ibsheet/jsp/"
     }, // 엑셀다운 URL
@@ -114,11 +115,13 @@ _IBSheet.CommonOptions = {
             }
           }
         }
-      }
+      },
+      Height: 40
     },
 
     //데이터 영역 모든 행에 대한 설정
     Row: {
+      Height: 40,
       // AlternateColor:"#F1F1F1",  //짝수행에 대한 배경색
       // Menu:{ //마우스 우측버특 클릭시 보여지는 메뉴 설정 (메뉴얼에서 Appedix/Menu 참고)
       //   "Items":[
