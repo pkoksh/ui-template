@@ -68,7 +68,7 @@ public class AuthRestController {
             Map<String, Object> response = new HashMap<>();
             response.put("userId", user.getUserId());
             response.put("name", user.getName());
-            response.put("role", user.getRole());
+            response.put("groupId", user.getGroupId());
             response.put("department", user.getDepartment());
             response.put("email", user.getEmail());
             

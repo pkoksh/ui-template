@@ -109,8 +109,8 @@ public class MainController {
                     "name", user.getName(),
                     "email", user.getEmail(),
                     "department", user.getDepartment(),
-                    "role", user.getRole(),
-                    "roleDisplayName", getRoleDisplayName(user.getRole())
+                    "groupdId", user.getGroupId(),
+                    "groupDisplayName", getGroupDisplayName(user.getGroupId())
                 ));
             } else {
                 response.put("success", false);
@@ -140,7 +140,7 @@ public class MainController {
     /**
      * 역할 표시명 반환
      */
-    private String getRoleDisplayName(String role) {
+    private String getGroupDisplayName(String role) {
         switch (role) {
             case "ADMIN": return "관리자";
             case "MANAGER": return "팀장";

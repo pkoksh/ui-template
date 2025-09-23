@@ -21,8 +21,8 @@ CREATE TABLE users (
     name VARCHAR(50) NOT NULL,
     email VARCHAR(100),
     department VARCHAR(50),
-    role VARCHAR(20) NOT NULL DEFAULT 'USER',
-    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    group_id VARCHAR(20) NOT NULL DEFAULT 'USER',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP NULL,
@@ -35,7 +35,7 @@ CREATE TABLE users (
 -- admin123 -> $2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
 -- user123 -> $2a$10$Xl0yhvzLIxobYcmb9C9t6uHYEFR3LAyAIuVB6y/W1A9RbZdFJ7cA2  
 -- manager123 -> $2a$10$Z6T.PJOD7oiRkCJ4qZgz2OKqJ3ZJRYiCHWa3YJnwVq9KJ3HhP9Cvi
-INSERT INTO users (user_id, password, name, email, department, role, enabled) VALUES
+INSERT INTO users (user_id, password, name, email, department, role, is_active) VALUES
 ('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '관리자', 'admin@worksystem.com', '시스템관리부', 'ADMIN', TRUE),
 ('user1', '$2a$10$Xl0yhvzLIxobYcmb9C9t6uHYEFR3LAyAIuVB6y/W1A9RbZdFJ7cA2', '김직원', 'user1@worksystem.com', '영업부', 'USER', TRUE),
 ('manager', '$2a$10$Z6T.PJOD7oiRkCJ4qZgz2OKqJ3ZJRYiCHWa3YJnwVq9KJ3HhP9Cvi', '이팀장', 'manager@worksystem.com', '기획부', 'MANAGER', TRUE);

@@ -4,65 +4,193 @@
  */
 
 // ================================
-// 알림 관련 함수들
+// 토스트 알림 시스템
+// ================================
+
+/**
+ * 토스트 컨테이너 생성
+ */
+function createToastContainer() {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'fixed bottom-4 right-4 z-50 space-y-2 max-w-sm';
+        container.style.cssText = `
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 20rem;
+            pointer-events: none;
+        `;
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+/**
+ * 토스트 알림 표시
+ */
+function showToast(message, type = 'info', duration = 3000, title = null) {
+    const container = createToastContainer();
+    
+    // 토스트 엘리먼트 생성
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        padding: 1rem;
+        border-left: 4px solid;
+        transform: translateX(100%);
+        transition: all 0.3s ease-in-out;
+        pointer-events: auto;
+        min-width: 300px;
+        max-width: 400px;
+    `;
+    
+    // 타입별 색상 및 아이콘 설정
+    const typeConfig = {
+        success: {
+            borderColor: '#10B981',
+            bgColor: '#F0FDF4',
+            textColor: '#059669',
+            icon: '✓'
+        },
+        error: {
+            borderColor: '#EF4444',
+            bgColor: '#FEF2F2',
+            textColor: '#DC2626',
+            icon: '✕'
+        },
+        warning: {
+            borderColor: '#F59E0B',
+            bgColor: '#FFFBEB',
+            textColor: '#D97706',
+            icon: '⚠'
+        },
+        info: {
+            borderColor: '#3B82F6',
+            bgColor: '#EFF6FF',
+            textColor: '#2563EB',
+            icon: 'ℹ'
+        }
+    };
+    
+    const config = typeConfig[type] || typeConfig.info;
+    
+    toast.style.borderLeftColor = config.borderColor;
+    toast.style.backgroundColor = config.bgColor;
+    
+    // 다크모드 지원
+    if (document.documentElement.classList.contains('dark')) {
+        toast.style.backgroundColor = type === 'success' ? '#064E3B' : 
+                                    type === 'error' ? '#7F1D1D' : 
+                                    type === 'warning' ? '#78350F' : '#1E3A8A';
+        toast.style.color = '#F9FAFB';
+    }
+    
+    // 토스트 내용 구성
+    toast.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+            <div style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 1.5rem;
+                height: 1.5rem;
+                border-radius: 50%;
+                background-color: ${config.borderColor};
+                color: white;
+                font-size: 0.875rem;
+                font-weight: bold;
+                flex-shrink: 0;
+            ">
+                ${config.icon}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                ${title ? `<div style="font-weight: 600; color: ${config.textColor}; margin-bottom: 0.25rem;">${title}</div>` : ''}
+                <div style="color: ${document.documentElement.classList.contains('dark') ? '#F9FAFB' : '#374151'}; font-size: 0.875rem; line-height: 1.4;">
+                    ${message}
+                </div>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" style="
+                color: #9CA3AF;
+                hover:color: #6B7280;
+                font-size: 1.125rem;
+                line-height: 1;
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0;
+                margin-left: 0.5rem;
+                flex-shrink: 0;
+            ">×</button>
+        </div>
+    `;
+    
+    // 컨테이너에 추가
+    container.appendChild(toast);
+    
+    // 애니메이션으로 표시
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateX(0)';
+    });
+    
+    // 자동 제거
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.transform = 'translateX(100%)';
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 300);
+        }
+    }, duration);
+    
+    return toast;
+}
+
+// ================================
+// 알림 관련 함수들 (토스트 버전)
 // ================================
 
 /**
  * 성공 메시지 표시
  */
-window.showSuccess = function(message, title = '성공') {
-    return Swal.fire({
-        icon: 'success',
-        title: title,
-        text: message,
-        confirmButtonColor: '#10B981',
-        confirmButtonText: '확인',
-        timer: 3000,
-        timerProgressBar: true
-    });
+window.showSuccess = function(message, title = null) {
+    return showToast(message, 'success', 3000, title);
 };
 
 /**
  * 오류 메시지 표시
  */
-window.showError = function(message, title = '오류') {
-    return Swal.fire({
-        icon: 'error',
-        title: title,
-        text: message,
-        confirmButtonColor: '#EF4444',
-        confirmButtonText: '확인'
-    });
+window.showError = function(message, title = null) {
+    return showToast(message, 'error', 5000, title);
 };
 
 /**
  * 정보 메시지 표시
  */
-window.showInfo = function(message, title = '정보') {
-    return Swal.fire({
-        icon: 'info',
-        title: title,
-        text: message,
-        confirmButtonColor: '#3B82F6',
-        confirmButtonText: '확인'
-    });
+window.showInfo = function(message, title = null) {
+    return showToast(message, 'info', 3000, title);
 };
 
 /**
  * 경고 메시지 표시
  */
-window.showWarning = function(message, title = '경고') {
-    return Swal.fire({
-        icon: 'warning',
-        title: title,
-        text: message,
-        confirmButtonColor: '#F59E0B',
-        confirmButtonText: '확인'
-    });
+window.showWarning = function(message, title = null) {
+    return showToast(message, 'warning', 4000, title);
 };
 
 /**
- * 확인 대화상자 표시
+ * 확인 대화상자 표시 (SweetAlert2 유지)
  */
 window.showConfirm = function(message, title = '확인', confirmText = '확인', cancelText = '취소') {
     return Swal.fire({
@@ -73,12 +201,15 @@ window.showConfirm = function(message, title = '확인', confirmText = '확인',
         confirmButtonColor: '#3B82F6',
         cancelButtonColor: '#6B7280',
         confirmButtonText: confirmText,
-        cancelButtonText: cancelText
+        cancelButtonText: cancelText,
+        customClass: {
+            popup: 'swal-popup-small'
+        }
     });
 };
 
 /**
- * 삭제 확인 대화상자
+ * 삭제 확인 대화상자 (SweetAlert2 유지)
  */
 window.showDeleteConfirm = function(message = '정말로 삭제하시겠습니까?', title = '삭제 확인') {
     return Swal.fire({
@@ -89,7 +220,10 @@ window.showDeleteConfirm = function(message = '정말로 삭제하시겠습니�
         confirmButtonColor: '#EF4444',
         cancelButtonColor: '#6B7280',
         confirmButtonText: '삭제',
-        cancelButtonText: '취소'
+        cancelButtonText: '취소',
+        customClass: {
+            popup: 'swal-popup-small'
+        }
     });
 };
 
@@ -310,7 +444,31 @@ window.initializePage = function() {
     
     // 다크모드 초기화
     initializeTheme();
+    
+    // SweetAlert2 스타일 커스터마이징
+    addSweetAlertStyles();
 };
+
+/**
+ * SweetAlert2 스타일 추가
+ */
+function addSweetAlertStyles() {
+    if (!document.getElementById('swal-custom-styles')) {
+        const style = document.createElement('style');
+        style.id = 'swal-custom-styles';
+        style.textContent = `
+            .swal-popup-small {
+                font-size: 0.9rem !important;
+                width: 28rem !important;
+                max-width: 90vw !important;
+            }
+            .swal2-popup {
+                border-radius: 0.5rem !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
 
 /**
  * 공통 이벤트 리스너 설정

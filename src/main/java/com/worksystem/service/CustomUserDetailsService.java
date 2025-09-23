@@ -36,13 +36,13 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
         }
         
-        if (!user.isEnabled()) {
+        if (!user.getIsActive()) {
             logger.error("=== 비활성화된 사용자: {}", username);
             throw new UsernameNotFoundException("비활성화된 사용자입니다: " + username);
         }
         
         // 권한 설정 (ROLE_ 접두사 필요)
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase());
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + user.getGroupId().toUpperCase());
         logger.debug("=== 사용자 권한 설정: {}", authority.getAuthority());
         
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()

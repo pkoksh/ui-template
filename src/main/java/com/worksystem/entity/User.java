@@ -13,8 +13,8 @@ public class User {
     private String name;
     private String email;
     private String department;
-    private String role;
-    private boolean enabled;
+    private String groupId;
+    private boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime lastLoginAt;
@@ -23,14 +23,14 @@ public class User {
     public User() {}
     
     // 생성자
-    public User(String userId, String password, String name, String email, String department, String role) {
+    public User(String userId, String password, String name, String email, String department, String groupId) {
         this.userId = userId;
         this.password = password;
         this.name = name;
         this.email = email;
         this.department = department;
-        this.role = role;
-        this.enabled = true;
+        this.groupId = groupId;
+        this.isActive = true;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
@@ -84,20 +84,20 @@ public class User {
         this.department = department;
     }
     
-    public String getRole() {
-        return role;
+    public String getGroupId() {
+        return groupId;
     }
     
-    public void setRole(String role) {
-        this.role = role;
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
     
-    public boolean isEnabled() {
-        return enabled;
+    public boolean getIsActive() {
+        return this.isActive;
     }
     
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
     }
     
     public LocalDateTime getCreatedAt() {
@@ -132,8 +132,8 @@ public class User {
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", department='" + department + '\'' +
-                ", role='" + role + '\'' +
-                ", enabled=" + enabled +
+                ", groupId='" + groupId + '\'' +
+                ", isActive=" + isActive +
                 '}';
     }
 }

@@ -51,38 +51,6 @@
             <div class="px-4 py-4">
                 <div class="flex items-center justify-between mb-3">
                     <h1 class="text-xl font-bold text-gray-800 dark:text-gray-200" th:text="${systemName}">업무시스템</h1>
-                    <!-- 사용자 메뉴 -->
-                    <div class="relative">
-                        <button id="userMenuButton" class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <i class='bx bx-user-circle text-xl'></i>
-                            <span id="currentUserName" class="text-sm font-medium hidden lg:block" th:text="${currentUser != null ? currentUser.name : '사용자'}">사용자</span>
-                            <i class='bx bx-chevron-down text-xs'></i>
-                        </button>
-                        
-                        <!-- 사용자 드롭다운 메뉴 -->
-                        <div id="userDropdown" class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 hidden">
-                            <div class="py-2">
-                                <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-                                    <div class="text-sm font-medium text-gray-800 dark:text-gray-200" id="userDropdownName" th:text="${currentUser != null ? currentUser.name : '사용자명'}">사용자명</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400" id="userDropdownRole" th:text="${currentUser != null ? currentUser.role : '역할'}">역할</div>
-                                </div>
-                                <a href="#" id="profileLink" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <i class='bx bx-user mr-2'></i>
-                                    프로필
-                                </a>
-                                <a href="#" id="settingsLink" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <i class='bx bx-cog mr-2'></i>
-                                    설정
-                                </a>
-                                <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
-                                    <button id="logoutButton" class="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
-                                        <i class='bx bx-log-out mr-2'></i>
-                                        로그아웃
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 
                 <!-- 전체 아코디언 제어 버튼 -->
@@ -169,10 +137,38 @@
                     <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
                         <i class='bx bx-download text-lg text-gray-600 dark:text-gray-300'></i>
                     </button>
-                    <!-- 사용자 아바타 -->
-                    <div class="w-8 h-8 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium shadow-sm" 
-                         th:text="${currentUser != null and currentUser.name != null and currentUser.name.length() > 0 ? currentUser.name.substring(0,1).toUpperCase() : 'U'}">
-                        U
+                    
+                    <!-- 사용자 메뉴 -->
+                    <div class="relative">
+                        <button id="userMenuButton" class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <i class='bx bx-user-circle text-xl'></i>
+                            <span id="currentUserName" class="text-sm font-medium hidden lg:block" th:text="${currentUser != null ? currentUser.name : '사용자'}">사용자</span>
+                            <i class='bx bx-chevron-down text-xs'></i>
+                        </button>
+                        
+                        <!-- 사용자 드롭다운 메뉴 -->
+                        <div id="userDropdown" class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 hidden">
+                            <div class="py-2">
+                                <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                                    <div class="text-sm font-medium text-gray-800 dark:text-gray-200" id="userDropdownName" th:text="${currentUser != null ? currentUser.name : '사용자명'}">사용자명</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400" id="userDropdownRole" th:text="${currentUser != null ? currentUser.role : '역할'}">역할</div>
+                                </div>
+                                <a href="#" id="profileLink" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class='bx bx-user mr-2'></i>
+                                    프로필
+                                </a>
+                                <a href="#" id="settingsLink" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <i class='bx bx-cog mr-2'></i>
+                                    설정
+                                </a>
+                                <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
+                                    <button id="logoutButton" class="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">
+                                        <i class='bx bx-log-out mr-2'></i>
+                                        로그아웃
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>

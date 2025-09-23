@@ -23,20 +23,20 @@ public class UserDto {
     private String email;
     
     private String department;
-    private String role;
-    private boolean enabled;
+    private String groupId;
+    private boolean isActive;
     
     // 기본 생성자
     public UserDto() {}
     
     // 생성자
-    public UserDto(String userId, String name, String email, String department, String role) {
+    public UserDto(String userId, String name, String email, String department, String groupId) {
         this.userId = userId;
         this.name = name;
         this.email = email;
         this.department = department;
-        this.role = role;
-        this.enabled = true;
+        this.groupId = groupId;
+        this.isActive = true;
     }
     
     // Getters and Setters
@@ -80,29 +80,29 @@ public class UserDto {
         this.department = department;
     }
     
-    public String getRole() {
-        return role;
+    public String getGroupId() {
+        return groupId;
     }
     
-    public void setRole(String role) {
-        this.role = role;
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
     }
     
-    public boolean isEnabled() {
-        return enabled;
+    public boolean getIsActive() {
+        return isActive;
     }
     
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
     }
     
     // 역할 표시명 반환
-    public String getRoleDisplayName() {
-        switch (role) {
+    public String getGroupDisplayName() {
+        switch (groupId) {
             case "ADMIN": return "관리자";
             case "MANAGER": return "팀장";
             case "USER": return "사용자";
-            default: return role;
+            default: return groupId;
         }
     }
 }

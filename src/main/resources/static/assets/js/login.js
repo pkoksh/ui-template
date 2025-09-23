@@ -41,7 +41,7 @@ const DEMO_ACCOUNTS = {
 };
 
 // 역할 표시명 반환
-function getRoleDisplayName(role) {
+function getGroupDisplayName(role) {
     const roleNames = {
         'admin': '관리자',
         'manager': '팀장',
@@ -254,7 +254,7 @@ async function handleLoginSuccess(user) {
                 </div>
                 <div class="space-y-2">
                     <p class="text-lg font-medium text-gray-800">${user.name}님</p>
-                    <p class="text-sm text-gray-600">${user.department || ''} ${getRoleDisplayName(user.role)}</p>
+                    <p class="text-sm text-gray-600">${user.department || ''} ${getGroupDisplayName(user.role)}</p>
                     <p class="text-xs text-gray-500 mt-3">업무시스템에 안전하게 로그인되었습니다</p>
                 </div>
             </div>

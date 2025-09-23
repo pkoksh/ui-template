@@ -204,8 +204,6 @@ function bindMenuEvents() {
     bindAccordionEvents();
     // 메뉴 아이템 이벤트 바인딩
     bindMenuItemEvents();
-    // 초기 버튼 상태 업데이트
-    updateControlButtonsState();
 }
 
 // 메뉴 엘리먼트 생성
@@ -306,8 +304,6 @@ function toggleAccordion(accordionId) {
         toggle.classList.add('active');
     }
     
-    // 버튼 상태 업데이트
-    updateControlButtonsState();
 }
 
 // 전체 아코디언 펼치기
@@ -317,9 +313,9 @@ function expandAllAccordions() {
     accordions.forEach(accordionId => {
         const toggle = document.querySelector(`[data-accordion="${accordionId}"]`);
         const content = document.querySelector(`[data-accordion-content="${accordionId}"]`);
-        const arrow = toggle.querySelector('.accordion-arrow');
+        const arrow = toggle?.querySelector('.accordion-arrow');
         
-        if (!content.classList.contains('open')) {
+        if (toggle && content && arrow && !content.classList.contains('open')) {
             content.classList.remove('hidden');
             requestAnimationFrame(() => {
                 content.classList.add('open');
@@ -329,8 +325,6 @@ function expandAllAccordions() {
         }
     });
     
-    // 버튼 상태 업데이트
-    updateControlButtonsState();
 }
 
 // 전체 아코디언 접기
@@ -340,9 +334,9 @@ function collapseAllAccordions() {
     accordions.forEach(accordionId => {
         const toggle = document.querySelector(`[data-accordion="${accordionId}"]`);
         const content = document.querySelector(`[data-accordion-content="${accordionId}"]`);
-        const arrow = toggle.querySelector('.accordion-arrow');
+        const arrow = toggle?.querySelector('.accordion-arrow');
         
-        if (content.classList.contains('open')) {
+        if (toggle && content && arrow && content.classList.contains('open')) {
             content.classList.remove('open');
             content.classList.add('hidden');
             arrow.classList.remove('rotate');
@@ -350,8 +344,6 @@ function collapseAllAccordions() {
         }
     });
     
-    // 버튼 상태 업데이트
-    updateControlButtonsState();
 }
 
 // 아코디언 그룹 ID들 가져오기
@@ -365,45 +357,6 @@ function getAccordionGroups() {
     return accordionGroups;
 }
 
-// 제어 버튼 상태 업데이트
-function updateControlButtonsState() {
-    const accordions = getAccordionGroups();
-    let openCount = 0;
-    
-    accordions.forEach(accordionId => {
-        const content = document.querySelector(`[data-accordion-content="${accordionId}"]`);
-        if (content && content.classList.contains('open')) {
-            openCount++;
-        }
-    });
-    
-    const expandAllBtn = document.getElementById('expand-all');
-    const collapseAllBtn = document.getElementById('collapse-all');
-    
-    if (!expandAllBtn || !collapseAllBtn) return;
-    
-    // 모든 아코디언이 열려있으면 펼치기 버튼 비활성화
-    if (openCount === accordions.length) {
-        expandAllBtn.style.opacity = '0.5';
-        expandAllBtn.style.cursor = 'not-allowed';
-        collapseAllBtn.style.opacity = '1';
-        collapseAllBtn.style.cursor = 'pointer';
-    } 
-    // 모든 아코디언이 닫혀있으면 접기 버튼 비활성화
-    else if (openCount === 0) {
-        expandAllBtn.style.opacity = '1';
-        expandAllBtn.style.cursor = 'pointer';
-        collapseAllBtn.style.opacity = '0.5';
-        collapseAllBtn.style.cursor = 'not-allowed';
-    } 
-    // 일부만 열려있으면 둘 다 활성화
-    else {
-        expandAllBtn.style.opacity = '1';
-        expandAllBtn.style.cursor = 'pointer';
-        collapseAllBtn.style.opacity = '1';
-        collapseAllBtn.style.cursor = 'pointer';
-    }
-}
 
 // 반응형 레이아웃 업데이트
 function updateResponsiveLayout() {
@@ -474,3 +427,8 @@ function bindMenuItemEvents() {
         });
     });
 }
+
+
+// 전역 함수로 노출
+window.expandAllAccordions = expandAllAccordions;
+window.collapseAllAccordions = collapseAllAccordions;

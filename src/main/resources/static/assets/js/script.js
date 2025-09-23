@@ -128,15 +128,19 @@ function toggleUserMenu() {
 
 // 전체 메뉴 확장
 function expandAllMenus() {
-    if (typeof window.expandAllMenus === 'function') {
-        window.expandAllMenus();
+   if (typeof window.expandAllAccordions === 'function') {
+        window.expandAllAccordions();
+    } else {
+        console.warn('expandAllAccordions 함수를 찾을 수 없습니다.');
     }
 }
 
 // 전체 메뉴 축소
 function collapseAllMenus() {
-    if (typeof window.collapseAllMenus === 'function') {
-        window.collapseAllMenus();
+    if (typeof window.collapseAllAccordions === 'function') {
+        window.collapseAllAccordions();
+    } else {
+        console.warn('collapseAllAccordions 함수를 찾을 수 없습니다.');
     }
 }
 

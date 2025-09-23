@@ -35,7 +35,7 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId);
         }
 
-        if (!user.isEnabled()) {
+        if (!user.getIsActive()) {
             throw new UsernameNotFoundException("비활성화된 사용자입니다: " + userId);
         }
 
@@ -45,11 +45,11 @@ public class UserService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
             user.getUserId(),
             user.getPassword(),
-            user.isEnabled(),
+            user.getIsActive(),
             true, // accountNonExpired
             true, // credentialsNonExpired
             true, // accountNonLocked
-            getAuthorities(user.getRole())
+            getAuthorities(user.getGroupId())
         );
     }
 
@@ -99,7 +99,7 @@ public class UserService implements UserDetailsService {
      */
     public User createUser(User user) {
         // 개발 단계에서는 비밀번호를 그대로 저장
-        user.setEnabled(true);
+        user.setIsActive(true);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         
