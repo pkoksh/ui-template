@@ -112,46 +112,13 @@ spring.datasource.password=worksystem123
 
 ## 🗄️ 데이터베이스 스키마
 
-### users 테이블
-```sql
-CREATE TABLE users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id VARCHAR(20) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    email VARCHAR(100),
-    department VARCHAR(50),
-    role VARCHAR(20) NOT NULL DEFAULT 'USER',
-    enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    last_login_at TIMESTAMP NULL
-);
-```
-
-### menus 테이블
-```sql
-CREATE TABLE menus (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    menu_id VARCHAR(50) NOT NULL UNIQUE,
-    parent_id VARCHAR(50),
-    title VARCHAR(100) NOT NULL,
-    url VARCHAR(200),
-    icon VARCHAR(50),
-    sort_order INT DEFAULT 0,
-    enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    required_role VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
+- \ui-template\src\main\resources\schema.sql 파일 참고
 
 ## 🛠️ 개발 환경
 
 ### 개발 도구
-- **IDE**: IntelliJ IDEA, VS Code
-- **Database Tool**: MySQL Workbench, DBeaver
-- **API Testing**: Postman, Insomnia
+- **IDE**: VS Code
+- **Database Tool**: MySQL Workbench
 
 ### 로깅
 - 개발 환경에서는 DEBUG 레벨 로깅 활성화

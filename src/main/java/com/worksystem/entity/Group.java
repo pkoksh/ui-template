@@ -16,15 +16,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Group {
     
-    private Long id;
+    private Long groupSeq;  // group_seq (PK)
     private String groupId;
     private String groupName;
     private String description;
-    private Integer level;
+    
+    @Builder.Default
+    private Integer level = 1;
     
     @Builder.Default
     private Boolean isActive = true;
     
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

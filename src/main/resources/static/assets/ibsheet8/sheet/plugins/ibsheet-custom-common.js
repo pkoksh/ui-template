@@ -25,6 +25,9 @@ IBSheet.Plugins.getSaveJson2 = function(params) {
   }else{
     result = this.getSaveJson(...arguments);
   }
+  
+  if( result.data.length === 0 ) return result;
+
   return result.data.map(row=>{
     // bool 타입 컬럼 0,1로 변환  
     boolTypeCol.forEach(col=>{
@@ -50,4 +53,45 @@ IBSheet.Plugins.getSaveJson2 = function(params) {
   });
 
 
+}
+
+
+async function saveAllData(sheetObj, API_BASE, callback) {
+  try {
+      document.getElementById('loading').classList.remove('hidden');
+      
+      // 그리드에서 변경된 데이터 가져오기
+      const changedData = sheetObj.getSaveJson2();
+      
+      if (changedData?.data?.length === 0) {
+          let msg = "";
+          switch(changedData.Code) {
+              case 'IBS010':
+                  msg = sheetObj.getMessage("RequiredError");
+                  msg = msg.replace("\%1", sheetObj.getRowIndex(changeData.row));
+                  msg = msg.replace("\%2", sheetObj.getString( sheetObj.getHeaderRows().at(-1), changeData.col ));
+                  showInfo(msg);
+                  break;
+                  case 'IBS000':
+                  msg = sheetObj.getMessage("NoSave");
+                  showInfo(msg);
+                  break;
+          }
+          return;
+      }
+
+      await apiPost(`${API_BASE}`, JSON.stringify(changedData));
+      
+      showSuccess('성공적으로 저장되었습니다.');
+      if (callback) callback();
+  } catch (error) {
+      console.error('저장 실패:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+          showError(`저장에 실패했습니다: ${error.response.data.message}`);
+      } else {
+          showError('저장에 실패했습니다.');
+      }
+  } finally {
+      document.getElementById('loading').classList.add('hidden');
+  }
 }

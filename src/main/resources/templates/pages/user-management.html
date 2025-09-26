@@ -112,11 +112,11 @@
                     { Header: "상태", Name: "status", Extend: IB_Preset.CSTATUS},
                     { Header: "사용자ID", Type: "Text", Name: "userId", MinWidth: 120, CanEdit: 1, Required: 1 },
                     { Header: "이름", Type: "Text", Name: "name", MinWidth: 120, CanEdit: 1, Required: 1 },
-                    { Header: "이메일", Type: "Email", Name: "email", MinWidth: 200, CanEdit: 1 },
+                    { Header: "이메일", Type: "Text", Name: "email", MinWidth: 200, CanEdit: 1 },
                     { Header: "부서", Type: "Text", Name: "department", MinWidth: 150, CanEdit: 1 },
-                    { Header: "권한", Type: "Enum", Name: "groupId", MinWidth: 100, Align: "Center", CanEdit: 1, Required: 1, ...getEnumInfo(groupEnum)},
+                    { Header: "권한", Type: "Enum", Name: "groupIds", MinWidth: 100, Align: "Center", CanEdit: 1, Required: 1,Range:1, ...getEnumInfo(groupEnum)},
                     { Header: "활성화", Type: "Bool", Name: "active", MinWidth: 80, Align: "Center", CanEdit: 1 },
-                    { Header: "생성일", Name: "createAt", CanEdit: 0, Extend: IB_Preset.YMD}
+                    { Header: "생성일", Name: "createdAt", Extend:IB_Preset, CanEdit: 0}
                 ]
             };
 
@@ -175,14 +175,21 @@
             
             try {
                 document.getElementById('loading').classList.remove('hidden');
-                const response = await axios.get(API_BASE + "/search", {
-                    params: {
+                // const response = await axios.get(API_BASE + "/search", {
+                //     params: {
+                //         userId: userIdSearch,
+                //         name: nameSearch,
+                //         department: departmentSearch,
+                //         groupId: groupSearch
+                //     }
+                // });
+
+                const response = await apiGet(API_BASE + "/search", {
                         userId: userIdSearch,
                         name: nameSearch,
                         department: departmentSearch,
                         groupId: groupSearch
-                    }
-                });
+                    });
                 userGrid.loadSearchData(response.data);
             } catch (error) {
                 console.error('사용자 데이터 로드 실패:', error);
@@ -281,59 +288,7 @@
         
         // 전체 사용자 저장
         async function saveAllUsers() {
-            try {
-                document.getElementById('loading').classList.remove('hidden');
-                
-                // 그리드에서 변경된 데이터 가져오기
-                const changedData = userGrid.getSaveJson2();
-                
-                if (changedData.length === 0) {
-                    showInfo('변경된 데이터가 없습니다.');
-                    return;
-                }
-
-                // 필수 필드 검증
-                let hasError = false;
-                changedData.forEach((user, index) => {
-                    if (!user.userId || user.userId.trim() === '') {
-                        showError(`${index + 1}번째 행: 사용자ID는 필수입니다.`);
-                        hasError = true;
-                        return;
-                    }
-                    if (!user.name || user.name.trim() === '') {
-                        showError(`${index + 1}번째 행: 이름은 필수입니다.`);
-                        hasError = true;
-                        return;
-                    }
-                    if (!user.groupId || user.groupId.trim() === '') {
-                        showError(`${index + 1}번째 행: 권한은 필수입니다.`);
-                        hasError = true;
-                        return;
-                    }
-                });
-
-                if (hasError) {
-                    return;
-                }
-                
-                await axios.post(`${API_BASE}`, JSON.stringify(changedData), {
-                    headers: {
-                        "Content-Type": `application/json`,
-                    },
-                });
-                
-                showSuccess('모든 사용자 정보가 성공적으로 저장되었습니다.');
-                loadUsers();
-            } catch (error) {
-                console.error('사용자 저장 실패:', error);
-                if (error.response && error.response.data && error.response.data.message) {
-                    showError(`사용자 저장에 실패했습니다: ${error.response.data.message}`);
-                } else {
-                    showError('사용자 저장에 실패했습니다.');
-                }
-            } finally {
-                document.getElementById('loading').classList.add('hidden');
-            }
+           saveAllData(userGrid, API_BASE, loadUsers)
         }
 
         // 페이지 종료시 호출 (부모 프레임에서 호출)

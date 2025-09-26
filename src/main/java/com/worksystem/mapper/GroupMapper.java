@@ -27,7 +27,7 @@ public interface GroupMapper {
     /**
      * ID로 그룹 조회
      */
-    Group findById(@Param("id") Long id);
+    Group findById(@Param("groupSeq") Long groupSeq);
     
     /**
      * 검색 조건으로 그룹 조회

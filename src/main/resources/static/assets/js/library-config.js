@@ -1,180 +1,112 @@
-/**
- * 라이브러리 의존성 설정
- * 각 라이브러리별 CSS와 JS 파일 경로를 중앙에서 관리
- */
-
-window.LibraryConfig = {
-    // IBSheet 설정
-    ibsheet: {
-        version: '8.0',
-        css: [
-            '/assets/ibsheet8/sheet/css/default/main.css'
-        ],
-        js: [
-            '/assets/ibsheet8/sheet/locale/ko.js',
-            '/assets/ibsheet8/sheet/ibsheet.js'
-        ]
-    },
+// Axios 기본 설정 및 인터셉터 구성
+(function setupAxiosInterceptors() {
+    // 기본 설정
+    axios.defaults.timeout = 30000;
+    axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     
-    // Chart.js 설정
-    chartjs: {
-        version: '3.9.1',
-        css: [],
-        js: [
-            'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js'
-        ]
-    },
-    
-    // DataTables 설정
-    datatables: {
-        version: '1.13.7',
-        css: [
-            'https://cdn.datatables.net/1.13.7/css/dataTables.tailwindcss.min.css'
-        ],
-        js: [
-            'https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js',
-            'https://cdn.datatables.net/1.13.7/js/dataTables.tailwindcss.min.js'
-        ]
-    },
-    
-    // FullCalendar 설정
-    fullcalendar: {
-        version: '6.1.8',
-        css: [
-            'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css'
-        ],
-        js: [
-            'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'
-        ]
-    },
-    
-    // CodeMirror 설정
-    codemirror: {
-        version: '6.0.1',
-        css: [
-            'https://cdn.jsdelivr.net/npm/codemirror@6.0.1/dist/index.css'
-        ],
-        js: [
-            'https://cdn.jsdelivr.net/npm/codemirror@6.0.1/dist/index.js'
-        ]
-    },
-    
-    // Select2 설정
-    select2: {
-        version: '4.0.13',
-        css: [
-            'https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css'
-        ],
-        js: [
-            'https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js'
-        ]
-    },
-    
-    // Moment.js 설정
-    moment: {
-        version: '2.29.4',
-        css: [],
-        js: [
-            'https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js',
-            'https://cdn.jsdelivr.net/npm/moment@2.29.4/locale/ko.js'
-        ]
-    },
-    
-    // Lodash 설정
-    lodash: {
-        version: '4.17.21',
-        css: [],
-        js: [
-            'https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js'
-        ]
-    }
-};
-
-/**
- * 라이브러리 동적 로드 함수
- */
-window.loadLibrary = function(libraryName) {
-    return new Promise((resolve, reject) => {
-        const config = window.LibraryConfig[libraryName];
-        if (!config) {
-            reject(new Error(`라이브러리 설정을 찾을 수 없습니다: ${libraryName}`));
-            return;
+    // 요청 인터셉터
+    axios.interceptors.request.use(
+        function(config) {
+            // 모든 요청에 Accept 헤더 추가
+            if (!config.headers.Accept) {
+                config.headers.Accept = 'application/json';
+            }
+            return config;
+        },
+        function(error) {
+            return Promise.reject(error);
         }
-        
-        const loadPromises = [];
-        
-        // CSS 파일 로드
-        config.css.forEach(cssPath => {
-            if (!document.querySelector(`link[href="${cssPath}"]`)) {
-                const loadPromise = new Promise((cssResolve, cssReject) => {
-                    const link = document.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.href = cssPath;
-                    link.onload = () => {
-                        console.log(`CSS 로드 완료: ${cssPath}`);
-                        cssResolve();
-                    };
-                    link.onerror = () => {
-                        console.error(`CSS 로드 실패: ${cssPath}`);
-                        cssReject(new Error(`CSS 로드 실패: ${cssPath}`));
-                    };
-                    document.head.appendChild(link);
-                });
-                loadPromises.push(loadPromise);
-            }
-        });
-        
-        // JS 파일 로드
-        config.js.forEach(jsPath => {
-            if (!document.querySelector(`script[src="${jsPath}"]`)) {
-                const loadPromise = new Promise((jsResolve, jsReject) => {
-                    const script = document.createElement('script');
-                    script.src = jsPath;
-                    script.onload = () => {
-                        console.log(`JS 로드 완료: ${jsPath}`);
-                        jsResolve();
-                    };
-                    script.onerror = () => {
-                        console.error(`JS 로드 실패: ${jsPath}`);
-                        jsReject(new Error(`JS 로드 실패: ${jsPath}`));
-                    };
-                    document.head.appendChild(script);
-                });
-                loadPromises.push(loadPromise);
-            }
-        });
-        
-        Promise.all(loadPromises)
-            .then(() => {
-                console.log(`${libraryName} 라이브러리가 모두 로드되었습니다.`);
+    );
+    
+    // 응답 인터셉터 - 상태 코드 기반 처리
+    axios.interceptors.response.use(
+        function(response) {
+            // 성공 응답 처리
+            return response;
+        },
+        function(error) {
+            console.error('API 호출 오류:', error);
+            
+            if (error.response) {
+                const status = error.response.status;
                 
-                // IBSheet의 경우 추가 확인
-                if (libraryName === 'ibsheet') {
-                    // IBSheet 객체가 실제로 사용 가능한지 확인
-                    const checkIBSheet = () => {
-                        if (typeof IBSheet !== 'undefined' && IBSheet.create) {
-                            console.log('IBSheet 객체 사용 가능 확인 완료');
-                            resolve();
-                        } else {
-                            console.log('IBSheet 객체 확인 중...');
-                            setTimeout(checkIBSheet, 50);
-                        }
-                    };
-                    checkIBSheet();
-                } else {
-                    resolve();
+                switch (status) {
+                    case 401:
+                        // 세션 만료 - 서버에서 JSON 응답 전송됨
+                        handleUnauthorized(error.response.data);
+                        break;
+                    case 403:
+                        // 접근 권한 없음
+                        handleForbidden(error.response.data);
+                        break;
+                    case 404:
+                        showError('요청한 리소스를 찾을 수 없습니다.');
+                        break;
+                    case 500:
+                        showError('서버 내부 오류가 발생했습니다. 관리자에게 문의하세요.');
+                        break;
+                    default:
+                        showError(`오류가 발생했습니다. (${status})`);
                 }
-            })
-            .catch(reject);
-    });
-};
+            } else if (error.code === 'ECONNABORTED') {
+                showError('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+            } else {
+                showError('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.');
+            }
+            
+            return Promise.reject(error);
+        }
+    );
+})();
 
 /**
- * 여러 라이브러리 동시 로드
+ * 401 Unauthorized 처리 (세션 만료)
  */
-window.loadLibraries = function(libraryNames) {
-    const loadPromises = libraryNames.map(name => window.loadLibrary(name));
-    return Promise.all(loadPromises);
-};
+function handleUnauthorized(errorData) {
+    console.warn('세션이 만료되었습니다.');
+    
+    const message = errorData?.message || '세션이 만료되었습니다. 다시 로그인해주세요.';
+    
+    // SweetAlert2로 알림 표시
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            icon: 'warning',
+            title: '세션 만료',
+            text: message,
+            confirmButtonText: '로그인 페이지로 이동',
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then(() => {
+            redirectToLogin();
+        });
+    } else {
+        // SweetAlert2가 없는 경우 기본 alert 사용
+        alert(message);
+        redirectToLogin();
+    }
+}
+
+/**
+ * 403 Forbidden 처리 (접근 권한 없음)
+ */
+function handleForbidden(errorData) {
+    const message = errorData?.message || '접근 권한이 없습니다.';
+    showError(message);
+}
+
+/**
+ * 로그인 페이지로 리다이렉트
+ */
+function redirectToLogin() {
+    // iframe 내부인지 확인
+    if (window.parent !== window) {
+        // iframe 내부에서는 부모 창 전체를 로그인 페이지로 리다이렉트
+        window.parent.location.reload();
+    } else {
+        // 일반 페이지에서는 현재 창을 로그인 페이지로 리다이렉트
+        top.location.href = '/login.html';
+    }
+}
+
 
 console.log('라이브러리 설정이 로드되었습니다.');

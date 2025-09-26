@@ -21,17 +21,10 @@
                     <i class='bx bx-plus text-lg'></i>
                     <span class="font-medium">그룹 추가</span>
                 </button>
-                <!--
-                <button id="del-group-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
-                    <i class='bx bx-minus text-lg'></i>
-                    <span class="font-medium">그룹 삭제</span>
-                </button>
-                
                 <button id="permission-btn" class="bg-[#17A2B8] hover:bg-[#17A2B8]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
                     <i class='bx bx-shield text-lg'></i>
                     <span class="font-medium">권한 설정</span>
                 </button>
-                -->
             </div>
         </div>
 
@@ -225,10 +218,9 @@
         // 이벤트 리스너 설정
         function setupEventListeners() {
             document.getElementById('add-group-btn').addEventListener('click', addGroup);
-            // document.getElementById('del-group-btn').addEventListener('click', delGroup);
             document.getElementById('save-all-btn').addEventListener('click', saveAllGroups);
             document.getElementById('refresh-btn').addEventListener('click', performSearch);
-            // document.getElementById('permission-btn').addEventListener('click', showPermissionModal);
+            document.getElementById('permission-btn').addEventListener('click', showPermissionModal);
             
             // 모달 관련 이벤트
             document.getElementById('close-modal-btn').addEventListener('click', closePermissionModal);
@@ -417,27 +409,30 @@
 
         // 권한 저장
         async function savePermissions() {
-            try {
-                document.getElementById('loading').classList.remove('hidden');
+
+            return await saveAllData(permissionGrid,`${API_BASE}/${currentGroupId}/permissions`, closePermissionModal)
+
+            // try {
+            //     document.getElementById('loading').classList.remove('hidden');
                 
-                // 그리드에서 권한 데이터 가져오기
-                const permissionData = permissionGrid.getSaveJson2();
+            //     // 그리드에서 권한 데이터 가져오기
+            //     const permissionData = permissionGrid.getSaveJson2();
                 
-                await axios.post(`${API_BASE}/${currentGroupId}/permissions`, 
-                    JSON.stringify(permissionData), {
-                    headers: {
-                        "Content-Type": `application/json`,
-                    },
-                });
+            //     await apiPost(`${API_BASE}/${currentGroupId}/permissions`, 
+            //         JSON.stringify(permissionData), {
+            //         headers: {
+            //             "Content-Type": `application/json`,
+            //         },
+            //     });
                 
-                showSuccess('권한이 성공적으로 저장되었습니다.');
-                closePermissionModal();
-            } catch (error) {
-                console.error('권한 저장 실패:', error);
-                showError('권한 저장에 실패했습니다.');
-            } finally {
-                document.getElementById('loading').classList.add('hidden');
-            }
+            //     showSuccess('권한이 성공적으로 저장되었습니다.');
+            //     closePermissionModal();
+            // } catch (error) {
+            //     console.error('권한 저장 실패:', error);
+            //     showError('권한 저장에 실패했습니다.');
+            // } finally {
+            //     document.getElementById('loading').classList.add('hidden');
+            // }
         }
         
         // 전체 그룹 저장

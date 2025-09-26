@@ -25,6 +25,12 @@ async function loadPage(contentId, url, tabName) {
         if (!iframe) {
             // 새 iframe 생성
             iframe = createIframe(contentId, url);
+
+            if(iframe.contentDocument.location.href.endsWith("login.html")) {
+                location.href = '/login.html';
+                return false;
+            }
+
             iframeMap.set(contentId, iframe);
             
             // iframe 로드 완료 대기

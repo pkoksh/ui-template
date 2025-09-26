@@ -10,8 +10,8 @@ public class Menu {
     private String icon;
     private Integer sortOrder = 0;
     private Boolean isActive = true; 
-    private String requiredGroup;
     private String description;
+    private java.time.LocalDateTime createdAt;
 
     // 기본 생성자
     public Menu() {}
@@ -26,6 +26,7 @@ public class Menu {
         this.parentId = parentId;
         this.sortOrder = sortOrder;
         this.isActive = isActive;
+        this.createdAt = java.time.LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -93,19 +94,19 @@ public class Menu {
         this.isActive = isActive;
     }
 
-    public String getRequiredGroup() {
-        return requiredGroup;
-    }
-
-    public void setRequiredGroup(String requiredGroup) {
-        this.requiredGroup = requiredGroup;
-    }
-
     public String getDescription() {
         return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public java.time.LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(java.time.LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

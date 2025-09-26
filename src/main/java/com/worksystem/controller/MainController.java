@@ -13,9 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -29,36 +27,32 @@ public class MainController {
     @Autowired
     private UserService userService;
 
-     @Autowired
-    private EnumMaker enumMaker; // Spring DI로 주입
+    @Autowired
+    private EnumMaker enumMaker;
 
     /**
      * 메인 페이지 - Thymeleaf 템플릿 사용
      */
     @GetMapping("/")
     public String index(Model model) {
-        // 현재 인증된 사용자 정보 가져오기
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UserDTO currentUser = null;
         
-        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
-            try {
-                currentUser = userService.findByUserId(auth.getName());
-            } catch (Exception e) {
-                logger.warn("사용자 정보 조회 실패: {}", auth.getName(), e);
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            UserDTO user = userService.findUserWithGroups(auth.getName());
+            
+            if (user != null) {
+                model.addAttribute("currentUser", Map.of(
+                    "userId", user.getUserId(),
+                    "name", user.getName(),
+                    "email", user.getEmail() != null ? user.getEmail() : "",
+                    "department", user.getDepartment() != null ? user.getDepartment() : "",
+                    "groupId", user.getPrimaryGroupId() != null ? user.getPrimaryGroupId() : "USER",  // groupId로 변경
+                    "groupName", user.getPrimaryGroupName() != null ? user.getPrimaryGroupName() : "일반사용자",  // groupName 추가
+                    "primaryGroupId", user.getPrimaryGroupId() != null ? user.getPrimaryGroupId() : "",
+                    "primaryGroupName", user.getPrimaryGroupName() != null ? user.getPrimaryGroupName() : ""
+                ));
             }
         }
-        
-        // 시스템 정보 설정
-        model.addAttribute("systemName", "업무시스템");
-        model.addAttribute("version", "1.0.0");
-        model.addAttribute("currentUser", currentUser);
-        model.addAttribute("isAuthenticated", auth != null && auth.isAuthenticated());
-        
-        // 개발 환경 설정
-        model.addAttribute("isDevelopment", isDevEnvironment());
-        // model.addAttribute("jsVersion", System.currentTimeMillis() ); // 캐시 버스팅용
-        model.addAttribute("jsVersion", "prod" ); // 캐시 버스팅용
         
         return "index";
     }
@@ -88,75 +82,31 @@ public class MainController {
         
         return "pages/menu-management";
     }
+
     /**
      * 사용자 관리 페이지
      */
     @GetMapping("/user-management")
     public String userManagement(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        model.addAttribute("pageTitle", "사용자 관리");
+        model.addAttribute("currentUser", auth != null ? auth.getName() : "guest");
         model.addAttribute("groupEnum", enumMaker.getGroupEnum());
+        
         return "pages/user-management";
     }
+
     /**
-     * group 관리 페이지
+     * 그룹 관리 페이지
      */
     @GetMapping("/group-management")
     public String groupManagement(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        model.addAttribute("pageTitle", "그룹 관리");
+        model.addAttribute("currentUser", auth != null ? auth.getName() : "guest");
+        
         return "pages/group-management";
     }
-    
-    /**
-     * 개발 환경 여부 확인
-     */
-    private boolean isDevEnvironment() {
-        // 기본적으로 개발 환경으로 간주 (프로파일 설정이 복잡하므로 단순화)
-        return true;
-    }
-
-    /**
-     * 현재 사용자 정보 API
-     */
-    @GetMapping("/api/user/current")
-    @ResponseBody
-    public Map<String, Object> getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Map<String, Object> response = new HashMap<>();
-        
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-            UserDTO user = userService.findByUserId(auth.getName());
-            if (user != null) {
-                response.put("success", true);
-                response.put("user", Map.of(
-                    "userId", user.getUserId(),
-                    "name", user.getName(),
-                    "email", user.getEmail(),
-                    "department", user.getDepartment(),
-                    "groupId", user.getGroupId()
-                ));
-            } else {
-                response.put("success", false);
-                response.put("message", "사용자 정보를 찾을 수 없습니다.");
-            }
-        } else {
-            response.put("success", false);
-            response.put("message", "인증되지 않은 사용자입니다.");
-        }
-        
-        return response;
-    }
-
-    /**
-     * 시스템 상태 API
-     */
-    @GetMapping("/api/system/status")
-    @ResponseBody
-    public Map<String, Object> getSystemStatus() {
-        Map<String, Object> status = new HashMap<>();
-        status.put("status", "running");
-        status.put("version", "1.0.0");
-        status.put("timestamp", System.currentTimeMillis());
-        return status;
-    }
-
 }

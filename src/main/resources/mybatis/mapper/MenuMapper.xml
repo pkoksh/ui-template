@@ -5,7 +5,7 @@
 
     <!-- Result Map 정의 -->
     <resultMap id="MenuResultMap" type="com.worksystem.entity.Menu">
-        <id property="id" column="id"/>
+        <id property="id" column="menu_seq"/>
         <result property="menuId" column="menu_id"/>
         <result property="parentId" column="parent_id"/>
         <result property="title" column="title"/>
@@ -13,7 +13,8 @@
         <result property="icon" column="icon"/>
         <result property="sortOrder" column="sort_order"/>
         <result property="isActive" column="is_active"/>
-        <result property="requiredGroup" column="required_group"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="description" column="description"/>
     </resultMap>
 
     <!-- 모든 메뉴 조회 (정렬 순서대로) -->
@@ -42,7 +43,7 @@
 
     <!-- ID로 메뉴 조회 -->
     <select id="findById" parameterType="long" resultMap="MenuResultMap">
-        SELECT * FROM menus WHERE id = #{id}
+        SELECT * FROM menus WHERE menu_seq = #{id}
     </select>
 
     <!-- 메뉴 ID로 메뉴 조회 -->
@@ -59,8 +60,8 @@
             url, 
             icon, 
             sort_order, 
-            is_active, 
-            required_group 
+            is_active,
+            created_at
         ) VALUES (
             #{menuId}, 
             #{parentId}, 
@@ -68,8 +69,8 @@
             #{url}, 
             #{icon}, 
             #{sortOrder}, 
-            #{isActive}, 
-            #{requiredGroup}
+            #{isActive},
+            #{createdAt}
         )
     </insert>
 
@@ -81,14 +82,61 @@
             icon = #{icon},
             parent_id = #{parentId},
             sort_order = #{sortOrder},
-            is_active = #{isActive},
-            required_group = #{requiredGroup}
-        WHERE id = #{id}
+            is_active = #{isActive}
+        WHERE menu_seq = #{id}
     </update>
 
     <!-- 메뉴 삭제 -->
     <delete id="deleteById" parameterType="long">
-        DELETE FROM menus WHERE id = #{id}
+        DELETE FROM menus WHERE menu_seq = #{id}
     </delete>
+
+    <!-- 사용자 권한에 따른 접근 가능한 메뉴 조회 -->
+    <select id="findAccessibleMenusByUserId" parameterType="string" resultMap="MenuResultMap">
+        SELECT DISTINCT m.* 
+        FROM menus m
+        INNER JOIN group_menu_permissions gmp ON m.menu_id = gmp.menu_id
+        INNER JOIN user_group_mappings ugm ON gmp.group_id = ugm.group_id
+        WHERE ugm.user_id = #{userId}
+          AND m.is_active = true
+          AND gmp.can_read = true
+        ORDER BY m.sort_order ASC
+    </select>
+
+    <!-- 특정 메뉴에 대한 사용자 접근 권한 확인 (존재하면 1, 없으면 0 반환) -->
+    <select id="checkUserMenuAccess" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM menus m
+        INNER JOIN group_menu_permissions gmp ON m.menu_id = gmp.menu_id
+        INNER JOIN user_group_mappings ugm ON gmp.group_id = ugm.group_id
+        WHERE ugm.user_id = #{userId}
+          AND m.menu_id = #{menuId}
+          AND m.is_active = true
+          AND gmp.can_read = true
+        LIMIT 1
+    </select>
+
+    <!-- 사용자의 특정 메뉴 권한 상세 조회 -->
+    <select id="findMenuPermissionsByUserAndMenu" parameterType="map" resultType="com.worksystem.dto.MenuDTO">
+        SELECT 
+            m.menu_seq as id,
+            m.menu_id as menuId,
+            m.parent_id as parentId,
+            m.title,
+            m.url,
+            m.icon,
+            m.sort_order as sortOrder,
+            m.is_active as isActive,
+            MAX(gmp.can_read) as canRead,
+            MAX(gmp.can_write) as canWrite,
+            MAX(gmp.can_delete) as canDelete
+        FROM menus m
+        INNER JOIN group_menu_permissions gmp ON m.menu_id = gmp.menu_id
+        INNER JOIN user_group_mappings ugm ON gmp.group_id = ugm.group_id
+        WHERE ugm.user_id = #{userId}
+          AND m.menu_id = #{menuId}
+          AND m.is_active = true
+        GROUP BY m.menu_seq, m.menu_id, m.parent_id, m.title, m.url, m.icon, m.sort_order, m.is_active
+    </select>
 
 </mapper>

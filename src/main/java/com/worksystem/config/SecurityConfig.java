@@ -1,6 +1,6 @@
 package com.worksystem.config;
 
-import com.worksystem.service.CustomUserDetailsService;
+import com.worksystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +24,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfig {
     
     @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private UserService userService;
     
     @Autowired
     private LoginSuccessHandler loginSuccessHandler;
@@ -51,7 +51,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setUserDetailsService(userService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -75,95 +75,129 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-            // CSRF 설정
-            .csrf(csrf -> csrf.disable())  // 개발 단계에서 CSRF 완전히 비활성화
+        // CSRF 설정
+        .csrf(csrf -> csrf.disable())
+        
+        // 세션 관리 설정
+        .sessionManagement(session -> session
+            .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED)
+            .maximumSessions(1)
+            .maxSessionsPreventsLogin(false)
+            .sessionRegistry(sessionRegistry())
+            .expiredUrl("/login.html")
+        )
+        
+        // 요청 권한 설정
+        .authorizeHttpRequests(auth -> auth
+            // 1. 정적 리소스를 가장 먼저 허용
+            .requestMatchers("/js/**").permitAll()
+            .requestMatchers("/css/**").permitAll()
+            .requestMatchers("/images/**").permitAll()
+            .requestMatchers("/favicon/**").permitAll()
+            .requestMatchers("/assets/**").permitAll()
+            .requestMatchers("/static/**").permitAll()
+            .requestMatchers("/resources/**").permitAll()
+            .requestMatchers("/webjars/**").permitAll()
+            .requestMatchers("/favicon.ico").permitAll()
+            .requestMatchers("/script.js").permitAll()
             
-            // 세션 관리 설정
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED)
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-                .sessionRegistry(sessionRegistry())
-                .expiredUrl("/login.html")
-            )
+            // 2. 로그인 관련 페이지와 API 허용
+            .requestMatchers("/login.html", "/login").permitAll()
+            .requestMatchers("/api/auth/login").permitAll()
+            .requestMatchers("/api/auth/encode-passwords").permitAll()
+            .requestMatchers("/error").permitAll()
             
-            // 요청 권한 설정 - 순서가 중요함!
-            .authorizeHttpRequests(auth -> auth
-                // 1. 정적 리소스를 가장 먼저 허용 (더 구체적인 패턴 사용)
-                .requestMatchers("/js/**").permitAll()
-                .requestMatchers("/css/**").permitAll()
-                .requestMatchers("/images/**").permitAll()
-                .requestMatchers("/favicon/**").permitAll()
-                .requestMatchers("/assets/**").permitAll() // assets 하위 모든 경로 허용
-                .requestMatchers("/static/**").permitAll()
-                .requestMatchers("/resources/**").permitAll()
-                .requestMatchers("/webjars/**").permitAll()
-                .requestMatchers("/favicon.ico").permitAll()
-                .requestMatchers("/script.js").permitAll()
+            // 3. 인증된 사용자만 접근 가능한 API
+            .requestMatchers("/api/auth/user").authenticated()
+            .requestMatchers("/api/users/**").authenticated()
+            
+            // 4. 메인 페이지는 인증 필요하지만 forward는 허용
+            .requestMatchers("/", "/index.html").authenticated()
+            
+            // 5. 관리자 전용 페이지
+            .requestMatchers("/admin/**").hasRole("ADMIN")
+            
+            // 6. 나머지 모든 요청은 인증 필요
+            .anyRequest().authenticated()
+        )
+        
+        // 폼 로그인 설정
+        .formLogin(form -> form
+            .loginPage("/login.html")
+            .loginProcessingUrl("/api/auth/login")
+            .usernameParameter("userId")
+            .passwordParameter("password")
+            .successHandler(loginSuccessHandler)
+            .failureUrl("/login.html?error=true")
+            .permitAll()
+        )
+        
+        // Remember-Me 기능 추가
+        .rememberMe(remember -> remember
+            .key("worksystem-remember-me-key")
+            .tokenValiditySeconds(86400 * 7)
+            .userDetailsService(userService)
+            .rememberMeParameter("remember-me")
+        )
+        
+        // 로그아웃 설정
+        .logout(logout -> logout
+            .logoutRequestMatcher(new AntPathRequestMatcher("/api/auth/logout"))
+            .logoutSuccessUrl("/login.html?logout")
+            .invalidateHttpSession(true)
+            .clearAuthentication(true)
+            .deleteCookies("JSESSIONID", "remember-me")
+            .permitAll()
+        )
+        
+        // 예외 처리 - AJAX 요청에 대한 401 응답 설정
+        .exceptionHandling(ex -> ex
+            .authenticationEntryPoint((request, response, authException) -> {
+                String requestedWith = request.getHeader("X-Requested-With");
+                String accept = request.getHeader("Accept");
                 
-                // 2. 로그인 관련 페이지와 API 허용
-                .requestMatchers("/login.html", "/login").permitAll()
-                .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/encode-passwords").permitAll() // 개발용 암호화 엔드포인트
-                .requestMatchers("/error").permitAll()
+                // AJAX 요청인지 판단
+                if ("XMLHttpRequest".equals(requestedWith) || 
+                    (accept != null && accept.contains("application/json"))) {
+                    // AJAX 요청의 경우 401 상태 코드와 JSON 응답
+                    response.setStatus(401);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write(
+                        "{\"error\": \"UNAUTHORIZED\", \"message\": \"세션이 만료되었습니다. 다시 로그인해주세요.\", \"redirect\": \"/login.html\"}"
+                    );
+                } else {
+                    // 일반 요청의 경우 로그인 페이지로 리다이렉트
+                    response.sendRedirect("/login.html");
+                }
+            })
+            .accessDeniedHandler((request, response, accessDeniedException) -> {
+                String requestedWith = request.getHeader("X-Requested-With");
+                String accept = request.getHeader("Accept");
                 
-                // 3. 인증된 사용자만 접근 가능한 API
-                .requestMatchers("/api/auth/user").authenticated()
-                .requestMatchers("/api/users/**").authenticated()
-                
-                // 4. 메인 페이지는 인증 필요하지만 forward는 허용
-                .requestMatchers("/", "/index.html").authenticated()
-                
-                // 4. 관리자 전용 페이지
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                
-                // 5. 나머지 모든 요청은 인증 필요
-                .anyRequest().authenticated()
-            )
-            
-            // 폼 로그인 설정
-            .formLogin(form -> form
-                .loginPage("/login.html")
-                .loginProcessingUrl("/api/auth/login")
-                .usernameParameter("userId")
-                .passwordParameter("password")
-                .successHandler(loginSuccessHandler)
-                // .defaultSuccessUrl("/", true) // successHandler 사용시 제거
-                .failureUrl("/login.html?error=true")
-                .permitAll()
-            )
-            
-            // Remember-Me 기능 추가
-            .rememberMe(remember -> remember
-                .key("worksystem-remember-me-key")
-                .tokenValiditySeconds(86400 * 7) // 7일
-                .userDetailsService(userDetailsService)
-                .rememberMeParameter("remember-me") // login.js와 일치하도록 수정
-            )
-            
-            // 로그아웃 설정
-            .logout(logout -> logout
-                .logoutRequestMatcher(new AntPathRequestMatcher("/api/auth/logout"))
-                .logoutSuccessUrl("/login.html?logout")
-                .invalidateHttpSession(true)
-                .clearAuthentication(true)
-                .deleteCookies("JSESSIONID", "remember-me")
-                .permitAll()
-            )
-            
-            // 접근 거부 처리
-            .exceptionHandling(ex -> ex
-                .accessDeniedPage("/login.html?access_denied=true")
-            )
-            
-            // iframe 허용을 위한 헤더 설정
-            .headers(headers -> headers
-                .frameOptions(frameOptions -> frameOptions.sameOrigin()) // 같은 도메인에서 iframe 허용
-            )
-            
-            // 인증 제공자 설정
-            .authenticationProvider(authenticationProvider())
-            
-            .build();
+                if ("XMLHttpRequest".equals(requestedWith) || 
+                    (accept != null && accept.contains("application/json"))) {
+                    // AJAX 요청의 경우 403 상태 코드와 JSON 응답
+                    response.setStatus(403);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write(
+                        "{\"error\": \"FORBIDDEN\", \"message\": \"접근 권한이 없습니다.\"}"
+                    );
+                } else {
+                    // 일반 요청의 경우 접근 거부 페이지로 리다이렉트
+                    response.sendRedirect("/login.html?access_denied=true");
+                }
+            })
+        )
+        
+        // iframe 허용을 위한 헤더 설정
+        .headers(headers -> headers
+            .frameOptions(frameOptions -> frameOptions.sameOrigin())
+        )
+        
+        // 인증 제공자 설정
+        .authenticationProvider(authenticationProvider())
+        
+        .build();
     }
+
 }

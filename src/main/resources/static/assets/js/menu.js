@@ -6,7 +6,7 @@ window.menuItems = [];
 // 메뉴 API에서 데이터 로드
 async function loadMenusFromAPI() {
     try {
-        const response = await fetch('/api/menus/active');
+        const response = await fetch('/api/menus/user-accessible');
         if (response.ok) {
             const menus = await response.json();
             window.menuItems = convertAPIMenusToFormat(menus);

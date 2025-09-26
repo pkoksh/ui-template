@@ -14,10 +14,14 @@ public class MenuDTO {
     private String parentId; // String 타입으로 변경
     private Integer sortOrder;
     private Boolean isActive;
-    private String requiredGroup; // 추가
     @JsonProperty("Items")
     private List<MenuDTO> items;
     private String status; // For IBSheet 상태 관리
+    
+    // 권한 관련 필드
+    private Boolean canRead;    // 읽기 권한
+    private Boolean canWrite;   // 쓰기 권한
+    private Boolean canDelete;  // 삭제 권한
 
 
     public MenuDTO() {
@@ -25,7 +29,7 @@ public class MenuDTO {
     }
 
     public MenuDTO(Long id, String menuId, String title, String url, String icon, 
-                   String parentId, Integer sortOrder, Boolean isActive, String requiredGroup, String status) {
+                   String parentId, Integer sortOrder, Boolean isActive, String status) {
         this.id = id;
         this.menuId = menuId;
         this.title = title;
@@ -35,7 +39,6 @@ public class MenuDTO {
         this.sortOrder = sortOrder;
         this.isActive = isActive;
         this.items = new ArrayList<>();
-        this.requiredGroup = requiredGroup;
         this.status = status;
     }
 
@@ -120,14 +123,6 @@ public class MenuDTO {
         return items != null && !items.isEmpty();
     }
 
-    public String getRequiredGroup() {
-        return requiredGroup;
-    }
-
-    public void setRequiredGroup(String requiredGroup) {
-        this.requiredGroup = requiredGroup;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -135,4 +130,28 @@ public class MenuDTO {
         this.status = status;
     }
     
+    // 권한 관련 getter/setter
+    public Boolean getCanRead() {
+        return canRead;
+    }
+    
+    public void setCanRead(Boolean canRead) {
+        this.canRead = canRead;
+    }
+    
+    public Boolean getCanWrite() {
+        return canWrite;
+    }
+    
+    public void setCanWrite(Boolean canWrite) {
+        this.canWrite = canWrite;
+    }
+    
+    public Boolean getCanDelete() {
+        return canDelete;
+    }
+    
+    public void setCanDelete(Boolean canDelete) {
+        this.canDelete = canDelete;
+    }
 }

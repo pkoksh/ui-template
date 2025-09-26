@@ -325,6 +325,67 @@ window.apiRequest = async function(url, options = {}) {
     }
 };
 
+
+/**
+ * API 호출 래퍼 함수 - 세션 체크 포함
+ */
+async function apiCall(config) {
+    try {
+        const response = await axios(config);
+        return response.data;
+    } catch (error) {
+        // 에러는 이미 인터셉터에서 처리됨
+        throw error;
+    }
+}
+
+/**
+ * 안전한 GET 요청
+ */
+async function apiGet(url, params = {}) {
+    return await apiCall({
+        method: 'GET',
+        url: url,
+        params: params
+    });
+}
+
+/**
+ * 안전한 POST 요청
+ */
+async function apiPost(url, data = {}) {
+    return await apiCall({
+        method: 'POST',
+        url: url,
+        data: data,
+        headers: {
+              "Content-Type": `application/json`,
+          }
+    });
+}
+
+/**
+ * 안전한 PUT 요청
+ */
+async function apiPut(url, data = {}) {
+    return await apiCall({
+        method: 'PUT',
+        url: url,
+        data: data
+    });
+}
+
+/**
+ * 안전한 DELETE 요청
+ */
+async function apiDelete(url) {
+    return await apiCall({
+        method: 'DELETE',
+        url: url
+    });
+}
+
+
 // ================================
 // 유효성 검사 유틸리티
 // ================================

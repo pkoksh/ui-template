@@ -41,6 +41,9 @@ dependencies {
     // Development tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     
+    // Spring Session with JDBC
+    implementation 'org.springframework.session:spring-session-jdbc'
+
     // Annotation processor
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     

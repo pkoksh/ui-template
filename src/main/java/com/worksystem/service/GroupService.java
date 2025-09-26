@@ -95,12 +95,12 @@ public class GroupService {
                 .groupId(groupDTO.getGroupId())
                 .groupName(groupDTO.getGroupName())
                 .description(groupDTO.getDescription())
-                .level(groupDTO.getLevel())
+                .level(groupDTO.getLevel() != null ? groupDTO.getLevel() : 1)
                 .isActive(groupDTO.getIsActive() != null ? groupDTO.getIsActive() : true)
                 .build();
         
         groupMapper.insert(group);
-        log.info("그룹 생성 완료 - groupId: {}, id: {}", group.getGroupId(), group.getId());
+        log.info("그룹 생성 완료 - groupId: {}, groupSeq: {}", group.getGroupId(), group.getGroupSeq());
         
         return group;
     }
@@ -123,7 +123,7 @@ public class GroupService {
         }
         
         Group group = Group.builder()
-                .id(existingGroup.getId())
+                .groupSeq(existingGroup.getGroupSeq())
                 .groupId(groupId)
                 .groupName(groupDTO.getGroupName())
                 .description(groupDTO.getDescription())

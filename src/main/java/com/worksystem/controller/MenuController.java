@@ -4,6 +4,8 @@ import com.worksystem.dto.MenuDTO;
 import com.worksystem.service.MenuService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -76,5 +78,76 @@ public class MenuController {
         }
     }
 
- 
+    /**
+     * 로그인한 사용자의 권한에 따른 메뉴 조회
+     */
+    @GetMapping("/user-accessible")
+    public ResponseEntity<List<MenuDTO>> getUserAccessibleMenus() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(401).build();
+            }
+            
+            String userId = authentication.getName();
+            List<MenuDTO> menus = menuService.getAccessibleMenusForUser(userId);
+            return ResponseEntity.ok(menus);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 특정 사용자의 권한에 따른 메뉴 조회 (관리자용)
+     */
+    @GetMapping("/user/{userId}/accessible")
+    public ResponseEntity<List<MenuDTO>> getUserAccessibleMenus(@PathVariable String userId) {
+        try {
+            List<MenuDTO> menus = menuService.getAccessibleMenusForUser(userId);
+            return ResponseEntity.ok(menus);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 현재 로그인한 사용자의 특정 메뉴 접근 권한 확인
+     */
+    @GetMapping("/check-access/{menuId}")
+    public ResponseEntity<Boolean> checkMenuAccess(@PathVariable String menuId) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(401).build();
+            }
+            
+            String userId = authentication.getName();
+            boolean hasAccess = menuService.hasMenuAccess(userId, menuId);
+            return ResponseEntity.ok(hasAccess);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * 현재 로그인한 사용자의 특정 메뉴 권한 상세 조회
+     */
+    @GetMapping("/permissions/{menuId}")
+    public ResponseEntity<MenuDTO> getMenuPermissions(@PathVariable String menuId) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(401).build();
+            }
+            
+            String userId = authentication.getName();
+            MenuDTO permissions = menuService.getMenuPermissions(userId, menuId);
+            if (permissions == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(permissions);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

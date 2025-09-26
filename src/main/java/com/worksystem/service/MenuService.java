@@ -47,6 +47,28 @@ public class MenuService {
         return buildMenuHierarchy(activeMenus);
     }
 
+    /**
+     * 사용자 권한에 따른 접근 가능한 메뉴 조회
+     */
+    public List<MenuDTO> getAccessibleMenusForUser(String userId) {
+        List<Menu> accessibleMenus = menuMapper.findAccessibleMenusByUserId(userId);
+        return buildMenuHierarchy(accessibleMenus);
+    }
+
+    /**
+     * 특정 메뉴에 대한 사용자 권한 확인
+     */
+    public boolean hasMenuAccess(String userId, String menuId) {
+        return menuMapper.checkUserMenuAccess(userId, menuId) > 0;
+    }
+
+    /**
+     * 사용자의 메뉴별 권한 정보 조회 (읽기/쓰기/삭제)
+     */
+    public MenuDTO getMenuPermissions(String userId, String menuId) {
+        return menuMapper.findMenuPermissionsByUserAndMenu(userId, menuId);
+    }
+
 
 
     /**
@@ -89,12 +111,11 @@ public class MenuService {
         dto.setId(menu.getId());
         dto.setMenuId(menu.getMenuId());
         dto.setTitle(menu.getTitle());
-        dto.setUrl(menu.getUrl()); // url을 path로 매핑
+        dto.setUrl(menu.getUrl());
         dto.setIcon(menu.getIcon());
-        dto.setParentId(menu.getParentId()); // String to String
+        dto.setParentId(menu.getParentId());
         dto.setSortOrder(menu.getSortOrder());
-        dto.setIsActive(menu.getIsActive()); // enabled를 isActive로 매핑
-        dto.setRequiredGroup(menu.getRequiredGroup()); // requiredGroup 매핑 추가
+        dto.setIsActive(menu.getIsActive());
         return dto;
     }
     
@@ -154,12 +175,14 @@ public class MenuService {
         menu.setId(dto.getId());
         menu.setMenuId(dto.getMenuId());
         menu.setTitle(dto.getTitle());
-        menu.setUrl(dto.getUrl()); // path를 url로 매핑
+        menu.setUrl(dto.getUrl());
         menu.setIcon(dto.getIcon());
         menu.setParentId(dto.getParentId());
         menu.setSortOrder(dto.getSortOrder());
-        menu.setIsActive(dto.getIsActive()); // isActive를 enabled로 매핑
-        menu.setRequiredGroup(dto.getRequiredGroup()); // requiredGroup 매핑 추가
+        menu.setIsActive(dto.getIsActive());
+        if (menu.getCreatedAt() == null) {
+            menu.setCreatedAt(java.time.LocalDateTime.now());
+        }
         return menu;
     }
 }
