@@ -29,7 +29,7 @@ const contentArea = document.getElementById('content-area');
 const expandAllBtn = document.getElementById('expand-all');
 const collapseAllBtn = document.getElementById('collapse-all');
 const userMenuButton = document.getElementById('userMenuButton');
-const userMenuDropdown = document.getElementById('userMenuDropdown');
+const userMenuDropdown = document.getElementById('userDropdown');
 const currentUserName = document.getElementById('currentUserName');
 const themeToggle = document.getElementById('theme-toggle');
 
@@ -67,6 +67,12 @@ function initializeUI() {
     // 사용자 메뉴 토글
     if (userMenuButton) {
         userMenuButton.addEventListener('click', toggleUserMenu);
+    }
+    
+    // 로그아웃 버튼 이벤트 리스너
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', logout);
     }
     
     // 문서 클릭시 사용자 메뉴 닫기
@@ -215,7 +221,7 @@ async function loadCurrentUser() {
             userDropdownName.textContent = currentUser.name || '사용자명';
         }
         if (userDropdownRole && currentUser) {
-            userDropdownRole.textContent = currentUser.role || '역할';
+            userDropdownRole.textContent = currentUser.groupId || '역할';
         }
         
         console.log('사용자 정보 로드 완료:', currentUser);

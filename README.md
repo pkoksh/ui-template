@@ -33,7 +33,7 @@ SpringBoot 3 기반의 업무관리 시스템 백엔드입니다.
 │   ├── entity/                            # 엔터티 클래스
 │   │   └── User.java
 │   └── dto/                               # DTO 클래스
-│       └── UserDto.java
+│       └── UserDTO.java
 ├── src/main/resources/
 │   ├── application.properties             # 애플리케이션 설정
 │   ├── schema.sql                         # 데이터베이스 스키마

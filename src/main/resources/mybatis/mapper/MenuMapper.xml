@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.worksystem.repository.MenuRepository">
+<mapper namespace="com.worksystem.mapper.MenuMapper">
 
     <!-- Result Map 정의 -->
     <resultMap id="MenuResultMap" type="com.worksystem.entity.Menu">
@@ -13,7 +13,7 @@
         <result property="icon" column="icon"/>
         <result property="sortOrder" column="sort_order"/>
         <result property="isActive" column="is_active"/>
-        <result property="requiredRole" column="required_role"/>
+        <result property="requiredGroup" column="required_group"/>
     </resultMap>
 
     <!-- 모든 메뉴 조회 (정렬 순서대로) -->
@@ -60,7 +60,7 @@
             icon, 
             sort_order, 
             is_active, 
-            required_role 
+            required_group 
         ) VALUES (
             #{menuId}, 
             #{parentId}, 
@@ -69,7 +69,7 @@
             #{icon}, 
             #{sortOrder}, 
             #{isActive}, 
-            #{requiredRole}
+            #{requiredGroup}
         )
     </insert>
 
@@ -82,7 +82,7 @@
             parent_id = #{parentId},
             sort_order = #{sortOrder},
             is_active = #{isActive},
-            required_role = #{requiredRole}
+            required_group = #{requiredGroup}
         WHERE id = #{id}
     </update>
 

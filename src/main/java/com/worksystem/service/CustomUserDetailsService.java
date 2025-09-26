@@ -36,7 +36,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
         }
         
-        if (!user.getIsActive()) {
+        if (!user.isActive()) {
             logger.error("=== 비활성화된 사용자: {}", username);
             throw new UsernameNotFoundException("비활성화된 사용자입니다: " + username);
         }

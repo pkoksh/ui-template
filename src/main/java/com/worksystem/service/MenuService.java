@@ -2,7 +2,8 @@ package com.worksystem.service;
 
 import com.worksystem.dto.MenuDTO;
 import com.worksystem.entity.Menu;
-import com.worksystem.repository.MenuRepository;
+import com.worksystem.mapper.MenuMapper;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -20,13 +21,13 @@ public class MenuService {
     private static final Logger log = LoggerFactory.getLogger(MenuService.class);
 
     @Autowired
-    private MenuRepository menuRepository;
+    private MenuMapper menuMapper;
 
     /**
      * 모든 메뉴를 계층 구조로 반환
      */
     public List<MenuDTO> getAllMenusHierarchy() {
-        List<Menu> allMenus = menuRepository.findAllByOrderBySortOrderAsc();
+        List<Menu> allMenus = menuMapper.findAllByOrderBySortOrderAsc();
         return buildMenuHierarchy(allMenus);
     }
 
@@ -34,7 +35,7 @@ public class MenuService {
      * 특정 메뉴명 또는 URL로 메뉴 검색
      */
     public List<MenuDTO> searchMenus(String name, String url) {
-        List<Menu> matchedMenus = menuRepository.findByNameOrUrl(name, url);
+        List<Menu> matchedMenus = menuMapper.findByNameOrUrl(name, url);
         return buildMenuHierarchy(matchedMenus);
     }
 
@@ -42,7 +43,7 @@ public class MenuService {
      * 활성화된 메뉴만 계층 구조로 반환
      */
     public List<MenuDTO> getActiveMenusHierarchy() {
-        List<Menu> activeMenus = menuRepository.findByEnabledTrueOrderBySortOrderAsc();
+        List<Menu> activeMenus = menuMapper.findByEnabledTrueOrderBySortOrderAsc();
         return buildMenuHierarchy(activeMenus);
     }
 
@@ -93,7 +94,7 @@ public class MenuService {
         dto.setParentId(menu.getParentId()); // String to String
         dto.setSortOrder(menu.getSortOrder());
         dto.setIsActive(menu.getIsActive()); // enabled를 isActive로 매핑
-        dto.setRequiredRole(menu.getRequiredRole()); // requiredRole 매핑 추가
+        dto.setRequiredGroup(menu.getRequiredGroup()); // requiredGroup 매핑 추가
         return dto;
     }
     
@@ -125,7 +126,7 @@ public class MenuService {
      */
     public MenuDTO createMenu(MenuDTO menuDTO) {
         Menu menu = convertToEntity(menuDTO);
-        menuRepository.insert(menu);
+        menuMapper.insert(menu);
         return convertToDTO(menu);
     }
 
@@ -134,7 +135,7 @@ public class MenuService {
      */
     public MenuDTO updateMenu(MenuDTO menuDTO) {
         Menu menu = convertToEntity(menuDTO);
-        menuRepository.update(menu);
+        menuMapper.update(menu);
         return convertToDTO(menu);
     }
 
@@ -142,7 +143,7 @@ public class MenuService {
      * 메뉴 삭제
      */
     public void deleteMenu(Long id) {
-        menuRepository.deleteById(id);
+        menuMapper.deleteById(id);
     }
 
     /**
@@ -158,7 +159,7 @@ public class MenuService {
         menu.setParentId(dto.getParentId());
         menu.setSortOrder(dto.getSortOrder());
         menu.setIsActive(dto.getIsActive()); // isActive를 enabled로 매핑
-        menu.setRequiredRole(dto.getRequiredRole()); // requiredRole 매핑 추가
+        menu.setRequiredGroup(dto.getRequiredGroup()); // requiredGroup 매핑 추가
         return menu;
     }
 }

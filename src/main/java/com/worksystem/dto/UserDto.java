@@ -1,13 +1,26 @@
 package com.worksystem.dto;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import com.worksystem.entity.User;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 사용자 DTO
  */
-public class UserDto {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserDTO {
     
     private Long id;
     
@@ -24,85 +37,43 @@ public class UserDto {
     
     private String department;
     private String groupId;
-    private boolean isActive;
     
-    // 기본 생성자
-    public UserDto() {}
+    @Builder.Default
+    private boolean isActive = true;
+
+    private LocalDateTime createAt;
     
-    // 생성자
-    public UserDto(String userId, String name, String email, String department, String groupId) {
-        this.userId = userId;
-        this.name = name;
-        this.email = email;
-        this.department = department;
-        this.groupId = groupId;
-        this.isActive = true;
+
+
+    // Entity → DTO 변환
+    public static UserDTO from(User user) {
+        return UserDTO.builder()
+                .id(user.getId())
+                .userId(user.getUserId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .department(user.getDepartment())
+                .groupId(user.getGroupId())
+                .isActive(user.isActive())
+                .createAt(user.getCreatedAt())
+                .build();
     }
     
-    // Getters and Setters
-    public Long getId() {
-        return id;
+    // Entity List → DTO List 변환
+    public static List<UserDTO> from(List<User> users) {
+        return users.stream().map(UserDTO::from).toList();
     }
     
-    public void setId(Long id) {
-        this.id = id;
-    }
-    
-    public String getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
-    public void setName(String name) {
-        this.name = name;
-    }
-    
-    public String getEmail() {
-        return email;
-    }
-    
-    public void setEmail(String email) {
-        this.email = email;
-    }
-    
-    public String getDepartment() {
-        return department;
-    }
-    
-    public void setDepartment(String department) {
-        this.department = department;
-    }
-    
-    public String getGroupId() {
-        return groupId;
-    }
-    
-    public void setGroupId(String groupId) {
-        this.groupId = groupId;
-    }
-    
-    public boolean getIsActive() {
-        return isActive;
-    }
-    
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
-    }
-    
-    // 역할 표시명 반환
-    public String getGroupDisplayName() {
-        switch (groupId) {
-            case "ADMIN": return "관리자";
-            case "MANAGER": return "팀장";
-            case "USER": return "사용자";
-            default: return groupId;
-        }
+    // DTO → Entity 변환
+    public User toEntity() {
+        return User.builder()
+            .id(this.id)
+            .userId(this.userId)
+            .name(this.name)
+            .email(this.email)
+            .department(this.department)
+            .groupId(this.groupId)
+            .isActive(this.isActive)
+            .build();
     }
 }

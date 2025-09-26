@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.worksystem.mapper.GroupMapper">
+
+    <!-- Result Map for Group -->
+    <resultMap id="GroupResultMap" type="com.worksystem.entity.Group">
+        <id property="id" column="id"/>
+        <result property="groupId" column="group_id"/>
+        <result property="groupName" column="group_name"/>
+        <result property="description" column="description"/>
+        <result property="level" column="level"/>
+        <result property="isActive" column="is_active"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- Result Map for Group Menu Permission -->
+    <resultMap id="GroupMenuPermissionResultMap" type="com.worksystem.dto.GroupMenuPermissionDTO">
+        <id property="id" column="id"/>
+        <result property="groupId" column="group_id"/>
+        <result property="menuId" column="menu_id"/>
+        <result property="title" column="title"/>
+        <result property="url" column="url"/>
+        <result property="canRead" column="can_read"/>
+        <result property="canWrite" column="can_write"/>
+        <result property="canDelete" column="can_delete"/>
+        <result property="canAdmin" column="can_admin"/>
+    </resultMap>
+
+    <!-- 모든 그룹 조회 -->
+    <select id="findAll" resultMap="GroupResultMap">
+        SELECT * FROM user_groups 
+        ORDER BY level DESC, group_name ASC
+    </select>
+
+    <!-- 그룹 ID로 조회 -->
+    <select id="findByGroupId" resultMap="GroupResultMap">
+        SELECT * FROM user_groups 
+        WHERE group_id = #{groupId}
+    </select>
+
+    <!-- ID로 조회 -->
+    <select id="findById" resultMap="GroupResultMap">
+        SELECT * FROM user_groups 
+        WHERE id = #{id}
+    </select>
+
+    <!-- 검색 조건으로 그룹 조회 -->
+    <select id="findBySearchCondition" resultMap="GroupResultMap">
+        SELECT * FROM user_groups 
+        WHERE 1=1
+        <if test="groupName != null and groupName != ''">
+            AND LOWER(group_name) LIKE CONCAT('%', LOWER(#{groupName}), '%')
+        </if>
+        <if test="level != null">
+            AND level = #{level}
+        </if>
+        <if test="isActive != null">
+            AND is_active = #{isActive}
+        </if>
+        ORDER BY level DESC, group_name ASC
+    </select>
+
+    <!-- 그룹 생성 -->
+    <insert id="insert" parameterType="com.worksystem.entity.Group" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_groups (
+            group_id, group_name, description, level, is_active, created_at, updated_at
+        ) VALUES (
+            #{groupId}, #{groupName}, #{description}, #{level}, #{isActive}, NOW(), NOW()
+        )
+    </insert>
+
+    <!-- 그룹 정보 수정 -->
+    <update id="update" parameterType="com.worksystem.entity.Group">
+        UPDATE user_groups SET
+            group_name = #{groupName},
+            description = #{description},
+            level = #{level},
+            is_active = #{isActive},
+            updated_at = NOW()
+        WHERE group_id = #{groupId}
+    </update>
+
+    <!-- 그룹 삭제 -->
+    <delete id="delete">
+        DELETE FROM user_groups WHERE group_id = #{groupId}
+    </delete>
+
+    <!-- 그룹 ID 존재 여부 확인 -->
+    <select id="existsByGroupId" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM user_groups WHERE group_id = #{groupId}
+    </select>
+
+    <!-- 그룹명 존재 여부 확인 (수정 시 자기 제외) -->
+    <select id="existsByGroupNameExcludingSelf" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM user_groups 
+        WHERE group_name = #{groupName} 
+        AND group_id != #{groupId}
+    </select>
+
+    <!-- 특정 그룹의 메뉴 권한 조회 -->
+    <select id="findPermissionsByGroupId" resultMap="GroupMenuPermissionResultMap">
+        SELECT 
+            gmp.id,
+            gmp.group_id,
+            gmp.menu_id,
+            m.title,
+            m.url,
+            gmp.can_read,
+            gmp.can_write,
+            gmp.can_delete,
+            gmp.can_admin
+        FROM group_menu_permissions gmp
+        JOIN menus m ON gmp.menu_id = m.menu_id
+        WHERE gmp.group_id = #{groupId}
+        ORDER BY m.sort_order ASC
+    </select>
+
+    <!-- 그룹 메뉴 권한 삭제 (기존 권한 모두 삭제) -->
+    <delete id="deletePermissionsByGroupId">
+        DELETE FROM group_menu_permissions WHERE group_id = #{groupId}
+    </delete>
+
+    <!-- 그룹 메뉴 권한 추가 -->
+    <insert id="insertPermission">
+        INSERT INTO group_menu_permissions (
+            group_id, menu_id, can_read, can_write, can_delete, can_admin, created_at, updated_at
+        ) VALUES (
+            #{groupId}, #{menuId}, #{canRead}, #{canWrite}, #{canDelete}, #{canAdmin}, NOW(), NOW()
+        )
+    </insert>
+
+    <!-- 그룹 메뉴 권한 일괄 추가 -->
+    <insert id="insertPermissions">
+        INSERT INTO group_menu_permissions (
+            group_id, menu_id, can_read, can_write, can_delete, can_admin, created_at, updated_at
+        ) VALUES
+        <foreach collection="permissions" item="permission" separator=",">
+            (
+                #{permission.groupId}, 
+                #{permission.menuId}, 
+                #{permission.canRead}, 
+                #{permission.canWrite}, 
+                #{permission.canDelete}, 
+                #{permission.canAdmin}, 
+                NOW(), 
+                NOW()
+            )
+        </foreach>
+    </insert>
+
+</mapper>

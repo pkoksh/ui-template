@@ -23,31 +23,31 @@ const DEMO_ACCOUNTS = {
     'admin': {
         password: 'admin123',
         name: '관리자',
-        role: 'admin',
+        groupId: 'ADMIN',
         department: '시스템관리부'
     },
     'user1': {
         password: 'user123',
         name: '김직원',
-        role: 'user',
+        groupId: 'USER',
         department: '영업부'
     },
     'manager': {
         password: 'manager123',
         name: '이팀장',
-        role: 'manager',
+        groupId: 'MANAGER',
         department: '기획부'
     }
 };
 
-// 역할 표시명 반환
-function getGroupDisplayName(role) {
-    const roleNames = {
-        'admin': '관리자',
-        'manager': '팀장',
-        'user': '사용자'
+// 그룹 표시명 반환
+function getGroupDisplayName(groupId) {
+    const groupNames = {
+        'ADMIN': '관리자',
+        'MANAGER': '팀장',
+        'USER': '사용자'
     };
-    return roleNames[role] || role;
+    return groupNames[groupId] || groupId;
 }
 
 // 초기화
@@ -180,6 +180,7 @@ async function authenticateUser(userId, password) {
                 try {
                     const userInfo = await userInfoResponse.json();
                     console.log('사용자 정보:', userInfo);
+                    // DB 컬럼 role -> group_id 변경에 따른 처리
                     return { 
                         success: true, 
                         user: userInfo 
@@ -195,7 +196,7 @@ async function authenticateUser(userId, password) {
                         user: { 
                             userId: userId, 
                             name: userId,
-                            role: 'user',
+                            groupId: 'USER',
                             department: ''
                         } 
                     };
@@ -208,12 +209,12 @@ async function authenticateUser(userId, password) {
                 // 사용자 정보를 가져올 수 없는 경우 기본 정보 사용
                 return { 
                     success: true, 
-                    user: { 
-                        userId: userId, 
-                        name: userId,
-                        role: 'user',
-                        department: ''
-                    } 
+                        user: { 
+                            userId: userId, 
+                            name: userId,
+                            groupId: 'USER',
+                            department: ''
+                        } 
                 };
             }
         } else {
@@ -254,7 +255,7 @@ async function handleLoginSuccess(user) {
                 </div>
                 <div class="space-y-2">
                     <p class="text-lg font-medium text-gray-800">${user.name}님</p>
-                    <p class="text-sm text-gray-600">${user.department || ''} ${getGroupDisplayName(user.role)}</p>
+                    <p class="text-sm text-gray-600">${user.department || ''} ${getGroupDisplayName(user.groupId)}</p>
                     <p class="text-xs text-gray-500 mt-3">업무시스템에 안전하게 로그인되었습니다</p>
                 </div>
             </div>

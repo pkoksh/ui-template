@@ -1,7 +1,10 @@
 package com.worksystem.controller;
 
+import com.worksystem.dto.UserDTO;
 import com.worksystem.entity.User;
 import com.worksystem.service.UserService;
+import com.worksystem.util.EnumMaker;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,9 @@ public class MainController {
     @Autowired
     private UserService userService;
 
+     @Autowired
+    private EnumMaker enumMaker; // Spring DI로 주입
+
     /**
      * 메인 페이지 - Thymeleaf 템플릿 사용
      */
@@ -33,7 +39,7 @@ public class MainController {
     public String index(Model model) {
         // 현재 인증된 사용자 정보 가져오기
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = null;
+        UserDTO currentUser = null;
         
         if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
             try {
@@ -82,6 +88,23 @@ public class MainController {
         
         return "pages/menu-management";
     }
+    /**
+     * 사용자 관리 페이지
+     */
+    @GetMapping("/user-management")
+    public String userManagement(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        model.addAttribute("groupEnum", enumMaker.getGroupEnum());
+        return "pages/user-management";
+    }
+    /**
+     * group 관리 페이지
+     */
+    @GetMapping("/group-management")
+    public String groupManagement(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return "pages/group-management";
+    }
     
     /**
      * 개발 환경 여부 확인
@@ -101,7 +124,7 @@ public class MainController {
         Map<String, Object> response = new HashMap<>();
         
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-            User user = userService.findByUserId(auth.getName());
+            UserDTO user = userService.findByUserId(auth.getName());
             if (user != null) {
                 response.put("success", true);
                 response.put("user", Map.of(
@@ -109,8 +132,7 @@ public class MainController {
                     "name", user.getName(),
                     "email", user.getEmail(),
                     "department", user.getDepartment(),
-                    "groupdId", user.getGroupId(),
-                    "groupDisplayName", getGroupDisplayName(user.getGroupId())
+                    "groupId", user.getGroupId()
                 ));
             } else {
                 response.put("success", false);
@@ -137,15 +159,4 @@ public class MainController {
         return status;
     }
 
-    /**
-     * 역할 표시명 반환
-     */
-    private String getGroupDisplayName(String role) {
-        switch (role) {
-            case "ADMIN": return "관리자";
-            case "MANAGER": return "팀장";
-            case "USER": return "사용자";
-            default: return role;
-        }
-    }
 }

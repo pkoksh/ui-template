@@ -10,7 +10,7 @@ public class Menu {
     private String icon;
     private Integer sortOrder = 0;
     private Boolean isActive = true; 
-    private String requiredRole;
+    private String requiredGroup;
     private String description;
 
     // 기본 생성자
@@ -93,12 +93,12 @@ public class Menu {
         this.isActive = isActive;
     }
 
-    public String getRequiredRole() {
-        return requiredRole;
+    public String getRequiredGroup() {
+        return requiredGroup;
     }
 
-    public void setRequiredRole(String requiredRole) {
-        this.requiredRole = requiredRole;
+    public void setRequiredGroup(String requiredGroup) {
+        this.requiredGroup = requiredGroup;
     }
 
     public String getDescription() {

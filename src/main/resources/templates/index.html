@@ -36,9 +36,10 @@
         };
         
         // 현재 사용자 정보
+        // role 컬럼이 group_id 로 변경됨에 따라 groupId 사용
         window.currentUser = {
             name: /*[[${currentUser != null ? currentUser.name : '사용자'}]]*/ '사용자',
-            role: /*[[${currentUser != null ? currentUser.role : 'USER'}]]*/ 'USER', 
+            groupId: /*[[${currentUser != null ? currentUser.groupId : 'USER'}]]*/ 'USER',
             isAuthenticated: /*[[${currentUser != null}]]*/ false
         };
     </script>
@@ -128,15 +129,12 @@
                     <div id="tab-count-display" class="hidden lg:flex items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
                         <div class="flex items-center space-x-2">
                             <i class='bx bx-tab text-gray-500 dark:text-gray-400 text-base'></i>
-                            <div class="flex flex-col">
-                                <span class="text-xs text-gray-500 dark:text-gray-400 leading-none">열린 탭</span>
-                                <span id="tab-count" class="text-sm font-medium text-gray-700 dark:text-gray-300 leading-none">0</span>
+                            <div class="flex items-center space-x-1">
+                                <span class="text-sm text-gray-600 dark:text-gray-400">열린 탭</span>
+                                <span id="tab-count" class="inline-flex items-center justify-center min-w-[24px] h-5 px-2 bg-blue-500 text-white text-xs font-bold rounded-full">0</span>
                             </div>
                         </div>
                     </div>
-                    <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
-                        <i class='bx bx-download text-lg text-gray-600 dark:text-gray-300'></i>
-                    </button>
                     
                     <!-- 사용자 메뉴 -->
                     <div class="relative">
@@ -151,7 +149,7 @@
                             <div class="py-2">
                                 <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
                                     <div class="text-sm font-medium text-gray-800 dark:text-gray-200" id="userDropdownName" th:text="${currentUser != null ? currentUser.name : '사용자명'}">사용자명</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400" id="userDropdownRole" th:text="${currentUser != null ? currentUser.role : '역할'}">역할</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400" id="userDropdownRole" th:text="${currentUser != null ? currentUser.groupId : '역할'}">역할</div>
                                 </div>
                                 <a href="#" id="profileLink" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                     <i class='bx bx-user mr-2'></i>

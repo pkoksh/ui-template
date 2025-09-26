@@ -14,7 +14,7 @@ public class MenuDTO {
     private String parentId; // String 타입으로 변경
     private Integer sortOrder;
     private Boolean isActive;
-    private String requiredRole; // 추가
+    private String requiredGroup; // 추가
     @JsonProperty("Items")
     private List<MenuDTO> items;
     private String status; // For IBSheet 상태 관리
@@ -25,7 +25,7 @@ public class MenuDTO {
     }
 
     public MenuDTO(Long id, String menuId, String title, String url, String icon, 
-                   String parentId, Integer sortOrder, Boolean isActive, String requiredRole, String status) {
+                   String parentId, Integer sortOrder, Boolean isActive, String requiredGroup, String status) {
         this.id = id;
         this.menuId = menuId;
         this.title = title;
@@ -35,7 +35,7 @@ public class MenuDTO {
         this.sortOrder = sortOrder;
         this.isActive = isActive;
         this.items = new ArrayList<>();
-        this.requiredRole = requiredRole;
+        this.requiredGroup = requiredGroup;
         this.status = status;
     }
 
@@ -120,12 +120,12 @@ public class MenuDTO {
         return items != null && !items.isEmpty();
     }
 
-    public String getRequiredRole() {
-        return requiredRole;
+    public String getRequiredGroup() {
+        return requiredGroup;
     }
 
-    public void setRequiredRole(String requiredRole) {
-        this.requiredRole = requiredRole;
+    public void setRequiredGroup(String requiredGroup) {
+        this.requiredGroup = requiredGroup;
     }
 
     public String getStatus() {

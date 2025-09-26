@@ -24,7 +24,7 @@ public interface UserMapper {
     User findById(@Param("id") Long id);
     
     /**
-     * 모든 사용자 조회
+     * 모든 사용자 조회ㅖ
      */
     List<User> findAll();
     
@@ -34,9 +34,9 @@ public interface UserMapper {
     List<User> findByDepartment(@Param("department") String department);
     
     /**
-     * 역할별 사용자 조회
+     * 그룹(역할)별 사용자 조회 (role -> group_id 컬럼명 변경 반영)
      */
-    List<User> findByRole(@Param("role") String role);
+    List<User> findByGroupId(@Param("groupId") String groupId);
     
     /**
      * 사용자 생성

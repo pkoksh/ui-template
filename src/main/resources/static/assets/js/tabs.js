@@ -225,6 +225,20 @@ function updateTabCount() {
     
     if (tabCountElement) {
         tabCountElement.textContent = openTabs.length;
+        
+        // 탭 개수에 따른 색상 변경
+        tabCountElement.classList.remove('bg-blue-500', 'bg-orange-500', 'bg-red-500');
+        
+        if (openTabs.length >= 10) {
+            // 10개 이상 - 빨간색 (더 이상 열 수 없음)
+            tabCountElement.classList.add('bg-red-500');
+        } else if (openTabs.length >= 7) {
+            // 7개 이상 - 주황색 (많이 열려있음)
+            tabCountElement.classList.add('bg-orange-500');
+        } else {
+            // 기본 - 파란색
+            tabCountElement.classList.add('bg-blue-500');
+        }
     }
     
     if (maxTabsElement) {

@@ -570,4 +570,12 @@ if (document.readyState === 'loading') {
     initializePage();
 }
 
+
+window.getEnumInfo = function(enumData) {
+    if (!enumData || typeof enumData !== 'object') return {};
+    return {Enum: "|"+enumData.text.join("|"), EnumKeys: "|"+enumData?.code?.join("|")};
+}
+
+
+
 console.log('공통 유틸리티가 로드되었습니다.');

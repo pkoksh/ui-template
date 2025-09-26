@@ -1,5 +1,6 @@
 package com.worksystem.controller;
 
+import com.worksystem.dto.UserDTO;
 import com.worksystem.entity.User;
 import com.worksystem.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ public class AuthRestController {
             
             // 사용자 ID로 상세 정보 조회
             String userId = authentication.getName();
-            User user = userService.findByUserId(userId);
+            UserDTO user = userService.findByUserId(userId);
             
             if (user == null) {
                 return ResponseEntity.status(404).build();

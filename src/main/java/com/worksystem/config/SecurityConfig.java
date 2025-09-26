@@ -26,6 +26,9 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService userDetailsService;
     
+    @Autowired
+    private LoginSuccessHandler loginSuccessHandler;
+    
     /**
      * 비밀번호 인코더 - BCrypt 사용
      */
@@ -106,6 +109,7 @@ public class SecurityConfig {
                 
                 // 3. 인증된 사용자만 접근 가능한 API
                 .requestMatchers("/api/auth/user").authenticated()
+                .requestMatchers("/api/users/**").authenticated()
                 
                 // 4. 메인 페이지는 인증 필요하지만 forward는 허용
                 .requestMatchers("/", "/index.html").authenticated()
@@ -123,7 +127,8 @@ public class SecurityConfig {
                 .loginProcessingUrl("/api/auth/login")
                 .usernameParameter("userId")
                 .passwordParameter("password")
-                .defaultSuccessUrl("/", true)
+                .successHandler(loginSuccessHandler)
+                // .defaultSuccessUrl("/", true) // successHandler 사용시 제거
                 .failureUrl("/login.html?error=true")
                 .permitAll()
             )

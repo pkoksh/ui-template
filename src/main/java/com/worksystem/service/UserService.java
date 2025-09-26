@@ -1,5 +1,6 @@
 package com.worksystem.service;
 
+import com.worksystem.dto.UserDTO;
 import com.worksystem.entity.User;
 import com.worksystem.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ public class UserService implements UserDetailsService {
     private UserMapper userMapper;
 
     @Override
+    @Transactional
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         User user = userMapper.findByUserId(userId);
         
@@ -35,17 +37,16 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId);
         }
 
-        if (!user.getIsActive()) {
+        if (!user.isActive()) {
             throw new UsernameNotFoundException("비활성화된 사용자입니다: " + userId);
         }
 
-        // 마지막 로그인 시간 업데이트
-        userMapper.updateLastLoginAt(userId, LocalDateTime.now());
+        // 마지막 로그인 시간 업데이트는 LoginSuccessHandler에서 처리
 
         return new org.springframework.security.core.userdetails.User(
             user.getUserId(),
             user.getPassword(),
-            user.getIsActive(),
+            user.isActive(),
             true, // accountNonExpired
             true, // credentialsNonExpired
             true, // accountNonLocked
@@ -66,16 +67,16 @@ public class UserService implements UserDetailsService {
      * 사용자 조회 (ID)
      */
     @Transactional(readOnly = true)
-    public User findByUserId(String userId) {
-        return userMapper.findByUserId(userId);
+    public UserDTO findByUserId(String userId) {
+        return UserDTO.from(userMapper.findByUserId(userId));
     }
 
     /**
      * 모든 사용자 조회
      */
     @Transactional(readOnly = true)
-    public List<User> findAll() {
-        return userMapper.findAll();
+    public List<UserDTO> findAll() {
+        return UserDTO.from(userMapper.findAll());
     }
 
     /**
@@ -87,11 +88,11 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * 역할별 사용자 조회
+     * 그룹(역할)별 사용자 조회 (role -> groupId 명칭 변경)
      */
     @Transactional(readOnly = true)
-    public List<User> findByRole(String role) {
-        return userMapper.findByRole(role);
+    public List<User> findByGroupId(String groupId) {
+        return userMapper.findByGroupId(groupId);
     }
 
     /**
@@ -99,7 +100,7 @@ public class UserService implements UserDetailsService {
      */
     public User createUser(User user) {
         // 개발 단계에서는 비밀번호를 그대로 저장
-        user.setIsActive(true);
+        user.setActive(true);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         
@@ -152,5 +153,29 @@ public class UserService implements UserDetailsService {
     @Transactional(readOnly = true)
     public boolean isEmailExists(String email) {
         return userMapper.existsByEmail(email);
+    }
+    
+    /**
+     * 로그인 시간 업데이트 (별도 메서드)
+     */
+    @Transactional
+    public void updateLastLoginAt(String userId) {
+        System.out.println("=== UserService.updateLastLoginAt 호출됨 ===");
+        System.out.println("업데이트할 사용자ID: " + userId);
+        System.out.println("업데이트할 시간: " + LocalDateTime.now());
+        
+        try {
+            int updateResult = userMapper.updateLastLoginAt(userId, LocalDateTime.now());
+            System.out.println("MyBatis 업데이트 결과: " + updateResult + "행 업데이트됨");
+            
+            if (updateResult == 0) {
+                System.err.println("경고: 업데이트된 행이 없습니다. 사용자가 존재하지 않을 수 있습니다.");
+            } else {
+                System.out.println("로그인 시간 업데이트 성공!");
+            }
+        } catch (Exception e) {
+            System.err.println("로그인 시간 업데이트 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
