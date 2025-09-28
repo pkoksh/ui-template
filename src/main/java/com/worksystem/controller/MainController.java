@@ -109,4 +109,17 @@ public class MainController {
         
         return "pages/group-management";
     }
+
+    /**
+     * 공지사항 관리 페이지
+     */
+    @GetMapping("/notice")
+    public String noticeManagement(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        model.addAttribute("pageTitle", "공지사항 관리");
+        model.addAttribute("currentUser", auth != null ? auth.getName() : "guest");
+
+        return "pages/notice";
+    }
 }

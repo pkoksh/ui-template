@@ -2,12 +2,12 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <th:block th:replace="~{fragments/common :: ibsheet-head}"></th:block>
-    <title>사용자 관리</title>
+    <title>공지사항 관리</title>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
     <div class="p-6 flex flex-col h-full">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">사용자 관리</h3>
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">공지사항 관리</h3>
             <div class="flex items-center space-x-2">
                 <button id="save-all-btn" class="bg-[#2563EB] hover:bg-[#2563EB]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
                     <i class='bx bx-save text-lg'></i>
@@ -25,10 +25,6 @@
                     <i class='bx bx-minus text-lg'></i>
                     <span class="font-medium">삭제</span>
                 </button>
-                <button id="reset-password-btn" class="bg-[#FFA500] hover:bg-[#FFA500]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
-                    <i class='bx bx-reset text-lg'></i>
-                    <span class="font-medium">비밀번호 초기화</span>
-                </button>
             </div>
         </div>
 
@@ -36,7 +32,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">사용자ID 검색</label>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">내용 검색</label>
                     <input type="text" id="search-user-id" placeholder="사용자ID를 입력하세요" 
                            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
                 </div>
@@ -45,51 +41,28 @@
                     <input type="text" id="search-name" placeholder="이름을 입력하세요" 
                            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
                 </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">부서 검색</label>
-                    <input type="text" id="search-department" placeholder="부서를 입력하세요" 
-                           class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">권한 필터</label>
-                    <select id="search-group" class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
-                        <option value="">전체</option>
-                        <option value="ADMIN">관리자</option>
-                        <option value="MANAGER">매니저</option>
-                        <option value="USER">사용자</option>
-                    </select>
-                </div>
             </div>
         </div>
 
         <!-- IBSheet 그리드 영역 -->
         <div class="h-full">
-            <div id="user-grid" style="height: 100%;"></div>
+            <div id="notice-grid" style="height: 100%;"></div>
         </div>
 
         <!-- 로딩 표시 -->
         <th:block th:replace="~{fragments/common :: loading-spinner}"></th:block>
     </div>
-    <script th:inline="javascript">
-        /*<![CDATA[*/
-        // Thymeleaf에서 groupEnum 값을 JavaScript 변수로 전달
-        const groupEnum = /*[[${groupEnum}]]*/ {};
-        
-        console.log('서버에서 전달받은 groupEnum:', groupEnum);
-        // 결과: { code: ["ADMIN", "MANAGER", "USER"], text: ["관리자", "매니저", "사용자"] }
-        /*]]>*/
-    </script>
     <!-- 페이지별 스크립트 -->
     <script>
-        let userGrid = null; // IBSheet 그리드 객체
+        let noticeGrid = null; // IBSheet 그리드 객체
 
         // API 기본 설정
-        const API_BASE = '/api/users';
+        const API_BASE = '/api/notices';
 
         // 페이지 초기화
         document.addEventListener('DOMContentLoaded', function() {
             initGrid();
-            loadUsers();
+            loadNotices();
             setupEventListeners();
         });
 
@@ -104,25 +77,28 @@
                         CanFormula: 1
                     },
                     Col: {
-                        RelWidth: 1
+                        CanEdit: 0
                     }
                 },
                 Cols: [
-                    { Header: "No", Type: "Int", Name: "SEQ", MinWidth: 50, Align: "Center", CanEdit: 0 },
+                    { Header: "No", Type: "Int", Name: "seq", MinWidth: 50, Align: "Center" },
                     { Header: "상태", Name: "status", Extend: IB_Preset.CSTATUS},
-                    { Header: "사용자ID", Type: "Text", Name: "userId", MinWidth: 120, CanEdit: 1, Required: 1 },
-                    { Header: "이름", Type: "Text", Name: "name", MinWidth: 120, CanEdit: 1, Required: 1 },
-                    { Header: "이메일", Type: "Text", Name: "email", MinWidth: 200, CanEdit: 1 },
-                    { Header: "부서", Type: "Text", Name: "department", MinWidth: 150, CanEdit: 1 },
-                    { Header: "권한", Type: "Enum", Name: "groupIds", MinWidth: 100, Align: "Center", CanEdit: 1, Required: 1,Range:1, ...getEnumInfo(groupEnum)},
-                    { Header: "활성화", Type: "Bool", Name: "active", MinWidth: 80, Align: "Center", CanEdit: 1 },
-                    { Header: "생성일", Name: "createdAt", Extend:IB_Preset, CanEdit: 0}
+                    { Header: "제목", Type: "Text", Name: "title", MinWidth: 220, RelWidth: 1 },
+                    { Header: "내용", Type: "Text", Name: "content", Visible: 0 },
+                    { Header: "작성자", Type: "Text", Name: "authorName", MinWidth: 80 },
+                    { Header: "상단고정", Type: "Bool", Name: "pinned", MinWidth: 60 },
+                    { Header: "사용여부", Type: "Bool", Name: "active", MinWidth: 60 },
+                    { Header: "조회수", Type: "Int", Name: "viewCount", MinWidth: 60 },
+                    { Header: "첨부파일", Type: "File", Name: "attachment", MinWidth: 120 },
+                  
+                    { Header: "생성일", Name: "createdAt", Extend:IB_Preset.DATETIME, MinWidth: 140, Align: "Center" },
+                    { Header: "수정일", Name: "updatedAt", Extend:IB_Preset.DATETIME, MinWidth: 140, Align: "Center"    }
                 ]
             };
 
-            userGrid = IBSheet.create({
-                id: "user-grid",
-                el: "user-grid",
+            noticeGrid = IBSheet.create({
+                id: "notice-grid",
+                el: "notice-grid",
                 options: gridConfig
             });
         }
@@ -157,7 +133,7 @@
             try {
                 document.getElementById('loading').classList.remove('hidden');
                 const response = await axios.get(API_BASE);
-                userGrid.loadSearchData(response.data);
+                noticeGrid.loadSearchData(response.data);
             } catch (error) {
                 console.error('사용자 데이터 로드 실패:', error);
                 showError('사용자 데이터를 불러올 수 없습니다.');
@@ -190,7 +166,7 @@
                         department: departmentSearch,
                         groupId: groupSearch
                     });
-                userGrid.loadSearchData(response.data);
+                noticeGrid.loadSearchData(response.data);
             } catch (error) {
                 console.error('사용자 데이터 로드 실패:', error);
                 showError('사용자 데이터를 불러올 수 없습니다.');
@@ -212,12 +188,12 @@
                 updatedAt: new Date().toISOString().split('T')[0]
             };
             
-            userGrid.addRow({ data: newUserData });
+            noticeGrid.addRow({ data: newUserData });
         }
 
         // 선택된 사용자 삭제
         function delUser() {
-            const frow = userGrid.getFocusedRow();
+            const frow = noticeGrid.getFocusedRow();
             if (!frow || frow.Kind === "Header") {
                 showWarning('삭제할 사용자를 선택해주세요.');
                 return;
@@ -226,7 +202,7 @@
             const del = frow.Deleted;
             if (del) {
                 // 행 삭제 해제
-                userGrid.deleteRow(frow, 0);
+                noticeGrid.deleteRow(frow, 0);
                 showInfo('사용자 삭제가 취소되었습니다.');
             } else {
                 // 현재 로그인한 사용자인지 확인 (실제로는 서버에서 확인해야 함)
@@ -241,7 +217,7 @@
                     cancelButtonText: '취소'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        userGrid.deleteRow(frow);
+                        noticeGrid.deleteRow(frow);
                         showSuccess('사용자가 삭제 표시되었습니다.');
                     }
                 });
@@ -250,7 +226,7 @@
 
         // 비밀번호 초기화
         async function resetPassword() {
-            const frow = userGrid.getFocusedRow();
+            const frow = noticeGrid.getFocusedRow();
             if (!frow || frow.Kind === "Header") {
                 showWarning('비밀번호를 초기화할 사용자를 선택해주세요.');
                 return;
@@ -263,7 +239,7 @@
 
             Swal.fire({
                 title: '비밀번호 초기화',
-                text: `${frow.name}(${frow.userId}) 사용자의 비밀번호를 초기화하시겠습니까?\n초기화된 비밀번호는 "${frow.userId}1234!" 입니다.`,
+                text: `${frow.name}(${frow.userId}) 사용자의 비밀번호를 초기화하시겠습니까?\n초기화된 비밀번호는 "user123" 입니다.`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -288,13 +264,13 @@
         
         // 전체 사용자 저장
         async function saveAllUsers() {
-           saveAllData(userGrid, API_BASE, loadUsers)
+           saveAllData(noticeGrid, API_BASE, loadUsers)
         }
 
         // 페이지 종료시 호출 (부모 프레임에서 호출)
         function onPageClose() {
             // 변경사항이 있는지 확인하고 경고
-            if (userGrid && userGrid.getChangedData().length > 0) {
+            if (noticeGrid && noticeGrid.getChangedData().length > 0) {
                 return '저장하지 않은 변경사항이 있습니다. 정말 페이지를 닫으시겠습니까?';
             }
         }

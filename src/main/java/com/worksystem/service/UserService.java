@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -353,11 +354,15 @@ public class UserService implements UserDetailsService {
         if (existingUser == null) {
             throw new IllegalArgumentException("존재하지 않는 사용자입니다: " + userId);
         }
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         
         // 기본 비밀번호로 초기화 (암호화된 "password123")
-        String newPassword = "password123";
-        String encodedPassword = "$2a$10$CQCJQuzIytFGwGYoA19XuODNWuXBbZgVDMXdd3jow8AdDXdZAsrKq";
-        
+        // String newPassword = "password123";
+        // String encodedPassword = "$2a$10$CQCJQuzIytFGwGYoA19XuODNWuXBbZgVDMXdd3jow8AdDXdZAsrKq";
+        String newPassword = userId + "1234!"; // userId 기반 초기화
+        String encodedPassword = encoder.encode(newPassword);   
+
         userMapper.updatePassword(userId, encodedPassword);
         
         logger.info("비밀번호 초기화 완료 - userId: {}", userId);

@@ -182,6 +182,32 @@ WHERE u.is_active = TRUE
 
 
 
+-- 공지사항 테이블
+CREATE TABLE notices (
+    seq BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL COMMENT '제목',
+    content TEXT NOT NULL COMMENT '내용',
+    author_id BIGINT NOT NULL COMMENT '작성자 ID',
+    author_name VARCHAR(100) NOT NULL COMMENT '작성자명',
+    
+    is_pinned BOOLEAN DEFAULT FALSE COMMENT '상단고정 여부',
+    is_active BOOLEAN DEFAULT FALSE COMMENT '활성 여부',
+    
+    -- 조회수
+    view_count INT DEFAULT 0 COMMENT '조회수',
+    
+    -- 첨부파일 (선택사항)
+    file_path VARCHAR(255) DEFAULT NULL COMMENT '첨부파일 경로',
+    
+    -- 시간 정보
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '생성일시',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+    
+    -- 인덱스
+    INDEX idx_author (author_id),
+    INDEX idx_created_at (created_at DESC)
+) COMMENT='공지사항';
+
 
 
 
