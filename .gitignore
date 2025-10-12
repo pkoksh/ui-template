@@ -9,6 +9,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+bin/
 
 # ===== Maven 관련 (혹시 사용할 경우) =====
 target/

@@ -385,6 +385,89 @@ async function apiDelete(url) {
     });
 }
 
+function getFormData(formId) {
+
+    const formElement = document.getElementById(formId);
+    if (!formId || !formElement) {
+        console.error(`formId not exist or Element with id "${formId}" not found`);
+        return null;
+    }
+    
+    const formData = {};
+    const processedNames = new Set(); // 중복 name 체크용
+    
+    // input, textarea, select 모두 가져오기
+    const elements = formElement.querySelectorAll('input, textarea, select');
+    
+    elements.forEach(element => {
+        const name = element.name || element.id;
+        
+        if (!name) return; // name이나 id가 없으면 스킵
+        if (processedNames.has(name)) return; // 이미 처리된 name이면 스킵
+        
+        // SELECT 요소 처리
+        if (element.tagName === 'SELECT') {
+            if (element.multiple) {
+                // multiple select: 선택된 모든 옵션을 배열로
+                const selectedOptions = Array.from(element.selectedOptions).map(opt => opt.value);
+                formData[name] = selectedOptions;
+            } else {
+                // single select: 선택된 값 하나
+                formData[name] = element.value;
+            }
+            processedNames.add(name);
+        }
+        // TEXTAREA 처리
+        else if (element.tagName === 'TEXTAREA') {
+            formData[name] = element.value;
+            processedNames.add(name);
+        }
+        // INPUT 요소 처리
+        else if (element.tagName === 'INPUT') {
+            // CHECKBOX 처리: 같은 name을 가진 체크박스들을 모두 찾아서 체크된 값들을 배열로
+            if (element.type === 'checkbox') {
+                const checkboxes = formElement.querySelectorAll(`input[type="checkbox"][name="${name}"]`);
+                if (checkboxes.length > 1) {
+                    // 여러 개의 체크박스: 체크된 값들을 배열로
+                    const checkedValues = Array.from(checkboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.value);
+                    formData[name] = checkedValues;
+                } else {
+                    // 단일 체크박스: true/false
+                    formData[name] = element.checked;
+                }
+                processedNames.add(name);
+            }
+            // RADIO 처리: 같은 name을 가진 라디오 중 선택된 값
+            else if (element.type === 'radio') {
+                const radios = formElement.querySelectorAll(`input[type="radio"][name="${name}"]`);
+                const checkedRadio = Array.from(radios).find(r => r.checked);
+                formData[name] = checkedRadio ? checkedRadio.value : '';
+                processedNames.add(name);
+            }
+            // FILE 처리
+            else if (element.type === 'file') {
+                if (element.multiple) {
+                    // multiple file: 선택된 파일명들을 배열로
+                    formData[name] = Array.from(element.files).map(file => file.name);
+                } else {
+                    // single file: 파일명 하나
+                    formData[name] = element.files.length > 0 ? element.files[0].name : '';
+                }
+                processedNames.add(name);
+            }
+            // 나머지 INPUT 타입들 (text, email, password, number, date 등)
+            else {
+                formData[name] = element.value;
+                processedNames.add(name);
+            }
+        }
+    });
+    
+    return formData;
+}
+
 
 // ================================
 // 유효성 검사 유틸리티

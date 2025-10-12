@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.worksystem.mapper.NoticeMapper">
+
+    <!-- 공지사항 결과 맵 -->
+    <resultMap id="NoticeResultMap" type="com.worksystem.entity.Notice">
+        <id property="seq" column="seq"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="authorId" column="author_id"/>
+        <result property="authorName" column="author_name"/>
+        <result property="isPinned" column="is_pinned"/>
+        <result property="isActive" column="is_active"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="filePath" column="file_path"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 공지사항 DTO 결과 맵 -->
+    <resultMap id="NoticeDTOResultMap" type="com.worksystem.dto.NoticeDTO">
+        <id property="seq" column="seq"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="authorId" column="author_id"/>
+        <result property="authorName" column="author_name"/>
+        <result property="pinned" column="is_pinned"/>
+        <result property="active" column="is_active"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="attachment" column="file_path"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 모든 공지사항 조회 -->
+    <select id="selectAllNotices" resultMap="NoticeDTOResultMap">
+        SELECT 
+            seq,
+            title,
+            content,
+            author_id,
+            author_name,
+            is_pinned,
+            is_active,
+            view_count,
+            file_path,
+            created_at,
+            updated_at
+        FROM notices
+        ORDER BY 
+            is_pinned DESC,  -- 상단 고정을 먼저
+            created_at DESC  -- 최신순
+    </select>
+
+    <!-- 공지사항 검색 -->
+    <select id="searchNotices" resultMap="NoticeDTOResultMap">
+        SELECT 
+            seq,
+            title,
+            content,
+            author_id,
+            author_name,
+            is_pinned,
+            is_active,
+            view_count,
+            file_path,
+            created_at,
+            updated_at
+        FROM notices
+        WHERE 1=1
+        <if test="searchContent != null and searchContent != ''">
+            AND (
+                title LIKE CONCAT('%', #{searchContent}, '%')
+                OR content LIKE CONCAT('%', #{searchContent}, '%')
+            )
+        </if>
+        <if test="searchName != null and searchName != ''">
+            AND author_name LIKE CONCAT('%', #{searchName}, '%')
+        </if>
+        ORDER BY 
+            is_pinned DESC,
+            created_at DESC
+    </select>
+
+    <!-- 공지사항 상세 조회 -->
+    <select id="selectNoticeBySeq" resultMap="NoticeResultMap">
+        SELECT 
+            seq,
+            title,
+            content,
+            author_id,
+            author_name,
+            is_pinned,
+            is_active,
+            view_count,
+            file_path,
+            created_at,
+            updated_at
+        FROM notices
+        WHERE seq = #{seq}
+    </select>
+
+    <!-- 공지사항 등록 -->
+    <insert id="insertNotice" parameterType="com.worksystem.entity.Notice" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO notices (
+            title,
+            content,
+            author_id,
+            author_name,
+            is_pinned,
+            is_active,
+            view_count,
+            file_path,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{title},
+            #{content},
+            #{authorId},
+            #{authorName},
+            #{isPinned},
+            #{isActive},
+            #{viewCount},
+            #{filePath},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <!-- 공지사항 수정 -->
+    <update id="updateNotice" parameterType="com.worksystem.entity.Notice">
+        UPDATE notices
+        SET 
+            title = #{title},
+            content = #{content},
+            is_pinned = #{isPinned},
+            is_active = #{isActive},
+            file_path = #{filePath},
+            updated_at = #{updatedAt}
+        WHERE seq = #{seq}
+    </update>
+
+    <!-- 공지사항 삭제 -->
+    <delete id="deleteNotice">
+        DELETE FROM notices
+        WHERE seq = #{seq}
+    </delete>
+
+    <!-- 조회수 증가 -->
+    <update id="updateViewCount">
+        UPDATE notices
+        SET view_count = view_count + 1
+        WHERE seq = #{seq}
+    </update>
+
+    <!-- 활성화된 공지사항만 조회 -->
+    <select id="selectActiveNotices" resultMap="NoticeDTOResultMap">
+        SELECT 
+            seq,
+            title,
+            content,
+            author_id,
+            author_name,
+            is_pinned,
+            is_active,
+            view_count,
+            file_path,
+            created_at,
+            updated_at
+        FROM notices
+        WHERE is_active = TRUE
+        ORDER BY 
+            is_pinned DESC,
+            created_at DESC
+    </select>
+
+    <!-- 상단 고정 공지사항 조회 -->
+    <select id="selectPinnedNotices" resultMap="NoticeDTOResultMap">
+        SELECT 
+            seq,
+            title,
+            content,
+            author_id,
+            author_name,
+            is_pinned,
+            is_active,
+            view_count,
+            file_path,
+            created_at,
+            updated_at
+        FROM notices
+        WHERE is_pinned = TRUE
+          AND is_active = TRUE
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>

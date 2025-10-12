@@ -30,9 +30,18 @@ Full-stack 비즈니스 시스템 템플릿 (Spring Boot 백엔드 + TailwindCSS
     ├── 사용자관리 
     ├── 그룹관리  (그룹 = 접근 권한)
     ├── 공통코드 관리
-    ├── 접속 로그
+    ├── 접속 로그(세션)
     ├── 게시판 관리
     ├── 개인 정보 관리
     └── 다국어
 
 ```
+
+## javascript 공통 함수
+1. \ui-template\src\main\resources\static\assets\ibsheet8\sheet\plugins\ibsheet-custom-common.js
+- IB_Preset 추가 내용 정의
+
+
+2. \ui-template\src\main\resources\static\assets\js\common-utils.js
+3. \ui-template\src\main\resources\static\assets\js\library-config.js
+

@@ -189,7 +189,7 @@
                 Def: {
                     Row: {
                         CanFormula: 1,
-                        CalcOrder:"status,canReadType,canReadCanEdit,canWriteType,canWriteCanEdit,canDeleteType,canDeleteCanEdit,canAdminType,canAdminCanEdit"
+                      //  CalcOrder:"status,canReadType,canReadCanEdit,canWriteType,canWriteCanEdit,canDeleteType,canDeleteCanEdit,canAdminType,canAdminCanEdit"
                     },
                     Col: {
                         RelWidth: 1
@@ -381,7 +381,7 @@
                         canAdmin: ''
                     };
 
-                    return {
+                    const rtnData = {
                         menuId: menu.menuId,
                         title: menu.title,
                         url: menu.url || '',
@@ -391,6 +391,10 @@
                         canAdmin: permission.canAdmin?1:'',
                         Items: Items
                     };
+                    // if(rtnData.url === '') {
+                    //     rtnData.NoUpload = 1; // 폴더이면 NoUpload 설정
+                    // }
+                    return rtnData;
                 });
 
                 permissionGrid.loadSearchData(permissionData);
@@ -410,7 +414,7 @@
         // 권한 저장
         async function savePermissions() {
 
-            return await saveAllData(permissionGrid,`${API_BASE}/${currentGroupId}/permissions`, closePermissionModal)
+            return await saveAllData(permissionGrid,`${API_BASE}/${currentGroupId}/permissions`, {saveMode:0}, closePermissionModal)
 
             // try {
             //     document.getElementById('loading').classList.remove('hidden');

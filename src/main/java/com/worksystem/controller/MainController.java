@@ -118,7 +118,32 @@ public class MainController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         model.addAttribute("pageTitle", "공지사항 관리");
-        model.addAttribute("currentUser", auth != null ? auth.getName() : "guest");
+        
+        // 현재 로그인한 사용자의 정보를 Map으로 설정
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+            UserDTO user = userService.findUserWithGroups(auth.getName());
+            
+            if (user != null) {
+                model.addAttribute("currentUser", Map.of(
+                    "userId", user.getUserId(),
+                    "name", user.getName(),
+                    "email", user.getEmail() != null ? user.getEmail() : "",
+                    "department", user.getDepartment() != null ? user.getDepartment() : "",
+                    "groupId", user.getPrimaryGroupId() != null ? user.getPrimaryGroupId() : "USER",
+                    "groupName", user.getPrimaryGroupName() != null ? user.getPrimaryGroupName() : "일반사용자"
+                ));
+            } else {
+                model.addAttribute("currentUser", Map.of(
+                    "userId", "guest",
+                    "name", "guest"
+                ));
+            }
+        } else {
+            model.addAttribute("currentUser", Map.of(
+                "userId", "guest",
+                "name", "guest"
+            ));
+        }
 
         return "pages/notice";
     }

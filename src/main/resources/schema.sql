@@ -102,7 +102,9 @@ INSERT INTO menus (menu_id, parent_id, title, url, icon, sort_order) VALUES
 ('system', NULL, '시스템 관리', NULL, 'bx-cog', 5),
 ('user-management', 'system', '사용자 관리', '/user-management', 'bx-user', 1),
 ('menu-management', 'system', '메뉴 관리', '/menu-management', 'bx-menu', 2),
-('group-management', 'system', '그룹 관리', '/group-management', 'bx-group', 3);
+('group-management', 'system', '그룹 관리', '/group-management', 'bx-group', 3),
+('notice', 'system', '공지사항', '/notice', '', 4);
+
 -- 사용자-그룹 매핑
 INSERT INTO user_group_mappings (user_id, group_id) VALUES
 ('admin', 'ADMIN'),
@@ -118,6 +120,7 @@ INSERT INTO group_menu_permissions (group_id, menu_id, can_read, can_write, can_
 ('ADMIN', 'user-management', TRUE, TRUE, TRUE, TRUE),
 ('ADMIN', 'menu-management', TRUE, TRUE, TRUE, TRUE),
 ('ADMIN', 'group-management', TRUE, TRUE, TRUE, TRUE),
+('ADMIN', 'notice', TRUE, TRUE, TRUE, TRUE),
 
 -- MANAGER: 대시보드 접근 (읽기/쓰기만)
 ('MANAGER', 'dashboard', TRUE, TRUE, FALSE, FALSE),
@@ -181,13 +184,12 @@ WHERE u.is_active = TRUE
 
 
 
-
 -- 공지사항 테이블
 CREATE TABLE notices (
     seq BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL COMMENT '제목',
     content TEXT NOT NULL COMMENT '내용',
-    author_id BIGINT NOT NULL COMMENT '작성자 ID',
+    author_id VARCHAR(20) NOT NULL COMMENT '작성자 ID',
     author_name VARCHAR(100) NOT NULL COMMENT '작성자명',
     
     is_pinned BOOLEAN DEFAULT FALSE COMMENT '상단고정 여부',
@@ -196,7 +198,7 @@ CREATE TABLE notices (
     -- 조회수
     view_count INT DEFAULT 0 COMMENT '조회수',
     
-    -- 첨부파일 (선택사항)
+    -- 첨부파일
     file_path VARCHAR(255) DEFAULT NULL COMMENT '첨부파일 경로',
     
     -- 시간 정보

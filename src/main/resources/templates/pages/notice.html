@@ -17,13 +17,9 @@
                     <i class='bx bx-refresh text-lg'></i>
                     <span class="font-medium">조회</span>
                 </button>
-                <button id="add-user-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                <button id="add-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
                     <i class='bx bx-plus text-lg'></i>
                     <span class="font-medium">추가</span>
-                </button>
-                <button id="del-user-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
-                    <i class='bx bx-minus text-lg'></i>
-                    <span class="font-medium">삭제</span>
                 </button>
             </div>
         </div>
@@ -33,7 +29,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">내용 검색</label>
-                    <input type="text" id="search-user-id" placeholder="사용자ID를 입력하세요" 
+                    <input type="text" id="search-content" placeholder="제목 또는 내용을 입력하세요" 
                            class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
                 </div>
                 <div>
@@ -52,9 +48,101 @@
         <!-- 로딩 표시 -->
         <th:block th:replace="~{fragments/common :: loading-spinner}"></th:block>
     </div>
+
+    <!-- 현재 사용자 정보를 JavaScript에서 사용할 수 있도록 hidden 필드로 전달 -->
+    <input type="hidden" id="current-user-name" th:value="${currentUser != null ? currentUser.name : 'guest'}">
+    <input type="hidden" id="current-user-id" th:value="${currentUser != null ? currentUser.userId : 'guest'}">
+
+    <!-- 공지사항 입력 모달 -->
+    <div id="notice-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+                <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h4 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                        <span id="modal-title">공지사항 등록</span>
+                    </h4>
+                    <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <i class='bx bx-x text-2xl'></i>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto max-h-[70vh]">
+                    <form id="notice-form" class="space-y-6">
+                        <!-- 기본 정보 -->
+                        <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-2">
+                                <label for="notice-no" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    번호
+                                </label>
+                                <input type="text" id="notice-no" readonly
+                                       class="w-full px-3 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-600 dark:text-gray-100 transition-all duration-200">
+                            </div>
+                            <div class="col-span-8">
+                                <label for="notice-title" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    제목 <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="notice-title" required
+                                       class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200"
+                                       placeholder="공지사항 제목을 입력하세요">
+                            </div>
+                            <div class="col-span-2">
+                                <label for="notice-author" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">작성자</label>
+                                <input type="text" id="notice-author"  th:value="${currentUser != null ? currentUser.name : ''}"
+                                       class="w-full px-3 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-600 dark:text-gray-100 transition-all duration-200" readonly/>
+                            </div>
+                        </div>
+
+                        <!-- 설정 옵션 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="flex items-center space-x-3">
+                                <input type="checkbox" id="notice-pinned" 
+                                       class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <label for="notice-pinned" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    상단 고정
+                                </label>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <input type="checkbox" id="notice-active" checked
+                                       class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <label for="notice-active" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    활성화
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">첨부파일</label>
+                                <input type="file" id="notice-attachment"
+                                       class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                            </div>
+                        </div>
+
+                        <!-- 내용 -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                내용 <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="notice-content" required rows="8"
+                                      class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200 resize-none"
+                                      placeholder="공지사항 내용을 입력하세요"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                    <button id="cancel-notice-btn" type="button" class="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200">
+                        취소
+                    </button>
+                    <button id="del-btn" type="button" class="px-6 py-2.5 bg-[#6C757D] hover:bg-[#6C757D]/80 text-white rounded-xl transition-all duration-200">
+                        삭제
+                    </button>
+                    <button id="save-notice-btn" type="button" class="px-6 py-2.5 bg-[#2563EB] hover:bg-[#2563EB]/80 text-white rounded-xl transition-all duration-200">
+                        저장
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- 페이지별 스크립트 -->
     <script>
         let noticeGrid = null; // IBSheet 그리드 객체
+        let currentNoticeSeq = null; // 현재 편집 중인 공지사항 번호
 
         // API 기본 설정
         const API_BASE = '/api/notices';
@@ -83,9 +171,10 @@
                 Cols: [
                     { Header: "No", Type: "Int", Name: "seq", MinWidth: 50, Align: "Center" },
                     { Header: "상태", Name: "status", Extend: IB_Preset.CSTATUS},
-                    { Header: "제목", Type: "Text", Name: "title", MinWidth: 220, RelWidth: 1 },
+                    { Header: "제목", Type: "Text", Name: "title", MinWidth: 220, RelWidth: 1, TextStyle: 5, Cursor: "pointer" },
                     { Header: "내용", Type: "Text", Name: "content", Visible: 0 },
                     { Header: "작성자", Type: "Text", Name: "authorName", MinWidth: 80 },
+                    { Header: "작성ID", Type: "Text", Name: "authorId", MinWidth: 80, Visible: 0 },
                     { Header: "상단고정", Type: "Bool", Name: "pinned", MinWidth: 60 },
                     { Header: "사용여부", Type: "Bool", Name: "active", MinWidth: 60 },
                     { Header: "조회수", Type: "Int", Name: "viewCount", MinWidth: 60 },
@@ -93,10 +182,29 @@
                   
                     { Header: "생성일", Name: "createdAt", Extend:IB_Preset.DATETIME, MinWidth: 140, Align: "Center" },
                     { Header: "수정일", Name: "updatedAt", Extend:IB_Preset.DATETIME, MinWidth: 140, Align: "Center"    }
-                ]
+                ],
+                Events: {
+                    // 제목 클릭 시 수정 모달 표시
+                    onAfterClick: function(evt) {
+                        if(evt.row.Kind === "Data" && evt.col === "title") {
+                            const rowData = {
+                                seq: evt.row.seq,
+                                title: evt.row.title,
+                                content: evt.row.content,
+                                authorName: evt.row.authorName,
+                                authorId: evt.row.authorId,
+                                pinned: evt.row.pinned,
+                                active: evt.row.active,
+                                attachment: evt.row.attachment
+                            };
+                            showNoticeModal(rowData);
+                        }
+                    }
+                }
             };
 
             noticeGrid = IBSheet.create({
+                sync: 1,
                 id: "notice-grid",
                 el: "notice-grid",
                 options: gridConfig
@@ -105,14 +213,18 @@
 
         // 이벤트 리스너 설정
         function setupEventListeners() {
-            document.getElementById('add-user-btn').addEventListener('click', addUser);
-            document.getElementById('del-user-btn').addEventListener('click', delUser);
-            document.getElementById('save-all-btn').addEventListener('click', saveAllUsers);
-            document.getElementById('refresh-btn').addEventListener('click', performSearch);
-            document.getElementById('reset-password-btn').addEventListener('click', resetPassword);
+            document.getElementById('add-btn').addEventListener('click', function(){showNoticeModal()});
+            document.getElementById('del-btn').addEventListener('click', function(){delNotice()});
+            document.getElementById('save-all-btn').addEventListener('click', function(){saveAllNotices()});
+            document.getElementById('refresh-btn').addEventListener('click', function(){performSearch()});
+            
+            // 모달 관련 이벤트
+            document.getElementById('close-modal-btn').addEventListener('click', closeNoticeModal);
+            document.getElementById('cancel-notice-btn').addEventListener('click', closeNoticeModal);
+            document.getElementById('save-notice-btn').addEventListener('click', saveNotice);
             
             // 검색 필드에서 엔터키 이벤트
-            document.getElementById('search-user-id').addEventListener('keypress', function(e) {
+            document.getElementById('search-content').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') performSearch();
             });
             
@@ -120,23 +232,17 @@
                 if (e.key === 'Enter') performSearch();
             });
             
-            document.getElementById('search-department').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') performSearch();
-            });
-            
-            // 권한 필터 변경시 자동 검색
-            document.getElementById('search-group').addEventListener('change', performSearch);
         }
 
-        // 사용자 데이터 로드
-        async function loadUsers() {
+        // 공지사항 데이터 로드
+        async function loadNotices() {
             try {
                 document.getElementById('loading').classList.remove('hidden');
                 const response = await axios.get(API_BASE);
                 noticeGrid.loadSearchData(response.data);
             } catch (error) {
-                console.error('사용자 데이터 로드 실패:', error);
-                showError('사용자 데이터를 불러올 수 없습니다.');
+                console.error('공지사항 데이터 로드 실패:', error);
+                showError('공지사항 데이터를 불러올 수 없습니다.');
             } finally {
                 document.getElementById('loading').classList.add('hidden');
             }
@@ -144,127 +250,154 @@
 
         // 검색 수행
         async function performSearch() {
-            const userIdSearch = document.getElementById('search-user-id').value.toLowerCase().trim();
+            const contentSearch = document.getElementById('search-content').value.toLowerCase().trim();
             const nameSearch = document.getElementById('search-name').value.toLowerCase().trim();
-            const departmentSearch = document.getElementById('search-department').value.toLowerCase().trim();
-            const groupSearch = document.getElementById('search-group').value;
             
             try {
                 document.getElementById('loading').classList.remove('hidden');
-                // const response = await axios.get(API_BASE + "/search", {
-                //     params: {
-                //         userId: userIdSearch,
-                //         name: nameSearch,
-                //         department: departmentSearch,
-                //         groupId: groupSearch
-                //     }
-                // });
-
-                const response = await apiGet(API_BASE + "/search", {
-                        userId: userIdSearch,
+                const response = await axios.get(API_BASE + "/search", {
+                    params: {
                         name: nameSearch,
-                        department: departmentSearch,
-                        groupId: groupSearch
-                    });
+                        content: contentSearch  
+                    }
+                });
                 noticeGrid.loadSearchData(response.data);
             } catch (error) {
-                console.error('사용자 데이터 로드 실패:', error);
-                showError('사용자 데이터를 불러올 수 없습니다.');
+                console.error('공지사항 데이터 로드 실패:', error);
+                showError('공지사항 데이터를 불러올 수 없습니다.');
             } finally {
                 document.getElementById('loading').classList.add('hidden');
             }
         }
 
-        // 새 사용자 추가
-        function addUser() {
-            const newUserData = {
-                userId: '',
-                name: '',
-                email: '',
-                department: '',
-                groupId: 'USER',
-                isActive: true,
-                createdAt: new Date().toISOString().split('T')[0],
-                updatedAt: new Date().toISOString().split('T')[0]
-            };
+        // 공지사항 모달 표시
+        function showNoticeModal(noticeData = null) {
+            currentNoticeSeq = noticeData?.seq || null;
             
-            noticeGrid.addRow({ data: newUserData });
-        }
-
-        // 선택된 사용자 삭제
-        function delUser() {
-            const frow = noticeGrid.getFocusedRow();
-            if (!frow || frow.Kind === "Header") {
-                showWarning('삭제할 사용자를 선택해주세요.');
-                return;
-            }
-
-            const del = frow.Deleted;
-            if (del) {
-                // 행 삭제 해제
-                noticeGrid.deleteRow(frow, 0);
-                showInfo('사용자 삭제가 취소되었습니다.');
+            // 모달 제목 설정
+            document.getElementById('modal-title').textContent = noticeData ? '공지사항 수정' : '공지사항 등록';
+            
+            // 폼 초기화 및 데이터 설정
+            if (noticeData) {
+                document.getElementById('notice-title').value = noticeData.title || '';
+                document.getElementById('notice-content').value = noticeData.content || '';
+                document.getElementById('notice-author').value = noticeData.authorName || '';
+                document.getElementById('notice-pinned').checked = noticeData.pinned || false;
+                document.getElementById('notice-active').checked = noticeData.active !== false;
+                document.getElementById('del-btn').classList.remove('hidden');
             } else {
-                // 현재 로그인한 사용자인지 확인 (실제로는 서버에서 확인해야 함)
-                Swal.fire({
-                    title: '사용자 삭제',
-                    text: `${frow.name}(${frow.userId}) 사용자를 삭제하시겠습니까?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: '삭제',
-                    cancelButtonText: '취소'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        noticeGrid.deleteRow(frow);
-                        showSuccess('사용자가 삭제 표시되었습니다.');
-                    }
-                });
+                // 신규 등록 시 폼 초기화
+                document.getElementById('notice-form').reset();
+                document.getElementById('notice-active').checked = true;
+
+                document.getElementById('del-btn').classList.add('hidden');
+                // 현재 로그인한 사용자 정보 설정
+                // const currentUserName = document.getElementById('current-user-name').value;
+                // document.getElementById('notice-author').value = currentUserName;
+            }
+            
+            // 모달 표시
+            document.getElementById('notice-modal').classList.remove('hidden');
+        }
+
+        // 공지사항 모달 닫기
+        function closeNoticeModal() {
+            document.getElementById('notice-modal').classList.add('hidden');
+            currentNoticeSeq = null;
+        }
+
+        // 공지사항 저장 (모달에서)
+        async function saveNotice() {
+            const title = document.getElementById('notice-title').value.trim();
+            const content = document.getElementById('notice-content').value.trim();
+            
+            // 필수 필드 검증
+            if (!title) {
+                showWarning('제목을 입력해주세요.');
+                document.getElementById('notice-title').focus();
+                return;
+            }
+            
+            if (!content) {
+                showWarning('내용을 입력해주세요.');
+                document.getElementById('notice-content').focus();
+                return;
+            }
+            
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                
+                // 현재 로그인한 사용자 정보 가져오기
+                const currentUserName = document.getElementById('current-user-name').value;
+                const currentUserId = document.getElementById('current-user-id').value;
+                
+                const noticeData = {
+                    title: title,
+                    content: content,
+                    authorName: currentUserName,
+                    authorId: currentUserId,
+                    pinned: document.getElementById('notice-pinned').checked,
+                    active: document.getElementById('notice-active').checked,
+                    attachment: document.getElementById('notice-attachment').files[0]?.name || ''
+                };
+                
+                if (currentNoticeSeq) {
+                    // 수정
+                    await apiPut(`${API_BASE}/${currentNoticeSeq}`, noticeData);
+                    showSuccess('공지사항이 성공적으로 수정되었습니다.');
+                } else {
+                    // 신규 등록
+                    await apiPost(`${API_BASE}`, noticeData);
+                    showSuccess('공지사항이 성공적으로 등록되었습니다.');
+                }
+                
+                closeNoticeModal();
+                loadNotices(); // 그리드 새로고침
+                
+            } catch (error) {
+                console.error('공지사항 저장 실패:', error);
+                if (error.response && error.response.data && error.response.data.message) {
+                    showError(`저장에 실패했습니다: ${error.response.data.message}`);
+                } else {
+                    showError('공지사항 저장에 실패했습니다.');
+                }
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
             }
         }
 
-        // 비밀번호 초기화
-        async function resetPassword() {
-            const frow = noticeGrid.getFocusedRow();
-            if (!frow || frow.Kind === "Header") {
-                showWarning('비밀번호를 초기화할 사용자를 선택해주세요.');
-                return;
-            }
+        // 새 공지사항 추가 (기존 함수 - 더 이상 사용하지 않음)
+        function addNotice() {
+            showNoticeModal();
+        }
 
-            if (frow.Added) {
-                showWarning('저장되지 않은 신규 사용자입니다. 먼저 저장해주세요.');
-                return;
-            }
+        // 선택된 공지사항 삭제
+        async function delNotice() {
+            const frow = noticeGrid.getFocusedRow();
 
             Swal.fire({
-                title: '비밀번호 초기화',
-                text: `${frow.name}(${frow.userId}) 사용자의 비밀번호를 초기화하시겠습니까?\n초기화된 비밀번호는 "user123" 입니다.`,
-                icon: 'question',
+                title: '공지사항 삭제',
+                text: `${frow.title} 공지사항을 삭제하시겠습니까?`,
+                icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: '초기화',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: '삭제',
                 cancelButtonText: '취소'
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    try {
-                        document.getElementById('loading').classList.remove('hidden');
-                        await axios.post(`${API_BASE}/${frow.userId}/reset-password`);
-                        showSuccess('비밀번호가 성공적으로 초기화되었습니다.');
-                    } catch (error) {
-                        console.error('비밀번호 초기화 실패:', error);
-                        showError('비밀번호 초기화에 실패했습니다.');
-                    } finally {
-                        document.getElementById('loading').classList.add('hidden');
-                    }
+                    await apiDelete(`${API_BASE}/${frow.seq}`);
+                    showSuccess('공지사항이 삭제 되었습니다.');
+                    closeNoticeModal();
+                    loadNotices(); // 그리드 새로고침
                 }
             });
+          
         }
-        
-        // 전체 사용자 저장
-        async function saveAllUsers() {
-           saveAllData(noticeGrid, API_BASE, loadUsers)
+
+        // 전체 공지사항 저장
+        async function saveAllNotices() {
+           saveAllData(noticeGrid, API_BASE, loadNotices)
         }
 
         // 페이지 종료시 호출 (부모 프레임에서 호출)

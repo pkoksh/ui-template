@@ -55,13 +55,13 @@ IBSheet.Plugins.getSaveJson2 = function(params) {
 
 }
 
-
-async function saveAllData(sheetObj, API_BASE, callback) {
+//데이터 저장 공통 함수
+async function saveAllData(sheetObj, API_BASE, saveOption = {},callback) {
   try {
       document.getElementById('loading').classList.remove('hidden');
       
       // 그리드에서 변경된 데이터 가져오기
-      const changedData = sheetObj.getSaveJson2();
+      const changedData = sheetObj.getSaveJson2(saveOption);
       
       if (changedData?.data?.length === 0) {
           let msg = "";
