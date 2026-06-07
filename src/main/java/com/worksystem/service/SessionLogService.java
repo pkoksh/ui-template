@@ -76,8 +76,13 @@ public class SessionLogService {
 
     // ===== 활성 세션 =====
 
-    public List<ActiveSessionDTO> getActiveSessions() {
-        return sessionLogMapper.findActiveSessions();
+    /**
+     * 활성 세션 목록 — 조회자 본인의 세션에 current=true 표시 (화면에서 강제 만료 불가 안내)
+     */
+    public List<ActiveSessionDTO> getActiveSessions(String currentSessionId) {
+        List<ActiveSessionDTO> sessions = sessionLogMapper.findActiveSessions();
+        sessions.forEach(s -> s.setCurrent(s.getSessionId().equals(currentSessionId)));
+        return sessions;
     }
 
     /**

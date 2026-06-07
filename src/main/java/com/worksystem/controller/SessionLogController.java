@@ -38,11 +38,12 @@ public class SessionLogController {
     }
 
     /**
-     * 활성 세션 목록 조회
+     * 활성 세션 목록 조회 (본인 세션에 current=true 표시)
      */
     @GetMapping("/sessions")
-    public ApiResponse<List<ActiveSessionDTO>> getActiveSessions() {
-        return ApiResponse.ok(sessionLogService.getActiveSessions());
+    public ApiResponse<List<ActiveSessionDTO>> getActiveSessions(HttpServletRequest request) {
+        String currentSessionId = request.getSession(false) != null ? request.getSession(false).getId() : null;
+        return ApiResponse.ok(sessionLogService.getActiveSessions(currentSessionId));
     }
 
     /**

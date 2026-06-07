@@ -146,6 +146,8 @@
                     },
                     Cols: [
                         { Header: "No", Type: "Int", Name: "SEQ", Width: 50, Align: "Center", RelWidth: 0 },
+                        // 본인 세션 표시 (강제 만료 불가)
+                        { Header: "현재", Type: "Bool", Name: "current", Width: 55, Align: "Center", RelWidth: 0 },
                         { Header: "사용자 ID", Type: "Text", Name: "userId", MinWidth: 100 },
                         { Header: "세션 ID", Type: "Text", Name: "sessionId", MinWidth: 230 },
                         { Header: "생성 시각", Type: "Text", Name: "creationTime", MinWidth: 150 },
@@ -214,6 +216,12 @@
             const sessionId = sessionGrid.getValue(frow, 'sessionId');
             const userId = sessionGrid.getValue(frow, 'userId');
 
+            // 본인 세션은 사전 안내 (서버도 400으로 차단하지만 UX 차원에서 먼저 막음)
+            if (sessionGrid.getValue(frow, 'current')) {
+                showWarning('현재 사용 중인 본인 세션은 만료할 수 없습니다.');
+                return;
+            }
+
             const answer = await showDeleteConfirm(
                 `${userId} 사용자의 세션을 강제 만료하시겠습니까?\n해당 사용자는 다음 요청 시 로그아웃됩니다.`,
                 '세션 강제 만료');
@@ -221,7 +229,7 @@
 
             try {
                 document.getElementById('loading').classList.remove('hidden');
-                const res = await apiDelete(`${API_BASE}/sessions/${sessionId}`);
+                const res = await apiDelete(`${API_BASE}/sessions/${encodeURIComponent(sessionId)}`);
                 showSuccess(res.message);
                 loadSessions();
             } catch (error) {

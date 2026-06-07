@@ -41,8 +41,8 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
         }
 
         // 접속 이력 기록 (SessionLogService 내부에서 fail-open 처리)
-        sessionLogService.recordLogin(userId, request,
-                request.getSession(false) != null ? request.getSession(false).getId() : null);
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        sessionLogService.recordLogin(userId, request, session != null ? session.getId() : null);
 
         // 메인 페이지로 리다이렉트
         response.sendRedirect("/");

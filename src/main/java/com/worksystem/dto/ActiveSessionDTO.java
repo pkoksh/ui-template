@@ -29,4 +29,6 @@ public class ActiveSessionDTO {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime expiryTime;
+
+    private Boolean current;        // 조회한 관리자 본인의 세션 여부 (강제 만료 불가 표시용)
 }

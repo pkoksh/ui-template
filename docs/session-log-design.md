@@ -1,6 +1,6 @@
 # 접속 로그(세션) 관리 설계문서
 
-> 작성일: 2026-06-07 · 상태: **설계 확정(구현 전)** · 로드맵: CLAUDE.md "접속 로그(세션) 관리"
+> 작성일: 2026-06-07 · 상태: **구현 완료** (커밋 23e6433 기능, a5db71b 날짜 교정) · 로드맵: CLAUDE.md "접속 로그(세션) 관리"
 
 ## 1. 개요
 
@@ -152,7 +152,9 @@ controller/MainController.java            — /session-log 라우트
 
 - `SpringSessionBackedSessionRegistry` 교체 (동시세션 제한과 조회의 단일 소스화) — maximumSessions 동작 영향 검증 필요
 - 이력 보존 기간/아카이빙 정책, 무한스크롤 페이징 (데이터 증가 시)
-- 로그인 실패 누적 계정 잠금 (brute-force 방어)
+- 로그인 실패 누적 계정 잠금 (brute-force 방어) + LOGIN_FAIL 보존/정리 배치 (공개 엔드포인트라 무제한 증가 가능)
+- X-Forwarded-For 신뢰 프록시 검증 (현재 IP는 위조 가능한 참고값 — RequestUtils 주석 참고)
+- 이력 userId LIKE 검색은 %/_ 와일드카드 포함 부분일치 (ADMIN 전용이라 저위험 — 의도된 동작)
 - Remember-Me 재인증 LOGIN 포착 (AuthenticationSuccessEvent 리스너)
 - login_history.session_id와 SPRING_SESSION 조인 활용 — 세션ID 회전(고정화 방어) 타이밍 검증 필요해 1단계에선 참고 컬럼으로만 둠
 - 데이터 변경 감사(audit) 로그 — 접속 로그와 별개 도메인

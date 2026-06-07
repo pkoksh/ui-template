@@ -12,13 +12,17 @@ public final class RequestUtils {
 
     /**
      * 클라이언트 IP 추출 — 리버스 프록시 환경 대비 X-Forwarded-For의 첫 IP 우선, 없으면 remoteAddr
+     *
+     * 주의: XFF는 클라이언트가 위조 가능한 헤더다 (신뢰 프록시 검증 없음 — 단순 템플릿 범위).
+     * 위조 불가한 값이 필요하면 server.forward-headers-strategy + RemoteIpValve 구성으로 전환할 것.
+     * 컬럼 길이(45) 초과 입력은 절단 — 과길이 헤더로 이력 INSERT를 실패시키는 공격 방지.
      */
     public static String getClientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+            return truncate(forwarded.split(",")[0].trim(), 45);
         }
-        return request.getRemoteAddr();
+        return truncate(request.getRemoteAddr(), 45);
     }
 
     /**

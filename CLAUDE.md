@@ -52,7 +52,7 @@ mysql -u root -p < src/main/resources/schema.sql
 ### 인증/권한 (RBAC)
 
 - 세션 기반 Spring Security. Spring Session JDBC로 세션을 DB 저장(쿠키명 `WORKSYSTEM_SESSION`, 30분, 동시세션 1개 — 새 로그인 시 기존 세션 만료), Remember-Me 7일
-- 로그인: `login.html`(static) → `POST /api/auth/login`(파라미터 `userId`/`password`, Security가 직접 처리) → `LoginSuccessHandler`(last_login_at 갱신) → `/`. 프론트는 성공 후 `GET /api/auth/user`로 사용자 정보 별도 조회
+- 로그인: `login.html`(static) → `POST /api/auth/login`(파라미터 `userId`/`password`, Security가 직접 처리) → `LoginSuccessHandler`(last_login_at 갱신 + LOGIN 이력) → `/`. 프론트는 성공 후 `GET /api/auth/user`로 사용자 정보 별도 조회. 실패/로그아웃은 `LoginFailureHandler`/`LogoutHistoryHandler`가 login_history에 기록(fail-open — 기록 실패가 인증을 막지 않음). Remember-Me 재인증은 successHandler를 타지 않아 LOGIN 미기록(알려진 한계)
 - RBAC 체인: `users` ↔ `user_group_mappings` ↔ `user_groups` ↔ `group_menu_permissions`(can_read/write/delete/admin) ↔ `menus`. **"그룹 = 접근 권한"**
 - 그룹ID가 곧 Spring Security ROLE: `ROLE_<그룹ID 대문자>`로 변환됨(UserService.loadUserByUsername). `hasRole("ADMIN")`은 groupId='ADMIN' 그룹과 연동
 - 메뉴는 `GET /api/menus/user-accessible`로 로그인 사용자 권한에 맞게 동적 로드
@@ -73,6 +73,7 @@ SPA 셸 + iframe 페이지 구조:
 - `assets/js/common-utils.js`: 전역 헬퍼 — `showToast/showSuccess/showError/showConfirm/showDeleteConfirm`(SweetAlert2), `apiGet/apiPost/apiPut/apiDelete`(Axios), `getFormData`, `formatDate`, `getEnumInfo` 등. 직접 fetch/alert 대신 이것들을 사용할 것. **api 헬퍼는 응답 바디(ApiResponse)를 반환하며, 2xx라도 `success===false`면 reject** — 호출부는 catch만 처리하면 됨. 그리드 적재는 `grid.loadSearchData({data: response.data})` 형태(IBSheet는 `data` 키를 가진 객체를 기대, **숨겨진(비활성 탭) 그리드는 적재 거부**하므로 보이는 상태에서 호출)
 - `assets/js/library-config.js`: Axios 전역 인터셉터 — 401(세션만료→로그인 이동, iframe 내부면 부모 reload)/403(권한없음) 공통 처리
 - `assets/ibsheet8/sheet/plugins/ibsheet-custom-common.js`: IBSheet8 공통 — `IB_Preset.CSTATUS`(행 상태 아이콘 컬럼), `getSaveJson2(sheet, params)`(Bool→0/1 변환, 트리면 `params.treeId`로 parentId 부착), `saveAllData(grid, apiBase, opt, callback)`(표준 저장 함수). **ibsheet-head fragment를 include한 페이지에서만 사용 가능**
+- **그리드 날짜 표시 표준**: DTO의 LocalDateTime에 `@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")` + 그리드 `Type:'Text'` 컬럼 — IBSheet Date 타입은 ISO-8601 'T'/나노초 파싱 함정이 있어 사용하지 않음 (`docs/session-log-design.md` §3-4)
 - **공통코드 소비 패턴**: 코드성 선택지(IBSheet Enum 컬럼, select 옵션)는 하드코딩 금지 — 서버 주입(`EnumMaker.getCommonCodeEnum("그룹코드")` → 모델 → `getEnumInfo(enum)`) 또는 동적 로드(`GET /api/common-codes/enum/{groupCode}`) 사용. 마스터-디테일 그리드 페이지는 `code-management.html`이 본보기(onFocus cascade, `IgnoreFocused:2`, `onSearchFinish` 첫행 focus, `onBeforeFocus` 미저장 보호)
 - `templates/fragments/common.html`: head fragment 모음 — `common-head`(Tailwind/jQuery/Axios/SweetAlert2/공통JS), `ibsheet-head`(common + IBSheet), `loading-spinner` 등. 사용법: `<th:block th:replace="~{fragments/common :: ibsheet-head}">` (상세는 manual.txt)
 
@@ -80,7 +81,7 @@ SPA 셸 + iframe 페이지 구조:
 
 `src/main/resources/schema.sql`이 **단일 소스** (DB·계정 생성 + 테이블 + 시드 포함, 멱등이지만 파괴적).
 
-- 테이블: `users`, `user_groups`, `user_group_mappings`, `menus`, `group_menu_permissions`, `notices`, `SPRING_SESSION`(+ATTRIBUTES) / 뷰: `v_user_menus`, `v_user_groups`
+- 테이블: `users`, `user_groups`, `user_group_mappings`, `menus`, `group_menu_permissions`, `notices`, `common_code_groups`, `common_codes`, `login_history`, `SPRING_SESSION`(+ATTRIBUTES) / 뷰: `v_user_menus`, `v_user_groups`
 - RBAC FK는 자동증가 PK가 아니라 **비즈니스 키**(user_id/group_id/menu_id VARCHAR) 참조, ON DELETE CASCADE. `menus.parent_id`도 menu_id 문자열 self-reference(FK 제약 없음, 2단계 메뉴)
 - `notices.is_active` 기본값 FALSE — 신규 공지는 작성 후 활성화하는 설계
 - 신규 메뉴 추가 시 `group_menu_permissions` 시드도 함께 넣어야 메뉴가 보임 (부모 메뉴 'system'은 ADMIN만 시드되어 있어 일반 그룹은 시스템관리 자체가 안 보임)
@@ -109,17 +110,17 @@ SPA 셸 + iframe 페이지 구조:
 | REST 응답 표준 (`ApiResponse` + `GlobalExceptionHandler` 전역 예외 처리) | ✅ |
 | 개인 정보 관리 (내 프로필 수정 + 본인 비밀번호 변경 — `/api/users/me`, 폼 기반 페이지 본보기) | ✅ |
 | 공통코드 관리 (그룹/상세 2테이블, 마스터-디테일 화면, 소비 API `{code,text}` — 설계: `docs/common-code-design.md`) | ✅ |
+| 접속 로그 (로그인 이력 LOGIN/FAIL/LOGOUT + 활성 세션 조회/강제 만료 — 설계: `docs/session-log-design.md`, 조회 전용 그리드 본보기) | ✅ |
 | 대시보드 | ⚠️ stub — 통계가 Math.random() 더미, 실데이터 API 없음 |
 
 ### 로드맵 (목표 메뉴 구조 대비 미구현 — "앞으로 만들 것")
 
-목표 메뉴 트리(시스템 관리 하위): 메뉴관리✅ / 사용자관리✅ / 그룹관리✅ / 개인 정보 관리✅ / 공통코드 관리✅ / **접속 로그(세션)❌ / 게시판 관리(범용)❌ / 다국어❌**
+목표 메뉴 트리(시스템 관리 하위): 메뉴관리✅ / 사용자관리✅ / 그룹관리✅ / 개인 정보 관리✅ / 공통코드 관리✅ / 접속 로그✅ / **게시판 관리(범용)❌ / 다국어❌**
 
-- **접속 로그(세션) 관리**: 설계 확정(`docs/session-log-design.md`) — login_history 이벤트 행 모델 + SPRING_SESSION 직조회 + FindByIndexNameSessionRepository 강제 만료. 구현 대기
 - **게시판 관리**: 범용 게시판(게시판 정의 + 게시글). 현재 notices는 단일 공지 기능
 - **다국어(i18n)**: MessageSource/리소스/관리 화면 전부 신규
 - index.html 헤더의 프로필/설정 링크가 href=# 죽은 UI — 프로필 링크를 `/my-profile` 탭 열기로 연결 가능
-- 기반 개선: 대시보드 실데이터 API, 파일 업로드 공통 모듈(multipart 10MB 설정만 존재), 메뉴 검색 search.js 수리(현재 item.path 의존으로 무동작), `beforeunload` 미저장 경고 연동(탭 닫기는 `onPageClose`로 경고되지만 브라우저 새로고침/창닫기는 무방비), 닫기 확인창에 "저장 후 닫기" 선택지 추가, notice 모달의 작성 중 입력 dirty 체크, HTTP 에러 시 토스트 2회 노출 정리(인터셉터의 400/404/500 일반 토스트 + 호출부 catch의 구체 토스트가 중복 — 단일화 시 delNotice처럼 catch 없는 호출부가 인터셉터에 의존하는 점 주의)
+- 기반 개선: 대시보드 실데이터 API, 파일 업로드 공통 모듈(multipart 10MB 설정만 존재), 메뉴 검색 search.js 수리(현재 item.path 의존으로 무동작), `beforeunload` 미저장 경고 연동(탭 닫기는 `onPageClose`로 경고되지만 브라우저 새로고침/창닫기는 무방비), 닫기 확인창에 "저장 후 닫기" 선택지 추가, notice 모달의 작성 중 입력 dirty 체크, login_history 보존 정책(LOGIN_FAIL 무제한 증가 — brute-force 시 스토리지 표면)과 로그인 실패 누적 잠금, formatDate의 toISOString UTC 일자 시프트(자정 근방), HTTP 에러 시 토스트 2회 노출 정리(인터셉터의 400/404/500 일반 토스트 + 호출부 catch의 구체 토스트가 중복 — 단일화 시 delNotice처럼 catch 없는 호출부가 인터셉터에 의존하는 점 주의)
 
 ### 템플릿 배포 전 정리(클린업) 대상
 
