@@ -115,7 +115,7 @@ SPA 셸 + iframe 페이지 구조:
 
 목표 메뉴 트리(시스템 관리 하위): 메뉴관리✅ / 사용자관리✅ / 그룹관리✅ / 개인 정보 관리✅ / 공통코드 관리✅ / **접속 로그(세션)❌ / 게시판 관리(범용)❌ / 다국어❌**
 
-- **접속 로그(세션) 관리**: 로그인 이력 테이블 + 활성 세션 조회/강제만료 화면 (SessionRegistry Bean은 이미 있음, SPRING_SESSION 테이블 활용 가능)
+- **접속 로그(세션) 관리**: 설계 확정(`docs/session-log-design.md`) — login_history 이벤트 행 모델 + SPRING_SESSION 직조회 + FindByIndexNameSessionRepository 강제 만료. 구현 대기
 - **게시판 관리**: 범용 게시판(게시판 정의 + 게시글). 현재 notices는 단일 공지 기능
 - **다국어(i18n)**: MessageSource/리소스/관리 화면 전부 신규
 - index.html 헤더의 프로필/설정 링크가 href=# 죽은 UI — 프로필 링크를 `/my-profile` 탭 열기로 연결 가능
