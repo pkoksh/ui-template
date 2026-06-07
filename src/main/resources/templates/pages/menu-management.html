@@ -193,7 +193,21 @@
         
         // 전체 메뉴 저장 (공통 저장 함수 사용 — 트리 그리드라 treeId 전달)
         async function saveAllMenus() {
-            await saveAllData(menuGrid, API_BASE, {treeId: "menuId"}, loadMenus);
+            await saveAllData(menuGrid, API_BASE, {treeId: "menuId"}, function() {
+                loadMenus();
+                refreshShellMenus();
+            });
+        }
+
+        // 셸(최상위 창)의 좌측 메뉴를 재로드 — 저장한 메뉴 변경이 즉시 반영되도록
+        function refreshShellMenus() {
+            try {
+                if (window.top !== window.self && window.top.refreshMenus) {
+                    window.top.refreshMenus();
+                }
+            } catch (e) {
+                // 셸 밖에서 단독 실행된 경우 등 — 무시
+            }
         }
 
         // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단

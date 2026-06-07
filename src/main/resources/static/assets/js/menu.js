@@ -434,3 +434,5 @@ function bindMenuItemEvents() {
 // 전역 함수로 노출
 window.expandAllAccordions = expandAllAccordions;
 window.collapseAllAccordions = collapseAllAccordions;
+// 좌측 메뉴 재로드 (메뉴/권한 변경 저장 후 iframe 페이지에서 window.top.refreshMenus()로 호출)
+window.refreshMenus = generateMenu;

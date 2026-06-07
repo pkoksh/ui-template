@@ -428,7 +428,15 @@
         // 권한 저장
         async function savePermissions() {
 
-            return await saveAllData(permissionGrid,`${API_BASE}/${currentGroupId}/permissions`, {saveMode:0}, closePermissionModal)
+            return await saveAllData(permissionGrid,`${API_BASE}/${currentGroupId}/permissions`, {saveMode:0}, function() {
+                closePermissionModal();
+                // 권한 변경은 좌측 메뉴 노출에 영향 — 셸 메뉴 즉시 갱신
+                try {
+                    if (window.top !== window.self && window.top.refreshMenus) {
+                        window.top.refreshMenus();
+                    }
+                } catch (e) { /* 무시 */ }
+            })
 
             // try {
             //     document.getElementById('loading').classList.remove('hidden');
