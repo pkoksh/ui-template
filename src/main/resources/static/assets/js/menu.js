@@ -8,8 +8,9 @@ async function loadMenusFromAPI() {
     try {
         const response = await fetch('/api/menus/user-accessible');
         if (response.ok) {
-            const menus = await response.json();
-            window.menuItems = convertAPIMenusToFormat(menus);
+            // 표준 ApiResponse {success, message, data} — data에 메뉴 배열
+            const body = await response.json();
+            window.menuItems = convertAPIMenusToFormat(body.data || []);
             return true;
         } else {
             console.error('메뉴 로드 실패:', response.status);

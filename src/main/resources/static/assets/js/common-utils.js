@@ -328,13 +328,22 @@ window.apiRequest = async function(url, options = {}) {
 
 /**
  * API 호출 래퍼 함수 - 세션 체크 포함
+ *
+ * 반환값은 axios 응답 객체가 아니라 응답 바디(표준 ApiResponse {success, message, data})다.
+ * HTTP 2xx라도 바디의 success === false 면 실패로 간주하고 reject 한다.
  */
 async function apiCall(config) {
     try {
         const response = await axios(config);
+        // 표준 ApiResponse: success가 명시적으로 false면 실패 처리
+        if (response.data && response.data.success === false) {
+            const error = new Error(response.data.message || '요청 처리에 실패했습니다.');
+            error.response = response; // 호출부의 error.response.data.message 패턴 호환
+            throw error;
+        }
         return response.data;
     } catch (error) {
-        // 에러는 이미 인터셉터에서 처리됨
+        // HTTP 에러는 이미 인터셉터에서 처리됨
         throw error;
     }
 }

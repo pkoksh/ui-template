@@ -238,8 +238,9 @@
         async function loadNotices() {
             try {
                 document.getElementById('loading').classList.remove('hidden');
-                const response = await axios.get(API_BASE);
-                noticeGrid.loadSearchData(response.data);
+                // apiGet은 표준 ApiResponse 바디({success,message,data})를 반환 → data 배열 전달
+                const response = await apiGet(API_BASE);
+                noticeGrid.loadSearchData({data: response.data});
             } catch (error) {
                 console.error('공지사항 데이터 로드 실패:', error);
                 showError('공지사항 데이터를 불러올 수 없습니다.');
@@ -255,13 +256,11 @@
             
             try {
                 document.getElementById('loading').classList.remove('hidden');
-                const response = await axios.get(API_BASE + "/search", {
-                    params: {
-                        name: nameSearch,
-                        content: contentSearch  
-                    }
+                const response = await apiGet(API_BASE + "/search", {
+                    name: nameSearch,
+                    content: contentSearch
                 });
-                noticeGrid.loadSearchData(response.data);
+                noticeGrid.loadSearchData({data: response.data});
             } catch (error) {
                 console.error('공지사항 데이터 로드 실패:', error);
                 showError('공지사항 데이터를 불러올 수 없습니다.');
@@ -395,9 +394,9 @@
           
         }
 
-        // 전체 공지사항 저장
+        // 전체 공지사항 저장 (공통 저장 함수 사용)
         async function saveAllNotices() {
-           saveAllData(noticeGrid, API_BASE, loadNotices)
+           await saveAllData(noticeGrid, API_BASE, {}, loadNotices);
         }
 
         // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단

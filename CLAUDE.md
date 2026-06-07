@@ -46,7 +46,8 @@ mysql -u root -p < src/main/resources/schema.sql
 - `MainController`가 Thymeleaf 페이지 라우팅: `/dashboard`, `/user-management`, `/menu-management`, `/group-management`, `/notice` → `templates/pages/*.html`
 - 사용자 삭제는 **소프트 삭제**(is_active=false). 그룹 삭제는 하드 DELETE(연결된 group_menu_permissions도 함께 삭제), user_group_mappings도 하드 삭제
 - IBSheet 일괄 저장 규약: 프론트가 행마다 `status` 필드(`'I'`/`'U'`/`'D'`)를 담아 POST → 서비스에서 분기 처리 (UserService.saveUsers 등 참고)
-- 응답 포맷이 컨트롤러마다 다름(User/Group은 `{success,message,data}`, Menu는 빈 body, Notice는 별도) — 표준화 미완(로드맵 참고). 새 코드는 User/Group 스타일 권장
+- **응답 표준** (`common/ApiResponse<T>`): 모든 REST API는 `{success, message, data}` 반환. 성공은 `ApiResponse.ok(...)`/`okMessage(...)`, 실패는 **예외를 던지면** `common/GlobalExceptionHandler`(@RestControllerAdvice, @RestController만 대상)가 표준 실패 응답으로 변환 — `IllegalArgumentException`→400, `NoSuchElementException`→404, `IllegalStateException`→500(메시지 노출), 기타→500(메시지 비노출). 컨트롤러에 try/catch 쓰지 말 것. HTTP 200 + success:false 반환 금지(프론트가 성공으로 오인). 예외: `/api/auth/user`는 `authenticated` 플래그 기반 비래핑 응답(login.js 평면 파싱과 계약)
+- 401/403은 Security 필터 단에서 발생하므로 ControllerAdvice가 못 잡음 — SecurityConfig의 entryPoint/deniedHandler가 같은 포맷의 JSON을 수동 생성(`message` 키는 library-config.js 인터셉터와 계약)
 
 ### 인증/권한 (RBAC)
 
@@ -69,7 +70,7 @@ SPA 셸 + iframe 페이지 구조:
 
 ### 프론트엔드 공통 모듈
 
-- `assets/js/common-utils.js`: 전역 헬퍼 — `showToast/showSuccess/showError/showConfirm/showDeleteConfirm`(SweetAlert2), `apiGet/apiPost/apiPut/apiDelete`(Axios), `getFormData`, `formatDate`, `getEnumInfo` 등. 직접 fetch/alert 대신 이것들을 사용할 것
+- `assets/js/common-utils.js`: 전역 헬퍼 — `showToast/showSuccess/showError/showConfirm/showDeleteConfirm`(SweetAlert2), `apiGet/apiPost/apiPut/apiDelete`(Axios), `getFormData`, `formatDate`, `getEnumInfo` 등. 직접 fetch/alert 대신 이것들을 사용할 것. **api 헬퍼는 응답 바디(ApiResponse)를 반환하며, 2xx라도 `success===false`면 reject** — 호출부는 catch만 처리하면 됨. 그리드 적재는 `grid.loadSearchData({data: response.data})` 형태(IBSheet는 `data` 키를 가진 객체를 기대, **숨겨진(비활성 탭) 그리드는 적재 거부**하므로 보이는 상태에서 호출)
 - `assets/js/library-config.js`: Axios 전역 인터셉터 — 401(세션만료→로그인 이동, iframe 내부면 부모 reload)/403(권한없음) 공통 처리
 - `assets/ibsheet8/sheet/plugins/ibsheet-custom-common.js`: IBSheet8 공통 — `IB_Preset.CSTATUS`(행 상태 아이콘 컬럼), `getSaveJson2(sheet, params)`(Bool→0/1 변환, 트리면 `params.treeId`로 parentId 부착), `saveAllData(grid, apiBase, opt, callback)`(표준 저장 함수). **ibsheet-head fragment를 include한 페이지에서만 사용 가능**
 - `templates/fragments/common.html`: head fragment 모음 — `common-head`(Tailwind/jQuery/Axios/SweetAlert2/공통JS), `ibsheet-head`(common + IBSheet), `loading-spinner` 등. 사용법: `<th:block th:replace="~{fragments/common :: ibsheet-head}">` (상세는 manual.txt)
@@ -87,7 +88,7 @@ SPA 셸 + iframe 페이지 구조:
 
 이 템플릿의 핵심 사용법. 기존 Notice 도메인이 가장 완전한 참고 예시.
 
-1. **백엔드**: Controller + Service + Mapper 인터페이스 + `mybatis/mapper/*.xml` + DTO/Entity + schema.sql 테이블
+1. **백엔드**: Controller + Service + Mapper 인터페이스 + `mybatis/mapper/*.xml` + DTO/Entity + schema.sql 테이블. 컨트롤러는 `ApiResponse.ok(...)` 반환 + 실패는 예외 throw (try/catch 금지 — GlobalExceptionHandler가 처리)
 2. **페이지**: `templates/pages/xxx.html` 작성 — head에 `~{fragments/common :: ibsheet-head}` replace, 상단 버튼바(저장/조회/추가) + 검색필터 카드 + IBSheet 컨테이너 구조. JS는 DOMContentLoaded에서 `initGrid() → loadXxx() → setupEventListeners()` 순. 그리드 컬럼에 `IB_Preset.CSTATUS`, 저장은 `saveAllData()` 헬퍼. `onPageClose()` 정의 — 미저장 변경 시 경고 문자열 반환(`grid.hasUnsavedData()`로 체크, 모달 입력이 있으면 모달 dirty도 함께 — group-management.html 참고)
 3. **라우트**: MainController에 `@GetMapping("/xxx")` → `return "pages/xxx"`
 4. **메뉴/권한**: `menus` 테이블에 url='/xxx' 행 + `group_menu_permissions` 권한 행 추가 (schema.sql 시드에도 반영)
@@ -104,6 +105,7 @@ SPA 셸 + iframe 페이지 구조:
 | 메뉴 관리 (트리 그리드, 드래그 정렬, 2단계 제한) | ✅ |
 | 공지사항 (그리드 + 모달 CRUD — 단, 첨부파일은 파일명 문자열만 저장, 실제 업로드 미구현) | ✅ |
 | 탭 닫기 시 미저장 변경 경고 (`onPageClose()` 계약 + 닫기 취소) | ✅ |
+| REST 응답 표준 (`ApiResponse` + `GlobalExceptionHandler` 전역 예외 처리) | ✅ |
 | 대시보드 | ⚠️ stub — 통계가 Math.random() 더미, 실데이터 API 없음 |
 
 ### 로드맵 (목표 메뉴 구조 대비 미구현 — "앞으로 만들 것")
@@ -115,7 +117,7 @@ SPA 셸 + iframe 페이지 구조:
 - **게시판 관리**: 범용 게시판(게시판 정의 + 게시글). 현재 notices는 단일 공지 기능
 - **개인 정보 관리**: 내 프로필 수정 + **본인 비밀번호 변경**(현재 관리자 초기화만 존재, `UserMapper.updatePassword` SQL 재활용 가능). index.html의 프로필/설정 링크가 href=# 죽은 UI
 - **다국어(i18n)**: MessageSource/리소스/관리 화면 전부 신규
-- 기반 개선: 대시보드 실데이터 API, 공통 응답 래퍼 + `@ControllerAdvice` 전역 예외 처리(현재 컨트롤러마다 포맷 상이), 파일 업로드 공통 모듈(multipart 10MB 설정만 존재), 메뉴 검색 search.js 수리(현재 item.path 의존으로 무동작), `beforeunload` 미저장 경고 연동(탭 닫기는 `onPageClose`로 경고되지만 브라우저 새로고침/창닫기는 무방비), 닫기 확인창에 "저장 후 닫기" 선택지 추가, notice 모달의 작성 중 입력 dirty 체크
+- 기반 개선: 대시보드 실데이터 API, 파일 업로드 공통 모듈(multipart 10MB 설정만 존재), 메뉴 검색 search.js 수리(현재 item.path 의존으로 무동작), `beforeunload` 미저장 경고 연동(탭 닫기는 `onPageClose`로 경고되지만 브라우저 새로고침/창닫기는 무방비), 닫기 확인창에 "저장 후 닫기" 선택지 추가, notice 모달의 작성 중 입력 dirty 체크, HTTP 에러 시 토스트 2회 노출 정리(인터셉터의 400/404/500 일반 토스트 + 호출부 catch의 구체 토스트가 중복 — 단일화 시 delNotice처럼 catch 없는 호출부가 인터셉터에 의존하는 점 주의)
 
 ### 템플릿 배포 전 정리(클린업) 대상
 

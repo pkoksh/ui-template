@@ -67,29 +67,36 @@ IBSheet.Plugins.getSaveJson2 = function(params) {
 async function saveAllData(sheetObj, API_BASE, saveOption = {},callback) {
   try {
       document.getElementById('loading').classList.remove('hidden');
-      
+      saveOption = saveOption || {}; // null 전달 방어
+
       // 그리드에서 변경된 데이터 가져오기
+      // (getSaveJson2는 변경이 있으면 '배열', 없으면 IBSheet result '객체'({data:[], Code})를 반환)
       const changedData = sheetObj.getSaveJson2(saveOption);
-      
-      if (changedData?.data?.length === 0) {
+      const rows = Array.isArray(changedData) ? changedData : (changedData?.data ?? []);
+
+      if (rows.length === 0) {
           let msg = "";
           switch(changedData.Code) {
               case 'IBS010':
                   msg = sheetObj.getMessage("RequiredError");
-                  msg = msg.replace("\%1", sheetObj.getRowIndex(changeData.row));
-                  msg = msg.replace("\%2", sheetObj.getString( sheetObj.getHeaderRows().at(-1), changeData.col ));
+                  msg = msg.replace("\%1", sheetObj.getRowIndex(changedData.row));
+                  msg = msg.replace("\%2", sheetObj.getString( sheetObj.getHeaderRows().at(-1), changedData.col ));
                   showInfo(msg);
                   break;
-                  case 'IBS000':
+              case 'IBS000':
                   msg = sheetObj.getMessage("NoSave");
                   showInfo(msg);
                   break;
+              default:
+                  showInfo('변경된 데이터가 없습니다.');
           }
           return;
       }
 
-      await apiPost(`${API_BASE}`, JSON.stringify(changedData));
-      
+      // apiPost는 표준 ApiResponse 기준 success === false 면 reject 하므로 (common-utils.js apiCall)
+      // 여기 도달하면 성공 (직렬화는 axios에 일임)
+      await apiPost(`${API_BASE}`, rows);
+
       showSuccess('성공적으로 저장되었습니다.');
       if (callback) callback();
   } catch (error) {

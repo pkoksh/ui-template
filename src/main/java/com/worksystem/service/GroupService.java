@@ -57,27 +57,24 @@ public class GroupService {
     
     @Transactional
     public boolean saveGroup(List<GroupDTO> groupDTOs) {
-      try {
-        for(GroupDTO groupDTO : groupDTOs) {
-          log.info("그룹 저장 요청 - {}", groupDTO);
-          switch(groupDTO.getStatus()) {
-            case "I":
-              createGroup(groupDTO);
-              break;
-            case "U":
-              updateGroup(groupDTO.getGroupId(), groupDTO);
-              break;
-            case "D":
-              deleteGroup(groupDTO.getGroupId());
-              break;
-            default:
-              log.warn("알 수 없는 상태: {}", groupDTO.getStatus());
-          }
+      // 예외는 삼키지 않고 전파한다 → GlobalExceptionHandler가 표준 실패 응답으로 변환
+      for(GroupDTO groupDTO : groupDTOs) {
+        log.info("그룹 저장 요청 - {}", groupDTO);
+        switch(groupDTO.getStatus()) {
+          case "I":
+            createGroup(groupDTO);
+            break;
+          case "U":
+            updateGroup(groupDTO.getGroupId(), groupDTO);
+            break;
+          case "D":
+            deleteGroup(groupDTO.getGroupId());
+            break;
+          default:
+            log.warn("알 수 없는 상태: {}", groupDTO.getStatus());
         }
-        return true;
-      }catch(Exception e) {
-        return false;
       }
+      return true;
     }
 
     /**

@@ -241,8 +241,9 @@
         async function loadGroups() {
             try {
                 document.getElementById('loading').classList.remove('hidden');
-                const response = await axios.get(API_BASE);
-                groupGrid.loadSearchData(response.data);
+                // apiGet은 표준 ApiResponse 바디({success,message,data})를 반환 → data 배열 전달
+                const response = await apiGet(API_BASE);
+                groupGrid.loadSearchData({data: response.data});
             } catch (error) {
                 console.error('그룹 데이터 로드 실패:', error);
                 showError('그룹 데이터를 불러올 수 없습니다.');
@@ -259,14 +260,12 @@
             
             try {
                 document.getElementById('loading').classList.remove('hidden');
-                const response = await axios.get(API_BASE + "/search", {
-                    params: {
-                        groupName: groupNameSearch,
-                        level: levelSearch,
-                        isActive: activeSearch
-                    }
+                const response = await apiGet(API_BASE + "/search", {
+                    groupName: groupNameSearch,
+                    level: levelSearch,
+                    isActive: activeSearch
                 });
-                groupGrid.loadSearchData(response.data);
+                groupGrid.loadSearchData({data: response.data});
             } catch (error) {
                 console.error('그룹 데이터 로드 실패:', error);
                 showError('그룹 데이터를 불러올 수 없습니다.');
@@ -340,13 +339,14 @@
             
             try {
                 // 메뉴 목록과 현재 그룹의 권한 정보를 가져옵니다
+                // (apiGet은 표준 ApiResponse 바디를 반환하므로 .data로 실제 목록에 접근)
                 const [menusResponse, permissionsResponse] = await Promise.all([
-                    axios.get(MENU_API_BASE),
-                    axios.get(`${API_BASE}/${currentGroupId}/permissions`)
+                    apiGet(MENU_API_BASE),
+                    apiGet(`${API_BASE}/${currentGroupId}/permissions`)
                 ]);
 
                 const menus = menusResponse.data;
-                const permissions = permissionsResponse.data;
+                const permissions = permissionsResponse;
 
                 // 메뉴 데이터에 권한 정보 매핑
                 const permissionData = menus.map(menu => {
@@ -397,7 +397,7 @@
                     return rtnData;
                 });
 
-                permissionGrid.loadSearchData(permissionData);
+                permissionGrid.loadSearchData({data: permissionData});
                 document.getElementById('permission-modal').classList.remove('hidden');
             } catch (error) {
                 console.error('권한 정보 로드 실패:', error);
@@ -439,38 +439,9 @@
             // }
         }
         
-        // 전체 그룹 저장
+        // 전체 그룹 저장 (공통 저장 함수 사용)
         async function saveAllGroups() {
-            try {
-                document.getElementById('loading').classList.remove('hidden');
-                
-                // 그리드에서 변경된 데이터 가져오기
-                const changedData = groupGrid.getSaveJson2();
-                
-                if (changedData.length === 0) {
-                    showInfo('변경된 데이터가 없습니다.');
-                    return;
-                }
-            
-    
-                await axios.post(`${API_BASE}`, JSON.stringify(changedData), {
-                    headers: {
-                        "Content-Type": `application/json`,
-                    },
-                });
-                
-                showSuccess('모든 그룹 정보가 성공적으로 저장되었습니다.');
-                loadGroups();
-            } catch (error) {
-                console.error('그룹 저장 실패:', error);
-                if (error.response && error.response.data && error.response.data.message) {
-                    showError(`그룹 저장에 실패했습니다: ${error.response.data.message}`);
-                } else {
-                    showError('그룹 저장에 실패했습니다.');
-                }
-            } finally {
-                document.getElementById('loading').classList.add('hidden');
-            }
+            await saveAllData(groupGrid, API_BASE, null, loadGroups);
         }
 
         // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단

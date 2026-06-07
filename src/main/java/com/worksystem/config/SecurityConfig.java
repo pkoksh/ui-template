@@ -158,11 +158,12 @@ public class SecurityConfig {
                 // AJAX 요청인지 판단
                 if ("XMLHttpRequest".equals(requestedWith) || 
                     (accept != null && accept.contains("application/json"))) {
-                    // AJAX 요청의 경우 401 상태 코드와 JSON 응답
+                    // AJAX 요청의 경우 401 상태 코드와 표준 ApiResponse 형태 JSON 응답
+                    // (Security 필터 단이라 GlobalExceptionHandler가 처리하지 못함 — 포맷을 수동으로 맞춤)
                     response.setStatus(401);
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write(
-                        "{\"error\": \"UNAUTHORIZED\", \"message\": \"세션이 만료되었습니다. 다시 로그인해주세요.\", \"redirect\": \"/login.html\"}"
+                        "{\"success\": false, \"message\": \"세션이 만료되었습니다. 다시 로그인해주세요.\", \"data\": null, \"redirect\": \"/login.html\"}"
                     );
                 } else {
                     // 일반 요청의 경우 로그인 페이지로 리다이렉트
@@ -175,11 +176,11 @@ public class SecurityConfig {
                 
                 if ("XMLHttpRequest".equals(requestedWith) || 
                     (accept != null && accept.contains("application/json"))) {
-                    // AJAX 요청의 경우 403 상태 코드와 JSON 응답
+                    // AJAX 요청의 경우 403 상태 코드와 표준 ApiResponse 형태 JSON 응답
                     response.setStatus(403);
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write(
-                        "{\"error\": \"FORBIDDEN\", \"message\": \"접근 권한이 없습니다.\"}"
+                        "{\"success\": false, \"message\": \"접근 권한이 없습니다.\", \"data\": null}"
                     );
                 } else {
                     // 일반 요청의 경우 접근 거부 페이지로 리다이렉트

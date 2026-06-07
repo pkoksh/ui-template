@@ -6,6 +6,7 @@ import com.worksystem.mapper.MenuMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,26 +120,22 @@ public class MenuService {
         return dto;
     }
     
+    @Transactional
     public boolean saveMenu(List<MenuDTO> menus) {
-        try {
-            
-            for (MenuDTO menuDTO : menus) {
-                if (menuDTO.getStatus().equals("I")) {
-                    // 신규 메뉴 생성
-                    createMenu(menuDTO);
-                } else if (menuDTO.getStatus().equals("D")) {
-                    // 삭제 처리
-                    deleteMenu(menuDTO.getId());
-                } else {
-                    // 기존 메뉴 수정
-                    updateMenu(menuDTO);
-                }
+        // 예외는 삼키지 않고 전파한다 → GlobalExceptionHandler가 표준 실패 응답으로 변환
+        for (MenuDTO menuDTO : menus) {
+            if (menuDTO.getStatus().equals("I")) {
+                // 신규 메뉴 생성
+                createMenu(menuDTO);
+            } else if (menuDTO.getStatus().equals("D")) {
+                // 삭제 처리
+                deleteMenu(menuDTO.getId());
+            } else {
+                // 기존 메뉴 수정
+                updateMenu(menuDTO);
             }
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
         }
+        return true;
     }
 
 

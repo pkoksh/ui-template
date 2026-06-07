@@ -185,26 +185,22 @@ public class UserService implements UserDetailsService {
     @Transactional
     public boolean saveUsers(List<UserDTO> userDTOs) {
         logger.info("사용자 목록 저장 요청 - 사용자 수: {}", userDTOs.size());
-        
-        try {
-            for (UserDTO userDTO : userDTOs) {
-                logger.info(userDTO.getStatus());
-                if ("I".equals(userDTO.getStatus())) {
-                    // 신규 사용자 생성
-                    createUserFromDTO(userDTO);
-                } else if ("U".equals(userDTO.getStatus())) {
-                    // 기존 사용자 수정
-                    updateUserFromDTO(userDTO);
-                } else if ("D".equals(userDTO.getStatus())) {
-                    // 사용자 삭제 (비활성화)
-                    deleteUser(userDTO.getUserId());
-                }
+
+        // 예외(중복 ID 등 IllegalArgumentException 포함)는 삼키지 않고 전파한다
+        // → GlobalExceptionHandler가 표준 실패 응답으로 변환하고 @Transactional이 롤백 처리
+        for (UserDTO userDTO : userDTOs) {
+            if ("I".equals(userDTO.getStatus())) {
+                // 신규 사용자 생성
+                createUserFromDTO(userDTO);
+            } else if ("U".equals(userDTO.getStatus())) {
+                // 기존 사용자 수정
+                updateUserFromDTO(userDTO);
+            } else if ("D".equals(userDTO.getStatus())) {
+                // 사용자 삭제 (비활성화)
+                deleteUser(userDTO.getUserId());
             }
-            return true;
-        } catch (Exception e) {
-            logger.error("사용자 목록 저장 실패", e);
-            return false;
         }
+        return true;
     }
 
     /**
