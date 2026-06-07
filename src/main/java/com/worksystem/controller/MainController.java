@@ -111,6 +111,15 @@ public class MainController {
     }
 
     /**
+     * 개인 정보 관리 페이지 (내 프로필 — 데이터는 /api/users/me 로 로드)
+     */
+    @GetMapping("/my-profile")
+    public String myProfile(Model model) {
+        model.addAttribute("pageTitle", "개인 정보 관리");
+        return "pages/my-profile";
+    }
+
+    /**
      * 공지사항 관리 페이지
      */
     @GetMapping("/notice")

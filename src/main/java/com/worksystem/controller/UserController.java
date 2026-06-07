@@ -10,6 +10,9 @@ import com.worksystem.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +55,51 @@ public class UserController {
         log.info("사용자 검색 API 호출 - userId: {}, name: {}, department: {}, groupId: {}",
                 userId, name, department, groupId);
         return ApiResponse.ok(userService.searchUsers(userId, name, department, groupId));
+    }
+
+    /**
+     * 내 프로필 조회 (로그인 사용자)
+     */
+    @GetMapping("/me")
+    public ApiResponse<UserDTO> getMyProfile() {
+        String userId = currentUserId();
+        log.info("내 프로필 조회 API 호출 - userId: {}", userId);
+
+        UserDTO user = userService.findUserWithGroups(userId);
+        if (user == null) {
+            throw new NoSuchElementException("사용자를 찾을 수 없습니다: " + userId);
+        }
+        return ApiResponse.ok(user);
+    }
+
+    /**
+     * 내 프로필 수정 (이름/이메일/부서만)
+     */
+    @PutMapping("/me")
+    public ApiResponse<UserDTO> updateMyProfile(@RequestBody UserDTO userDTO) {
+        String userId = currentUserId();
+        log.info("내 프로필 수정 API 호출 - userId: {}", userId);
+
+        return ApiResponse.ok("프로필이 성공적으로 수정되었습니다.",
+                userService.updateMyProfile(userId, userDTO));
+    }
+
+    /**
+     * 내 비밀번호 변경 (현재 비밀번호 검증)
+     */
+    @PostMapping("/me/change-password")
+    public ApiResponse<Void> changeMyPassword(@RequestBody Map<String, String> request) {
+        String userId = currentUserId();
+        log.info("비밀번호 변경 API 호출 - userId: {}", userId);
+
+        userService.changePassword(userId, request.get("currentPassword"), request.get("newPassword"));
+        return ApiResponse.okMessage("비밀번호가 성공적으로 변경되었습니다.");
+    }
+
+    /** 현재 로그인 사용자 ID (미인증은 Security 필터가 차단하므로 null 아님) */
+    private String currentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth.getName();
     }
 
     /**

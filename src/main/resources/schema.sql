@@ -103,7 +103,8 @@ INSERT INTO menus (menu_id, parent_id, title, url, icon, sort_order) VALUES
 ('user-management', 'system', '사용자 관리', '/user-management', 'bx-user', 1),
 ('menu-management', 'system', '메뉴 관리', '/menu-management', 'bx-menu', 2),
 ('group-management', 'system', '그룹 관리', '/group-management', 'bx-group', 3),
-('notice', 'system', '공지사항', '/notice', '', 4);
+('notice', 'system', '공지사항', '/notice', '', 4),
+('my-profile', 'system', '개인 정보 관리', '/my-profile', 'bx-id-card', 5);
 
 -- 사용자-그룹 매핑
 INSERT INTO user_group_mappings (user_id, group_id) VALUES
@@ -121,12 +122,17 @@ INSERT INTO group_menu_permissions (group_id, menu_id, can_read, can_write, can_
 ('ADMIN', 'menu-management', TRUE, TRUE, TRUE, TRUE),
 ('ADMIN', 'group-management', TRUE, TRUE, TRUE, TRUE),
 ('ADMIN', 'notice', TRUE, TRUE, TRUE, TRUE),
+('ADMIN', 'my-profile', TRUE, TRUE, FALSE, FALSE),
 
--- MANAGER: 대시보드 접근 (읽기/쓰기만)
+-- MANAGER: 대시보드 + 개인 정보 관리
 ('MANAGER', 'dashboard', TRUE, TRUE, FALSE, FALSE),
+('MANAGER', 'system', TRUE, FALSE, FALSE, FALSE),
+('MANAGER', 'my-profile', TRUE, TRUE, FALSE, FALSE),
 
--- USER: 대시보드만 접근 (읽기만)
-('USER', 'dashboard', TRUE, FALSE, FALSE, FALSE);
+-- USER: 대시보드(읽기만) + 개인 정보 관리
+('USER', 'dashboard', TRUE, FALSE, FALSE, FALSE),
+('USER', 'system', TRUE, FALSE, FALSE, FALSE),
+('USER', 'my-profile', TRUE, TRUE, FALSE, FALSE);
 
 -- 7. 사용자별 접근 가능한 메뉴 조회 뷰
 CREATE VIEW v_user_menus AS

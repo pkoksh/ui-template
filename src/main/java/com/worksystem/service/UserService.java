@@ -340,7 +340,54 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * 비밀번호 초기화
+     * 본인 프로필 수정 (이름/이메일/부서만 — 그룹/활성화는 관리자 전용)
+     */
+    @Transactional
+    public UserDTO updateMyProfile(String userId, UserDTO userDTO) {
+        logger.info("내 프로필 수정 요청 - userId: {}", userId);
+
+        User user = userMapper.findByUserId(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다: " + userId);
+        }
+        if (userDTO.getName() == null || userDTO.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("이름은 필수입니다.");
+        }
+
+        user.setName(userDTO.getName().trim());
+        user.setEmail(userDTO.getEmail());
+        user.setDepartment(userDTO.getDepartment());
+        updateUser(user);
+
+        return findUserWithGroups(userId);
+    }
+
+    /**
+     * 본인 비밀번호 변경 (현재 비밀번호 검증)
+     */
+    @Transactional
+    public void changePassword(String userId, String currentPassword, String newPassword) {
+        logger.info("비밀번호 변경 요청 - userId: {}", userId);
+
+        User user = userMapper.findByUserId(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다: " + userId);
+        }
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        if (currentPassword == null || !encoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+        if (newPassword == null || newPassword.length() < 8) {
+            throw new IllegalArgumentException("새 비밀번호는 8자 이상이어야 합니다.");
+        }
+
+        userMapper.updatePassword(userId, encoder.encode(newPassword));
+        logger.info("비밀번호 변경 완료 - userId: {}", userId);
+    }
+
+    /**
+     * 비밀번호 초기화 (관리자용)
      */
     @Transactional
     public String resetPassword(String userId) {

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common :: common-head}"></th:block>
+    <title>개인 정보 관리</title>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">개인 정보 관리</h3>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl">
+            <!-- 내 프로필 카드 -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+                        <i class='bx bx-id-card text-xl mr-2 text-blue-500'></i> 내 프로필
+                    </h4>
+                    <button id="save-profile-btn" class="bg-[#2563EB] hover:bg-[#2563EB]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                        <i class='bx bx-save text-lg'></i>
+                        <span class="font-medium">저장</span>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">사용자 ID</label>
+                        <input type="text" id="profile-user-id" disabled
+                               class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">권한 그룹</label>
+                        <input type="text" id="profile-groups" disabled
+                               class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">이름 <span class="text-red-500">*</span></label>
+                        <input type="text" id="profile-name" placeholder="이름을 입력하세요"
+                               class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">이메일</label>
+                        <input type="email" id="profile-email" placeholder="이메일을 입력하세요"
+                               class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">부서</label>
+                        <input type="text" id="profile-department" placeholder="부서를 입력하세요"
+                               class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                    </div>
+                    <div class="text-xs text-gray-400 dark:text-gray-500">
+                        마지막 로그인: <span id="profile-last-login">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 비밀번호 변경 카드 -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+                        <i class='bx bx-lock-alt text-xl mr-2 text-amber-500'></i> 비밀번호 변경
+                    </h4>
+                    <button id="change-password-btn" class="bg-[#6C757D] hover:bg-[#6C757D]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                        <i class='bx bx-check text-lg'></i>
+                        <span class="font-medium">변경</span>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">현재 비밀번호 <span class="text-red-500">*</span></label>
+                        <input type="password" id="current-password" placeholder="현재 비밀번호" autocomplete="current-password"
+                               class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">새 비밀번호 <span class="text-red-500">*</span></label>
+                        <input type="password" id="new-password" placeholder="8자 이상" autocomplete="new-password"
+                               class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">새 비밀번호 확인 <span class="text-red-500">*</span></label>
+                        <input type="password" id="new-password-confirm" placeholder="새 비밀번호 재입력" autocomplete="new-password"
+                               class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                    </div>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">
+                        * 비밀번호는 8자 이상이어야 합니다. 변경 후 다음 로그인부터 적용됩니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 로딩 표시 -->
+        <th:block th:replace="~{fragments/common :: loading-spinner}"></th:block>
+    </div>
+
+    <!-- 페이지별 스크립트 -->
+    <script>
+        const API_BASE = '/api/users/me';
+
+        // 프로필 원본 (dirty 체크용)
+        let originalProfile = null;
+
+        // 페이지 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMyProfile();
+            setupEventListeners();
+        });
+
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            document.getElementById('save-profile-btn').addEventListener('click', saveMyProfile);
+            document.getElementById('change-password-btn').addEventListener('click', changeMyPassword);
+        }
+
+        // 내 프로필 로드
+        async function loadMyProfile() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                // apiGet은 표준 ApiResponse 바디({success,message,data})를 반환
+                const response = await apiGet(API_BASE);
+                const user = response.data;
+
+                document.getElementById('profile-user-id').value = user.userId;
+                document.getElementById('profile-groups').value = user.groupNames || '';
+                document.getElementById('profile-name').value = user.name || '';
+                document.getElementById('profile-email').value = user.email || '';
+                document.getElementById('profile-department').value = user.department || '';
+                document.getElementById('profile-last-login').textContent =
+                    user.lastLoginAt ? formatDateTime(user.lastLoginAt) : '-';
+
+                originalProfile = {
+                    name: user.name || '',
+                    email: user.email || '',
+                    department: user.department || ''
+                };
+            } catch (error) {
+                console.error('프로필 로드 실패:', error);
+                showError('프로필 정보를 불러올 수 없습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 프로필 폼이 원본과 다른지 확인
+        function isProfileDirty() {
+            if (!originalProfile) return false;
+            return document.getElementById('profile-name').value.trim() !== originalProfile.name
+                || document.getElementById('profile-email').value.trim() !== originalProfile.email
+                || document.getElementById('profile-department').value.trim() !== originalProfile.department;
+        }
+
+        // 프로필 저장
+        async function saveMyProfile() {
+            const name = document.getElementById('profile-name').value.trim();
+            if (!name) {
+                showWarning('이름을 입력해주세요.');
+                return;
+            }
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const response = await apiPut(API_BASE, {
+                    name: name,
+                    email: document.getElementById('profile-email').value.trim(),
+                    department: document.getElementById('profile-department').value.trim()
+                });
+                showSuccess(response.message);
+                // 원본 갱신 (dirty 해제)
+                originalProfile = {
+                    name: response.data.name || '',
+                    email: response.data.email || '',
+                    department: response.data.department || ''
+                };
+            } catch (error) {
+                console.error('프로필 저장 실패:', error);
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 비밀번호 변경
+        async function changeMyPassword() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirm = document.getElementById('new-password-confirm').value;
+
+            if (!currentPassword || !newPassword || !confirm) {
+                showWarning('모든 비밀번호 항목을 입력해주세요.');
+                return;
+            }
+            if (newPassword.length < 8) {
+                showWarning('새 비밀번호는 8자 이상이어야 합니다.');
+                return;
+            }
+            if (newPassword !== confirm) {
+                showWarning('새 비밀번호가 서로 일치하지 않습니다.');
+                return;
+            }
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const response = await apiPost(`${API_BASE}/change-password`, {
+                    currentPassword: currentPassword,
+                    newPassword: newPassword
+                });
+                showSuccess(response.message);
+                // 입력 필드 초기화
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('new-password-confirm').value = '';
+            } catch (error) {
+                // 실패 사유(현재 비밀번호 불일치 등)는 인터셉터/catch에서 표시됨
+                console.error('비밀번호 변경 실패:', error);
+                if (error.response && error.response.data && error.response.data.message) {
+                    showError(error.response.data.message);
+                }
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단
+        function onPageClose() {
+            const passwordEditing = document.getElementById('current-password').value
+                || document.getElementById('new-password').value
+                || document.getElementById('new-password-confirm').value;
+            if (isProfileDirty() || passwordEditing) {
+                return '저장하지 않은 변경사항이 있습니다. 정말 페이지를 닫으시겠습니까?';
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>
