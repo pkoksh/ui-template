@@ -316,10 +316,15 @@
                 document.getElementById('notice-content').focus();
                 return;
             }
-            
+
+            // 연타 중복 등록 방지 — 진행 중에는 저장 버튼 비활성화
+            const saveBtn = document.getElementById('save-notice-btn');
+            if (saveBtn.disabled) return;
+            saveBtn.disabled = true;
+
             try {
                 document.getElementById('loading').classList.remove('hidden');
-                
+
                 // 현재 로그인한 사용자 정보 가져오기
                 const currentUserName = document.getElementById('current-user-name').value;
                 const currentUserId = document.getElementById('current-user-id').value;
@@ -356,31 +361,47 @@
                 }
             } finally {
                 document.getElementById('loading').classList.add('hidden');
+                saveBtn.disabled = false;
             }
         }
 
-        // 선택된 공지사항 삭제
+        // 선택된 공지사항 삭제 (모달에서 — 수정 중인 공지를 대상으로)
         async function delNotice() {
-            const frow = noticeGrid.getFocusedRow();
+            // 모달이 추적하는 공지를 삭제 (getFocusedRow는 포커스가 바뀌면 엉뚱한 행을 가리킴)
+            if (!currentNoticeSeq) {
+                showWarning('삭제할 공지사항이 없습니다.');
+                return;
+            }
+            const targetSeq = currentNoticeSeq;
+            const title = document.getElementById('notice-title').value || '';
 
-            Swal.fire({
+            const result = await Swal.fire({
                 title: '공지사항 삭제',
-                text: `${frow.title} 공지사항을 삭제하시겠습니까?`,
+                text: `${title} 공지사항을 삭제하시겠습니까?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
                 confirmButtonText: '삭제',
                 cancelButtonText: '취소'
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    await apiDelete(`${API_BASE}/${frow.seq}`);
-                    showSuccess('공지사항이 삭제 되었습니다.');
-                    closeNoticeModal();
-                    loadNotices(); // 그리드 새로고침
-                }
             });
-          
+            if (!result.isConfirmed) return;
+
+            const delBtn = document.getElementById('del-btn');
+            if (delBtn.disabled) return;
+            delBtn.disabled = true;
+            try {
+                await apiDelete(`${API_BASE}/${targetSeq}`);
+                showSuccess('공지사항이 삭제 되었습니다.');
+                closeNoticeModal();
+                loadNotices(); // 그리드 새로고침
+            } catch (error) {
+                console.error('공지사항 삭제 실패:', error);
+                const msg = error.response?.data?.message;
+                showError(msg ? `삭제에 실패했습니다: ${msg}` : '공지사항 삭제에 실패했습니다.');
+            } finally {
+                delBtn.disabled = false;
+            }
         }
 
         // 탭 닫기 전 셸(tabs.js)이 호출 — 모달 CRUD 전용 페이지라 그리드 변경분은 없음.

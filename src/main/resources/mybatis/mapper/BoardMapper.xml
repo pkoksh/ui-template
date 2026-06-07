@@ -55,6 +55,26 @@
         DELETE FROM boards WHERE board_seq = #{id}
     </delete>
 
+    <!-- ===== 게시판 메뉴 권한 (RBAC) ===== -->
+    <!-- 사용자가 속한 그룹 중 하나라도 해당 메뉴 can_read=TRUE 면 양수 -->
+    <select id="countReadPermission" resultType="int">
+        SELECT COUNT(*)
+        FROM group_menu_permissions gmp
+        JOIN user_group_mappings ugm ON gmp.group_id = ugm.group_id
+        WHERE ugm.user_id = #{userId}
+          AND gmp.menu_id = #{menuId}
+          AND gmp.can_read = TRUE
+    </select>
+
+    <select id="countWritePermission" resultType="int">
+        SELECT COUNT(*)
+        FROM group_menu_permissions gmp
+        JOIN user_group_mappings ugm ON gmp.group_id = ugm.group_id
+        WHERE ugm.user_id = #{userId}
+          AND gmp.menu_id = #{menuId}
+          AND gmp.can_write = TRUE
+    </select>
+
     <!-- ===== 게시글 ===== -->
 
     <!-- 게시글 목록 (고정글 우선 + 최신순, LIMIT 1000) -->
@@ -111,13 +131,14 @@
         )
     </insert>
 
-    <!-- 게시글 수정 (작성자 컬럼은 변경 불가 — notices 전례) -->
+    <!-- 게시글 수정 (작성자 컬럼은 변경 불가 — notices 전례)
+         is_active는 SET에서 제외: 수정이 노출 상태를 건드릴 이유가 없고,
+         COALESCE(default TRUE)로 두면 비활성 글이 수정 시 무조건 재노출되는 부작용이 있음 -->
     <update id="updatePost" parameterType="com.worksystem.dto.BoardPostDTO">
         UPDATE board_posts SET
             title = #{title},
             content = #{content},
-            is_pinned = COALESCE(#{isPinned}, FALSE),
-            is_active = COALESCE(#{isActive}, TRUE)
+            is_pinned = COALESCE(#{isPinned}, FALSE)
         WHERE post_seq = #{postSeq}
     </update>
 

@@ -42,8 +42,8 @@ mysql -u root -p < src/main/resources/schema.sql
 
 표준 레이어드 구조: `controller` → `service` → `mapper`(인터페이스) → `src/main/resources/mybatis/mapper/*.xml`(SQL). DTO는 `dto/`, 엔터티는 `entity/`. 매퍼 4개 도메인(users/groups/menus/notices) 모두 인터페이스 메서드와 XML SQL이 1:1 매칭 완료 상태(auth는 전용 매퍼 없이 UserMapper 재사용).
 
-- REST API: `/api/users`, `/api/groups`, `/api/menus`, `/api/notices`, `/api/auth` (현재 사용자 조회는 `GET /api/auth/user`)
-- `MainController`가 Thymeleaf 페이지 라우팅: `/dashboard`, `/user-management`, `/menu-management`, `/group-management`, `/notice` → `templates/pages/*.html`
+- REST API: `/api/users`, `/api/groups`, `/api/menus`, `/api/notices`, `/api/boards`, `/api/auth` (현재 사용자 조회는 `GET /api/auth/user`)
+- `MainController`가 Thymeleaf 페이지 라우팅: `/dashboard`, `/user-management`, `/menu-management`, `/group-management`, `/notice` → `templates/pages/*.html`. 게시판만 동적 라우트(`/board/{boardCode}` → `pages/board.html` 한 장)
 - 사용자 삭제는 **소프트 삭제**(is_active=false). 그룹 삭제는 하드 DELETE(연결된 group_menu_permissions도 함께 삭제), user_group_mappings도 하드 삭제
 - IBSheet 일괄 저장 규약: 프론트가 행마다 `status` 필드(`'I'`/`'U'`/`'D'`)를 담아 POST → 서비스에서 분기 처리 (UserService.saveUsers 등 참고)
 - **응답 표준** (`common/ApiResponse<T>`): 모든 REST API는 `{success, message, data}` 반환. 성공은 `ApiResponse.ok(...)`/`okMessage(...)`, 실패는 **예외를 던지면** `common/GlobalExceptionHandler`(@RestControllerAdvice, @RestController만 대상)가 표준 실패 응답으로 변환 — `IllegalArgumentException`→400, `NoSuchElementException`→404, `IllegalStateException`→500(메시지 노출), 기타→500(메시지 비노출). 컨트롤러에 try/catch 쓰지 말 것. HTTP 200 + success:false 반환 금지(프론트가 성공으로 오인). 예외: `/api/auth/user`는 `authenticated` 플래그 기반 비래핑 응답(login.js 평면 파싱과 계약)
@@ -81,7 +81,7 @@ SPA 셸 + iframe 페이지 구조:
 
 `src/main/resources/schema.sql`이 **단일 소스** (DB·계정 생성 + 테이블 + 시드 포함, 멱등이지만 파괴적).
 
-- 테이블: `users`, `user_groups`, `user_group_mappings`, `menus`, `group_menu_permissions`, `notices`, `common_code_groups`, `common_codes`, `login_history`, `SPRING_SESSION`(+ATTRIBUTES) / 뷰: `v_user_menus`, `v_user_groups`
+- 테이블: `users`, `user_groups`, `user_group_mappings`, `menus`, `group_menu_permissions`, `notices`, `common_code_groups`, `common_codes`, `login_history`, `boards`, `board_posts`, `SPRING_SESSION`(+ATTRIBUTES) / 뷰: `v_user_menus`, `v_user_groups`
 - RBAC FK는 자동증가 PK가 아니라 **비즈니스 키**(user_id/group_id/menu_id VARCHAR) 참조, ON DELETE CASCADE. `menus.parent_id`도 menu_id 문자열 self-reference(FK 제약 없음, 2단계 메뉴)
 - `notices.is_active` 기본값 FALSE — 신규 공지는 작성 후 활성화하는 설계
 - 신규 메뉴 추가 시 `group_menu_permissions` 시드도 함께 넣어야 메뉴가 보임 (부모 메뉴 'system'은 ADMIN만 시드되어 있어 일반 그룹은 시스템관리 자체가 안 보임)
@@ -111,13 +111,13 @@ SPA 셸 + iframe 페이지 구조:
 | 개인 정보 관리 (내 프로필 수정 + 본인 비밀번호 변경 — `/api/users/me`, 폼 기반 페이지 본보기) | ✅ |
 | 공통코드 관리 (그룹/상세 2테이블, 마스터-디테일 화면, 소비 API `{code,text}` — 설계: `docs/common-code-design.md`) | ✅ |
 | 접속 로그 (로그인 이력 LOGIN/FAIL/LOGOUT + 활성 세션 조회/강제 만료 — 설계: `docs/session-log-design.md`, 조회 전용 그리드 본보기) | ✅ |
+| 범용 게시판 (게시판 정의 관리 + 단일 동적 라우트 `/board/{code}` — 게시판 신설은 정의 저장 + 메뉴 등록 2단계, 코드 0줄. 게시글 수정/삭제는 작성자 본인/ADMIN만(행 소유자 권한 본보기). 설계: `docs/board-design.md`) | ✅ |
 | 대시보드 | ⚠️ stub — 통계가 Math.random() 더미, 실데이터 API 없음 |
 
 ### 로드맵 (목표 메뉴 구조 대비 미구현 — "앞으로 만들 것")
 
-목표 메뉴 트리(시스템 관리 하위): 메뉴관리✅ / 사용자관리✅ / 그룹관리✅ / 개인 정보 관리✅ / 공통코드 관리✅ / 접속 로그✅ / **게시판 관리(범용)❌ / 다국어❌**
+목표 메뉴 트리(시스템 관리 하위): 메뉴관리✅ / 사용자관리✅ / 그룹관리✅ / 개인 정보 관리✅ / 공통코드 관리✅ / 접속 로그✅ / 게시판 관리✅ / **다국어❌**
 
-- **게시판 관리**: 범용 게시판(게시판 정의 + 게시글). 현재 notices는 단일 공지 기능
 - **다국어(i18n)**: MessageSource/리소스/관리 화면 전부 신규
 - index.html 헤더의 프로필/설정 링크가 href=# 죽은 UI — 프로필 링크를 `/my-profile` 탭 열기로 연결 가능
 - 기반 개선: 대시보드 실데이터 API, 파일 업로드 공통 모듈(multipart 10MB 설정만 존재), 메뉴 검색 search.js 수리(현재 item.path 의존으로 무동작), `beforeunload` 미저장 경고 연동(탭 닫기는 `onPageClose`로 경고되지만 브라우저 새로고침/창닫기는 무방비), 닫기 확인창에 "저장 후 닫기" 선택지 추가, notice 모달의 작성 중 입력 dirty 체크, login_history 보존 정책(LOGIN_FAIL 무제한 증가 — brute-force 시 스토리지 표면)과 로그인 실패 누적 잠금, formatDate의 toISOString UTC 일자 시프트(자정 근방), HTTP 에러 시 토스트 2회 노출 정리(인터셉터의 400/404/500 일반 토스트 + 호출부 catch의 구체 토스트가 중복 — 단일화 시 delNotice처럼 catch 없는 호출부가 인터셉터에 의존하는 점 주의)

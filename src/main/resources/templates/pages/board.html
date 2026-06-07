@@ -168,6 +168,8 @@
             } catch (error) {
                 console.error('사용자 정보 로드 실패:', error);
                 currentUser = null;
+                // 권한 분기가 currentUser에 의존하므로 실패 시 사용자에게 명확히 안내
+                showWarning('사용자 정보를 불러오지 못했습니다. 글 작성/수정이 제한될 수 있으니 새로고침 후 다시 시도해주세요.');
             }
         }
 
@@ -248,6 +250,10 @@
 
                 const response = await apiGet(`${API_BASE}/posts`, params);
                 postGrid.loadSearchData({data: response.data});
+                // 목록은 서버에서 최근 1000건으로 잘림 — 가득 차면 사용자에게 고지 (검색으로 범위 축소 유도)
+                if (response.data && response.data.length >= 1000) {
+                    showWarning('최근 1000건만 표시됩니다. 검색으로 범위를 좁혀주세요.');
+                }
             } catch (error) {
                 console.error('게시글 목록 로드 실패:', error);
                 showError('게시글 목록을 불러올 수 없습니다.');
@@ -320,6 +326,11 @@
                 return;
             }
 
+            // 연타 중복 등록 방지 — 진행 중에는 저장 버튼 비활성화
+            const saveBtn = document.getElementById('save-post-btn');
+            if (saveBtn.disabled) return;
+            saveBtn.disabled = true;
+
             try {
                 document.getElementById('loading').classList.remove('hidden');
 
@@ -346,6 +357,7 @@
                 showError(msg ? `저장에 실패했습니다: ${msg}` : '게시글 저장에 실패했습니다.');
             } finally {
                 document.getElementById('loading').classList.add('hidden');
+                saveBtn.disabled = false;
             }
         }
 
@@ -356,9 +368,15 @@
             const answer = await showDeleteConfirm('이 게시글을 삭제하시겠습니까?');
             if (!answer.isConfirmed) return;
 
+            // 삭제 대상 캡처 (모달 상태가 비동기 중 바뀌어도 안전)
+            const targetSeq = currentPostSeq;
+            const delBtn = document.getElementById('delete-post-btn');
+            if (delBtn.disabled) return;
+            delBtn.disabled = true;
+
             try {
                 document.getElementById('loading').classList.remove('hidden');
-                await apiDelete(`${API_BASE}/posts/${currentPostSeq}`);
+                await apiDelete(`${API_BASE}/posts/${targetSeq}`);
                 showSuccess('게시글이 삭제되었습니다.');
                 closePostModal();
                 loadPosts();
@@ -368,6 +386,7 @@
                 showError(msg ? `삭제에 실패했습니다: ${msg}` : '게시글 삭제에 실패했습니다.');
             } finally {
                 document.getElementById('loading').classList.add('hidden');
+                delBtn.disabled = false;
             }
         }
 

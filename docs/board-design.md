@@ -74,7 +74,11 @@ CREATE TABLE board_posts (
 ```
 
 - 첨부 컬럼 미도입 — notices의 "파일명 문자열만 저장" 같은 어중간한 상태를 만들지 않음 (§10)
-- 시드: 본보기 게시판 `('free', '자유게시판', '누구나 글을 쓸 수 있는 게시판 예시')` + 메뉴 `('board-free', 'system', '자유게시판', '/board/free', 'bx-message-dots', 8)` + 권한 **전 그룹**(read/write — 게시판은 일반 사용자용 본보기) — 기존 통합 INSERT에 합침
+- 시드 (실제 schema.sql 기준):
+  - 게시판 정의: `('free', '자유게시판', '누구나 글을 쓸 수 있는 게시판 예시')`
+  - 메뉴 2개: `('board-management', 'system', '게시판 관리', '/board-management', 'bx-table', 8)` (ADMIN 전용 — 정의 관리 화면) + `('board-free', 'system', '자유게시판', '/board/free', 'bx-message-dots', 9)` (본보기 게시판)
+  - 권한: board-management는 **ADMIN 전용(전권)**, board-free는 **ADMIN/MANAGER/USER 전 그룹 read/write** (일반 사용자용 본보기)
+  - ⚠️ 게시글 조회/작성 API는 인증뿐 아니라 **해당 게시판 메뉴(`board-{code}`)의 can_read/can_write 권한도 검사**한다(리뷰 반영). 따라서 게시판 신설 시 메뉴 등록 + 그룹 권한 부여를 해야 일반 사용자가 접근 가능(ADMIN은 항상 접근).
 
 ## 5. API 설계 (`BoardController`, `/api/boards`)
 
@@ -82,12 +86,14 @@ CREATE TABLE board_posts (
 |---|------------|------|------|----------|
 | 1 | `GET /api/boards` | 게시판 정의 목록 (관리 그리드) | ADMIN | `List<BoardDTO>` |
 | 2 | `POST /api/boards` | 게시판 정의 일괄 저장 (status I/U/D) | ADMIN | 없음 (okMessage) |
-| 3 | `GET /api/boards/{boardCode}` | 게시판 단건 (페이지 헤더용) | 인증 | `BoardDTO` (미존재/비활성 404) |
-| 4 | `GET /api/boards/{boardCode}/posts` | 게시글 목록 (`?title=&author=` 검색, 고정글 우선 + 최신순, LIMIT 1000) | 인증 | `List<BoardPostDTO>` |
-| 5 | `GET /api/boards/{boardCode}/posts/{postSeq}` | 게시글 상세 (조회수 +1) | 인증 | `BoardPostDTO` |
-| 6 | `POST /api/boards/{boardCode}/posts` | 게시글 작성 (작성자 서버 주입) | 인증 | 없음 (okMessage) |
-| 7 | `PUT /api/boards/{boardCode}/posts/{postSeq}` | 게시글 수정 — **본인 또는 ADMIN** | 인증+소유자 | 없음 |
-| 8 | `DELETE /api/boards/{boardCode}/posts/{postSeq}` | 게시글 삭제 — **본인 또는 ADMIN** | 인증+소유자 | 없음 |
+| 3 | `GET /api/boards/{boardCode}/info` | 게시판 단건 (페이지 헤더용) | 인증+읽기권한 | `BoardDTO` (미존재/비활성 404) |
+| 4 | `GET /api/boards/{boardCode}/posts` | 게시글 목록 (`?title=&author=` 검색, 고정글 우선 + 최신순, LIMIT 1000) | 인증+읽기권한 | `List<BoardPostDTO>` |
+| 5 | `GET /api/boards/{boardCode}/posts/{postSeq}` | 게시글 상세 (조회수 +1) | 인증+읽기권한 | `BoardPostDTO` |
+| 6 | `POST /api/boards/{boardCode}/posts` | 게시글 작성 (작성자 서버 주입) | 인증+쓰기권한 | 없음 (okMessage) |
+| 7 | `PUT /api/boards/{boardCode}/posts/{postSeq}` | 게시글 수정 — **본인 또는 ADMIN** | 인증+읽기권한+소유자 | 없음 |
+| 8 | `DELETE /api/boards/{boardCode}/posts/{postSeq}` | 게시글 삭제 — **본인 또는 ADMIN** | 인증+읽기권한+소유자 | 없음 |
+
+> 인가 2층 구조: SecurityConfig 필터는 `/api/boards/*/posts/**`·`/api/boards/*/info`를 `authenticated()`로만 거르고(존재 인증), **게시판별 메뉴 권한(can_read/can_write)은 BoardService가 검사**한다(menu_id=`board-{code}`, `group_menu_permissions` 조회). 권한 없으면 `AccessDeniedException` → 403. ADMIN(ROLE_ADMIN)은 모든 게시판 접근.
 
 - SecurityConfig: `POST·전체 /api/boards` 관리(#1,#2)는 경로 분리가 모호하므로 **메서드 시그니처가 아닌 경로로 분리** — `/api/boards/{boardCode}/posts/**`(게시글, authenticated)를 먼저 선언하고 그 외 `/api/boards/**`(정의 관리, hasRole ADMIN)를 뒤에 선언. 단 #3(단건 조회, 인증)도 게시글 경로가 아니므로 ADMIN에 걸림 → **#3 경로를 `/api/boards/{boardCode}/info`로 조정**해 인증 규칙에 포함
 - 정정된 인가 규칙(선선언 우선):
@@ -143,7 +149,7 @@ notice.html의 그리드+모달 패턴을 정리해서 차용 (벌크 저장 버
 |------|------|
 | boardCode/boardName | **서버 모델 주입**(`th:inline` — groupEnum 전례). 헤더 정보가 더 필요하면 `GET /api/boards/{code}/info`(#3) 호출 — 프론트·백엔드 경로 합의 |
 | 그리드 | 조회 전용(`Def:{Col:{CanEdit:0}}`, CSTATUS 없음 — 접속로그 전례), 제목 클릭 `onAfterClick`(`evt.row.Kind==='Data'` 가드) → 상세 API(#5, `encodeURIComponent(boardCode)`) 호출(조회수 증가) → 모달 |
-| 고정글 | is_pinned 행 상단 정렬(서버 ORDER BY) + 그리드에 📌 표시 |
+| 고정글 | is_pinned 행 상단 정렬(서버 ORDER BY `is_pinned DESC, created_at DESC`) + 그리드 '고정' Bool 체크박스 컬럼으로 표시 |
 | 버튼 노출 | 본인 정보의 확립된 전례는 **서버 모델 주입**(notice.html의 currentUser Map — userId/name 포함)이지만, ADMIN 분기에 필요한 **authorities는 모델 주입에 없으므로 `GET /api/auth/user`로 확보**. 응답의 authorities는 `[{authority:'ROLE_ADMIN'},...]` **객체 배열** — `a => a.authority === 'ROLE_ADMIN'`으로 파싱 |
 | onPageClose | 모달 열림 + 입력 중이면 경고 문자열, 아니면 true (group-management 모달 전례) |
 
@@ -165,12 +171,12 @@ notice.html의 그리드+모달 패턴을 정리해서 차용 (벌크 저장 버
 - 행 소유자 검사는 **서버가 단일 소스** — 프론트 버튼 분기는 UX 보조일 뿐
 - 게시글 본문 렌더는 textContent/escape만 사용 (저장형 XSS 방지 — 모달 textarea 표시)
 - board_code는 URL path로 사용 — `@Pattern` 소문자 슬러그 강제 + 프론트 encodeURIComponent
-- 페이지 URL 직접 접근은 기존 템플릿 수준(인증만)과 동일 — 메뉴 권한은 노출 제어 (과잉 설계 금지, routeMap 결론)
+- 게시판 컨텐츠 API(조회/작성)는 인증 + 게시판별 메뉴 권한(can_read/can_write)을 검사 — 리뷰 반영으로 "그룹 = 접근 권한" RBAC 모델과 일치시킴(board_code가 URL 슬러그라 추측이 쉬워 인증만으로는 비공개 게시판 보호 불가). 단 게시글 페이지(`/board/{code}`) HTML 라우트 자체는 기존 템플릿 수준(인증만)이며, 컨텐츠는 API 단에서 차단됨
 
 ## 10. 범위 외 / 향후 확장
 
 - 첨부파일(멀티파트 업로드 + board_post_files N:M) — notices의 "파일명만 저장" 상태와 함께 일괄 설계 권장
 - 댓글(board_comments), 게시판 유형(board_type — 공통코드 BOARD_TYPE), 게시판 생성 시 메뉴 자동 등록
 - notices를 boards('notice')로 흡수 — dashboard/메뉴/시드 동반 마이그레이션 필요
-- can_write 기반 게시판별 쓰기 권한 강제 (현재 템플릿 전체가 메뉴 노출만 제어 — 도입 시 공통 인터셉터로)
+- (완료) can_read/can_write 기반 게시판별 권한 강제 — BoardService 진입부 가드로 구현. 향후 다른 도메인으로 확대 시 공통 인터셉터/AOP로 일반화 고려
 - 게시글 페이징 (현재 LIMIT 1000 — 무한스크롤 필요 시 ibsheet append:1)

@@ -139,6 +139,11 @@
                 showWarning('삭제할 게시판을 선택해주세요.');
                 return;
             }
+            // 신규 미저장 행은 서버에 없으므로 즉시 제거 (deleteRow는 D상태로 페이로드에 남아 404 유발)
+            if (frow.Added) {
+                boardGrid.removeRow(frow);
+                return;
+            }
             if (frow.Deleted) {
                 boardGrid.deleteRow(frow, 0); // 삭제 해제
             } else {

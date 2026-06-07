@@ -46,9 +46,10 @@ public class BoardController {
 
     /**
      * 게시판 정의 일괄 저장 (IBSheet status 'I'/'U'/'D')
+     * 검증은 BoardService에서 status별로 분기 (D 행은 식별키만, I·U만 코드/이름 검사) — @Valid 미사용
      */
     @PostMapping
-    public ApiResponse<Void> saveBoards(@RequestBody List<@Valid BoardDTO> boards) {
+    public ApiResponse<Void> saveBoards(@RequestBody List<BoardDTO> boards) {
         log.info("게시판 정의 저장 API 호출 - {}건", boards.size());
         boardService.saveBoards(boards);
         return ApiResponse.okMessage("게시판이 성공적으로 저장되었습니다.");

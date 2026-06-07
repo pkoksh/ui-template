@@ -28,6 +28,12 @@ public interface BoardMapper {
 
     void deleteBoard(@Param("id") Long id);
 
+    // ===== 게시판 메뉴 권한 (RBAC — menu_id = 'board-{boardCode}') =====
+    // 사용자가 속한 그룹 중 하나라도 해당 메뉴에 can_read/can_write 권한이 있으면 양수 반환
+    int countReadPermission(@Param("userId") String userId, @Param("menuId") String menuId);
+
+    int countWritePermission(@Param("userId") String userId, @Param("menuId") String menuId);
+
     // ===== 게시글 =====
     List<BoardPostDTO> findPosts(Map<String, Object> params);
 

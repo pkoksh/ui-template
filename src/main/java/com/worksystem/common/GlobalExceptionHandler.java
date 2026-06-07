@@ -102,6 +102,18 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(message);
     }
 
+    /**
+     * 인가 실패 (403) — 컨트롤러/서비스 단에서 도메인 권한 부족으로 던진 AccessDeniedException.
+     * (필터 단 403은 SecurityConfig accessDeniedHandler가 처리. 이건 메서드 내부에서 던진 경우의 경로 —
+     *  catch-all Exception 핸들러가 500으로 삼키지 않도록 명시적으로 403 매핑. message 키는 인터셉터와 계약 유지)
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<Void> handleAccessDenied(org.springframework.security.access.AccessDeniedException e) {
+        log.warn("접근 권한 없음: {}", e.getMessage());
+        return ApiResponse.error(e.getMessage() != null ? e.getMessage() : "접근 권한이 없습니다.");
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleException(Exception e) {
