@@ -241,11 +241,12 @@ function createMenuElement(item) {
 // 자식 메뉴 아이템들 생성
 function createChildMenuItems(Items) {
     if (!Items || !Array.isArray(Items)) return '';
-    
+
     return Items.map(child => {
         return `
             <li>
-                <button class="menu-item w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg" data-content="${child.id}">
+                <button class="menu-item w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg flex items-center" data-content="${child.id}">
+                    ${child.icon ? `<i class='bx ${child.icon} mr-2 text-base'></i>` : ''}
                     ${child.title}
                 </button>
             </li>
