@@ -136,7 +136,9 @@ html,body{
 }
 
 .accordion-content.open {
-    max-height: 200px; /* 충분한 높이 설정 */
+    /* 펼침 애니메이션용 한계값 — 하위 메뉴가 늘어나도 잘리지 않도록 충분히 크게.
+       (실제 높이는 내용만큼만 차지하고, 전체가 길어지면 nav의 overflow-y-auto가 스크롤 처리) */
+    max-height: 1000px;
 }
 
 .accordion-arrow.rotate {
