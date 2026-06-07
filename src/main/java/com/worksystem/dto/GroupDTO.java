@@ -79,19 +79,6 @@ public class GroupDTO {
             .createdAt(this.createdAt)
             .build();
     }
-    
-    // 권한 레벨 표시명 반환
-    public String getLevelDisplayName() {
-        if (level == null) return "";
-        
-        return switch (level) {
-            case 10 -> "슈퍼관리자 (10)";
-            case 8 -> "관리자 (8)";
-            case 6 -> "매니저 (6)";
-            case 4 -> "팀장 (4)";
-            case 1 -> "일반사용자 (1)";
-            case 0 -> "게스트 (0)";
-            default -> "사용자정의 (" + level + ")";
-        };
-    }
+
+    // 권한 레벨 표시명은 공통코드(GROUP_LEVEL)가 단일 소스 — 화면의 Enum 컬럼이 표시를 담당
 }

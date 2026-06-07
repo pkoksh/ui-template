@@ -18,15 +18,7 @@ const forgotPasswordLink = document.getElementById('forgotPassword');
 const userIdError = document.getElementById('userIdError');
 const passwordError = document.getElementById('passwordError');
 
-// 그룹 표시명 반환
-function getGroupDisplayName(groupId) {
-    const groupNames = {
-        'ADMIN': '관리자',
-        'MANAGER': '팀장',
-        'USER': '사용자'
-    };
-    return groupNames[groupId] || groupId;
-}
+// 그룹 표시명은 서버(/api/auth/user 응답의 primaryGroupName)가 단일 소스 — JS 하드코딩 맵 제거
 
 // 초기화
 document.addEventListener('DOMContentLoaded', function() {
@@ -174,7 +166,7 @@ async function authenticateUser(userId, password) {
                         user: { 
                             userId: userId, 
                             name: userId,
-                            groupId: 'USER',
+                            primaryGroupName: '',
                             department: ''
                         } 
                     };
@@ -190,7 +182,7 @@ async function authenticateUser(userId, password) {
                         user: { 
                             userId: userId, 
                             name: userId,
-                            groupId: 'USER',
+                            primaryGroupName: '',
                             department: ''
                         } 
                 };
@@ -233,7 +225,7 @@ async function handleLoginSuccess(user) {
                 </div>
                 <div class="space-y-2">
                     <p class="text-lg font-medium text-gray-800">${user.name}님</p>
-                    <p class="text-sm text-gray-600">${user.department || ''} ${getGroupDisplayName(user.groupId)}</p>
+                    <p class="text-sm text-gray-600">${user.department || ''} ${user.primaryGroupName || ''}</p>
                     <p class="text-xs text-gray-500 mt-3">업무시스템에 안전하게 로그인되었습니다</p>
                 </div>
             </div>

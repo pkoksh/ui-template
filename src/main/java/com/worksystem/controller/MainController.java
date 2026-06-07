@@ -103,10 +103,12 @@ public class MainController {
     @GetMapping("/group-management")
     public String groupManagement(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
+
         model.addAttribute("pageTitle", "그룹 관리");
         model.addAttribute("currentUser", auth != null ? auth.getName() : "guest");
-        
+        // 권한 레벨 선택지 — 공통코드(GROUP_LEVEL)에서 동적 공급
+        model.addAttribute("levelEnum", enumMaker.getCommonCodeEnum("GROUP_LEVEL"));
+
         return "pages/group-management";
     }
 
