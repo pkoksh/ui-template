@@ -28,6 +28,12 @@ public class SecurityConfig {
     
     @Autowired
     private LoginSuccessHandler loginSuccessHandler;
+
+    @Autowired
+    private LoginFailureHandler loginFailureHandler;
+
+    @Autowired
+    private LogoutHistoryHandler logoutHistoryHandler;
     
     /**
      * 비밀번호 인코더 - BCrypt 사용
@@ -114,6 +120,9 @@ public class SecurityConfig {
             // (선선언 우선 — enum 규칙이 반드시 관리 규칙보다 먼저 와야 함)
             .requestMatchers("/api/common-codes/enum/**").authenticated()
             .requestMatchers("/api/common-codes/**").hasRole("ADMIN")
+
+            // 접속 로그: ADMIN 전용
+            .requestMatchers("/api/session-logs/**").hasRole("ADMIN")
             
             // 4. 메인 페이지는 인증 필요하지만 forward는 허용
             .requestMatchers("/", "/index.html").authenticated()
@@ -132,10 +141,11 @@ public class SecurityConfig {
             .usernameParameter("userId")
             .passwordParameter("password")
             .successHandler(loginSuccessHandler)
-            .failureUrl("/login.html?error=true")
+            // 실패 이력(LOGIN_FAIL) 기록 — 기존 /login.html?error=true 리다이렉트는 핸들러가 유지
+            .failureHandler(loginFailureHandler)
             .permitAll()
         )
-        
+
         // Remember-Me 기능 추가
         .rememberMe(remember -> remember
             .key("worksystem-remember-me-key")
@@ -143,11 +153,11 @@ public class SecurityConfig {
             .userDetailsService(userService)
             .rememberMeParameter("remember-me")
         )
-        
-        // 로그아웃 설정
+
+        // 로그아웃 설정 (logoutSuccessUrl과 핸들러는 상호배타 — 핸들러가 LOGOUT 기록 후 직접 리다이렉트)
         .logout(logout -> logout
             .logoutRequestMatcher(new AntPathRequestMatcher("/api/auth/logout"))
-            .logoutSuccessUrl("/login.html?logout")
+            .logoutSuccessHandler(logoutHistoryHandler)
             .invalidateHttpSession(true)
             .clearAuthentication(true)
             .deleteCookies("JSESSIONID", "remember-me")

@@ -105,7 +105,8 @@ INSERT INTO menus (menu_id, parent_id, title, url, icon, sort_order) VALUES
 ('group-management', 'system', '그룹 관리', '/group-management', 'bx-group', 3),
 ('notice', 'system', '공지사항', '/notice', '', 4),
 ('my-profile', 'system', '개인 정보 관리', '/my-profile', 'bx-id-card', 5),
-('code-management', 'system', '공통코드 관리', '/code-management', 'bx-code-block', 6);
+('code-management', 'system', '공통코드 관리', '/code-management', 'bx-code-block', 6),
+('session-log', 'system', '접속 로그', '/session-log', 'bx-history', 7);
 
 -- 사용자-그룹 매핑
 INSERT INTO user_group_mappings (user_id, group_id) VALUES
@@ -125,6 +126,7 @@ INSERT INTO group_menu_permissions (group_id, menu_id, can_read, can_write, can_
 ('ADMIN', 'notice', TRUE, TRUE, TRUE, TRUE),
 ('ADMIN', 'my-profile', TRUE, TRUE, FALSE, FALSE),
 ('ADMIN', 'code-management', TRUE, TRUE, TRUE, TRUE),
+('ADMIN', 'session-log', TRUE, TRUE, TRUE, TRUE),
 
 -- MANAGER: 대시보드 + 개인 정보 관리
 ('MANAGER', 'dashboard', TRUE, TRUE, FALSE, FALSE),
@@ -269,6 +271,23 @@ INSERT INTO common_codes (group_code, code, code_name, sort_order) VALUES
 ('DEPT_TYPE',   'SYS',   '시스템관리부', 1),
 ('DEPT_TYPE',   'PLAN',  '기획부',       2),
 ('DEPT_TYPE',   'SALES', '영업부',       3);
+
+-- ============================================================
+-- 로그인 이력 (이벤트 행 단위: LOGIN / LOGIN_FAIL / LOGOUT)
+-- 주의: 세션 타임아웃/강제 만료는 기록되지 않음 (명시적 이벤트만)
+-- ============================================================
+CREATE TABLE login_history (
+    history_seq  BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id      VARCHAR(20)  NOT NULL COMMENT '사용자 ID (실패 시 시도한 ID — users FK 아님: 미존재 ID 기록 + 사용자 삭제 후 이력 보존)',
+    event_type   VARCHAR(20)  NOT NULL COMMENT 'LOGIN / LOGIN_FAIL / LOGOUT',
+    fail_reason  VARCHAR(100) NULL COMMENT '실패 사유 (BAD_CREDENTIALS / DISABLED 등 — 미존재 ID는 보안상 BAD_CREDENTIALS로 통합)',
+    ip_address   VARCHAR(45)  NULL COMMENT '접속 IP (IPv6 대응 45자)',
+    user_agent   VARCHAR(500) NULL COMMENT 'User-Agent',
+    session_id   CHAR(36)     NULL COMMENT '세션 ID (성공 시 — 참고용)',
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '발생 시각',
+    INDEX idx_lh_user (user_id, created_at DESC),
+    INDEX idx_lh_created (created_at DESC)
+) COMMENT='로그인 이력';
 
 
 

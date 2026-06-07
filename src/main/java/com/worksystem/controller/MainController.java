@@ -113,6 +113,15 @@ public class MainController {
     }
 
     /**
+     * 접속 로그 페이지 (조회 전용 — 데이터는 /api/session-logs 로 로드)
+     */
+    @GetMapping("/session-log")
+    public String sessionLog(Model model) {
+        model.addAttribute("pageTitle", "접속 로그");
+        return "pages/session-log";
+    }
+
+    /**
      * 공통코드 관리 페이지 (마스터-디테일 — 데이터는 /api/common-codes 로 로드)
      */
     @GetMapping("/code-management")

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.worksystem.mapper.SessionLogMapper">
+
+    <!-- 로그인 이력 기록 -->
+    <insert id="insertHistory">
+        INSERT INTO login_history (
+            user_id, event_type, fail_reason, ip_address, user_agent, session_id
+        ) VALUES (
+            #{userId}, #{eventType}, #{failReason}, #{ipAddress}, #{userAgent}, #{sessionId}
+        )
+    </insert>
+
+    <!-- 로그인 이력 조회 (기간/사용자 필터, 최신순, LIMIT 1000) -->
+    <select id="findHistory" resultType="com.worksystem.dto.LoginHistoryDTO">
+        SELECT
+            history_seq AS historySeq,
+            user_id     AS userId,
+            event_type  AS eventType,
+            fail_reason AS failReason,
+            ip_address  AS ipAddress,
+            user_agent  AS userAgent,
+            session_id  AS sessionId,
+            created_at  AS createdAt
+        FROM login_history
+        WHERE 1=1
+        <if test="userId != null and userId != ''">
+            AND user_id LIKE CONCAT('%', #{userId}, '%')
+        </if>
+        <if test="fromDate != null">
+            AND created_at &gt;= #{fromDate}
+        </if>
+        <if test="toDate != null">
+            <!-- 종료일 당일 포함 (다음날 0시 미만) -->
+            AND created_at &lt; DATE_ADD(#{toDate}, INTERVAL 1 DAY)
+        </if>
+        ORDER BY created_at DESC, history_seq DESC
+        LIMIT 1000
+    </select>
+
+    <!-- 활성 세션 직조회 — SESSION_ID(논리 키)를 sessionId로 반환 (deleteById 키와 일치)
+         시간 컬럼은 BIGINT epoch millis → FROM_UNIXTIME 변환 -->
+    <select id="findActiveSessions" resultType="com.worksystem.dto.ActiveSessionDTO">
+        SELECT
+            SESSION_ID                                AS sessionId,
+            PRINCIPAL_NAME                            AS userId,
+            FROM_UNIXTIME(CREATION_TIME / 1000)       AS creationTime,
+            FROM_UNIXTIME(LAST_ACCESS_TIME / 1000)    AS lastAccessTime,
+            FROM_UNIXTIME(EXPIRY_TIME / 1000)         AS expiryTime
+        FROM SPRING_SESSION
+        WHERE EXPIRY_TIME &gt; UNIX_TIMESTAMP() * 1000
+          AND PRINCIPAL_NAME IS NOT NULL
+        ORDER BY LAST_ACCESS_TIME DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common :: ibsheet-head}"></th:block>
+    <title>접속 로그</title>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div class="p-6 flex flex-col h-full">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">접속 로그</h3>
+            <div class="flex items-center space-x-2">
+                <button id="refresh-btn" class="bg-[#6C757D] hover:bg-[#6C757D]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                    <i class='bx bx-refresh text-lg'></i>
+                    <span class="font-medium">조회</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 검색 필터 -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">시작일</label>
+                    <input type="date" id="search-from"
+                           class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">종료일</label>
+                    <input type="date" id="search-to"
+                           class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">사용자 ID</label>
+                    <input type="text" id="search-user-id" placeholder="사용자 ID를 입력하세요"
+                           class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                </div>
+                <div class="flex items-end">
+                    <p class="text-xs text-gray-400 dark:text-gray-500 pb-3">
+                        * 기간 미지정 시 최근 7일 · 최대 1,000건 표시<br>
+                        * 세션 타임아웃/강제 만료는 이력에 기록되지 않습니다
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 로그인 이력 / 활성 세션 (상하 2카드, 조회 전용) -->
+        <div class="flex-1 grid grid-cols-1 gap-6 min-h-0" style="grid-template-rows: 1fr 1fr;">
+            <!-- 로그인 이력 -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 flex flex-col min-h-0">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+                        <i class='bx bx-history text-xl mr-2 text-blue-500'></i> 로그인 이력
+                    </h4>
+                </div>
+                <div class="flex-1 min-h-0">
+                    <div id="history-grid" style="height: 100%; min-height: 220px;"></div>
+                </div>
+            </div>
+
+            <!-- 활성 세션 -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 flex flex-col min-h-0">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+                        <i class='bx bx-user-check text-xl mr-2 text-emerald-500'></i> 활성 세션
+                        <span class="ml-3 text-xs font-normal text-gray-400">세션 타임아웃 30분 · 저장소: DB(JDBC)</span>
+                    </h4>
+                    <div class="flex items-center space-x-2">
+                        <button id="expire-btn" class="bg-[#E62727] hover:bg-[#E62727]/80 text-white px-4 py-2 rounded-xl flex items-center space-x-1 text-sm shadow-sm transition-all duration-200">
+                            <i class='bx bx-log-out'></i><span>강제 만료</span>
+                        </button>
+                        <button id="refresh-sessions-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-4 py-2 rounded-xl flex items-center space-x-1 text-sm shadow-sm transition-all duration-200">
+                            <i class='bx bx-refresh'></i><span>새로고침</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 min-h-0">
+                    <div id="session-grid" style="height: 100%; min-height: 220px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 로딩 표시 -->
+        <th:block th:replace="~{fragments/common :: loading-spinner}"></th:block>
+    </div>
+
+    <!-- 페이지별 스크립트 -->
+    <script>
+        let historyGrid = null;   // 로그인 이력 그리드 (조회 전용)
+        let sessionGrid = null;   // 활성 세션 그리드 (조회 전용)
+
+        // API 기본 설정
+        const API_BASE = '/api/session-logs';
+
+        // 페이지 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initDefaultDates();
+            initGrids();
+            loadHistory();
+            loadSessions();
+            setupEventListeners();
+        });
+
+        // 기간 기본값: 최근 7일
+        function initDefaultDates() {
+            const today = new Date();
+            const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            document.getElementById('search-to').value = today.toISOString().substring(0, 10);
+            document.getElementById('search-from').value = weekAgo.toISOString().substring(0, 10);
+        }
+
+        // IBSheet 그리드 초기화 — 조회 전용 (저장 흐름 없음: CSTATUS/saveAllData 불필요)
+        function initGrids() {
+            // ===== 로그인 이력 =====
+            historyGrid = IBSheet.create({
+                id: "history-grid",
+                el: "history-grid",
+                options: {
+                    Cfg: { SearchMode: 0 },
+                    Def: {
+                        Row: { CanFormula: 1 },
+                        Col: { CanEdit: 0, RelWidth: 1 }
+                    },
+                    Cols: [
+                        { Header: "No", Type: "Int", Name: "SEQ", Width: 50, Align: "Center", RelWidth: 0 },
+                        // 시각은 서버가 'yyyy-MM-dd HH:mm:ss' 문자열로 직렬화 (IBSheet Date 파싱 함정 회피)
+                        { Header: "시각", Type: "Text", Name: "createdAt", MinWidth: 150 },
+                        { Header: "사용자 ID", Type: "Text", Name: "userId", MinWidth: 100 },
+                        { Header: "이벤트", Type: "Enum", Name: "eventType", Width: 90, Align: "Center", RelWidth: 0,
+                          Enum: "|로그인|로그인 실패|로그아웃", EnumKeys: "|LOGIN|LOGIN_FAIL|LOGOUT" },
+                        { Header: "실패 사유", Type: "Text", Name: "failReason", MinWidth: 110 },
+                        { Header: "IP", Type: "Text", Name: "ipAddress", MinWidth: 120 },
+                        { Header: "브라우저(User-Agent)", Type: "Text", Name: "userAgent", MinWidth: 220 }
+                    ]
+                }
+            });
+
+            // ===== 활성 세션 =====
+            sessionGrid = IBSheet.create({
+                id: "session-grid",
+                el: "session-grid",
+                options: {
+                    Cfg: { SearchMode: 0 },
+                    Def: {
+                        Row: { CanFormula: 1 },
+                        Col: { CanEdit: 0, RelWidth: 1 }
+                    },
+                    Cols: [
+                        { Header: "No", Type: "Int", Name: "SEQ", Width: 50, Align: "Center", RelWidth: 0 },
+                        { Header: "사용자 ID", Type: "Text", Name: "userId", MinWidth: 100 },
+                        { Header: "세션 ID", Type: "Text", Name: "sessionId", MinWidth: 230 },
+                        { Header: "생성 시각", Type: "Text", Name: "creationTime", MinWidth: 150 },
+                        { Header: "마지막 접근", Type: "Text", Name: "lastAccessTime", MinWidth: 150 },
+                        { Header: "만료 예정", Type: "Text", Name: "expiryTime", MinWidth: 150 }
+                    ]
+                }
+            });
+        }
+
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                loadHistory();
+                loadSessions();
+            });
+            document.getElementById('refresh-sessions-btn').addEventListener('click', loadSessions);
+            document.getElementById('expire-btn').addEventListener('click', expireSession);
+            document.getElementById('search-user-id').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loadHistory();
+            });
+        }
+
+        // 로그인 이력 조회
+        async function loadHistory() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const params = {};
+                const userId = document.getElementById('search-user-id').value.trim();
+                const fromDate = document.getElementById('search-from').value;
+                const toDate = document.getElementById('search-to').value;
+                if (userId) params.userId = userId;
+                if (fromDate) params.fromDate = fromDate;
+                if (toDate) params.toDate = toDate;
+
+                // apiGet은 표준 ApiResponse 바디({success,message,data})를 반환
+                const response = await apiGet(`${API_BASE}/history`, params);
+                historyGrid.loadSearchData({data: response.data});
+            } catch (error) {
+                console.error('로그인 이력 조회 실패:', error);
+                showError('로그인 이력을 불러올 수 없습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 활성 세션 조회
+        async function loadSessions() {
+            try {
+                const response = await apiGet(`${API_BASE}/sessions`);
+                sessionGrid.loadSearchData({data: response.data});
+            } catch (error) {
+                console.error('활성 세션 조회 실패:', error);
+                showError('활성 세션을 불러올 수 없습니다.');
+            }
+        }
+
+        // 세션 강제 만료 (포커스 행 + 상단 버튼 — user-management 비밀번호 초기화 패턴)
+        async function expireSession() {
+            const frow = sessionGrid.getFocusedRow();
+            if (!frow || frow.Kind === 'Header') {
+                showWarning('만료시킬 세션을 선택해주세요.');
+                return;
+            }
+
+            const sessionId = sessionGrid.getValue(frow, 'sessionId');
+            const userId = sessionGrid.getValue(frow, 'userId');
+
+            const answer = await showDeleteConfirm(
+                `${userId} 사용자의 세션을 강제 만료하시겠습니까?\n해당 사용자는 다음 요청 시 로그아웃됩니다.`,
+                '세션 강제 만료');
+            if (!answer.isConfirmed) return;
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const res = await apiDelete(`${API_BASE}/sessions/${sessionId}`);
+                showSuccess(res.message);
+                loadSessions();
+            } catch (error) {
+                // 자기 세션(400)/미존재(404) 등 — 서버 메시지 표시
+                console.error('세션 강제 만료 실패:', error);
+                if (error.response && error.response.data && error.response.data.message) {
+                    showError(error.response.data.message);
+                }
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 탭 닫기 전 셸(tabs.js)이 호출 — 조회 전용 페이지라 닫기 진행
+        function onPageClose() {
+            return true;
+        }
+    </script>
+</body>
+</html>
