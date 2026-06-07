@@ -127,7 +127,7 @@
                     { Header: "부서", Type: "Text", Name: "department", MinWidth: 150, CanEdit: 1 },
                     { Header: "권한", Type: "Enum", Name: "groupIds", MinWidth: 100, Align: "Center", CanEdit: 1, Required: 1,Range:1, ...getEnumInfo(groupEnum)},
                     { Header: "활성화", Type: "Bool", Name: "active", MinWidth: 80, Align: "Center", CanEdit: 1 },
-                    { Header: "생성일", Name: "createdAt", Extend:IB_Preset, CanEdit: 0}
+                    { Header: "생성일", Type: "Text", Name: "createdAt", MinWidth: 140, Align: "Center", CanEdit: 0 }
                 ]
             };
 

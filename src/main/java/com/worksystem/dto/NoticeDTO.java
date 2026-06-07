@@ -15,7 +15,10 @@ public class NoticeDTO {
     private Boolean active;         // JavaScript에서 사용하기 쉽도록 isActive -> active로 변경
     private Integer viewCount;
     private String attachment;      // 첨부파일 정보 (filePath 대신 attachment로 변경)
+    // IBSheet Date 파싱 함정 회피 — 서버에서 고정 문자열로 직렬화 (docs/session-log-design.md §3-4)
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
     
     // 검색용 필드

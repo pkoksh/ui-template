@@ -180,8 +180,8 @@
                     { Header: "조회수", Type: "Int", Name: "viewCount", MinWidth: 60 },
                     { Header: "첨부파일", Type: "File", Name: "attachment", MinWidth: 120 },
                   
-                    { Header: "생성일", Name: "createdAt", Extend:IB_Preset.DATETIME, MinWidth: 140, Align: "Center" },
-                    { Header: "수정일", Name: "updatedAt", Extend:IB_Preset.DATETIME, MinWidth: 140, Align: "Center"    }
+                    { Header: "생성일", Type: "Text", Name: "createdAt", MinWidth: 140, Align: "Center", CanEdit: 0 },
+                    { Header: "수정일", Type: "Text", Name: "updatedAt", MinWidth: 140, Align: "Center", CanEdit: 0 }
                 ],
                 Events: {
                     // 제목 클릭 시 수정 모달 표시

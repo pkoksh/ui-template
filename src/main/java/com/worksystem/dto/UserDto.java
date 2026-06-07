@@ -43,8 +43,12 @@ public class UserDTO {
     @Builder.Default
     private boolean isActive = true;
     
+    // IBSheet Date 파싱 함정 회피 — 서버에서 고정 문자열로 직렬화
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastLoginAt;
     
     // 그룹 정보 (조인해서 가져오는 데이터)
