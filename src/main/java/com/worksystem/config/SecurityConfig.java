@@ -123,6 +123,11 @@ public class SecurityConfig {
 
             // 접속 로그: ADMIN 전용
             .requestMatchers("/api/session-logs/**").hasRole("ADMIN")
+
+            // 게시판: 게시글/헤더는 인증 사용자, 정의 관리는 ADMIN (선선언 우선)
+            .requestMatchers("/api/boards/*/posts/**").authenticated()
+            .requestMatchers("/api/boards/*/info").authenticated()
+            .requestMatchers("/api/boards/**").hasRole("ADMIN")
             
             // 4. 메인 페이지는 인증 필요하지만 forward는 허용
             .requestMatchers("/", "/index.html").authenticated()

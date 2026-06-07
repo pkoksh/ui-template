@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.worksystem.mapper.BoardMapper">
+
+    <!-- Result Map: 게시판 정의 (board_seq → id : IBSheet ___id 보관용) -->
+    <resultMap id="BoardResultMap" type="com.worksystem.entity.Board">
+        <id property="id" column="board_seq"/>
+        <result property="boardCode" column="board_code"/>
+        <result property="boardName" column="board_name"/>
+        <result property="description" column="description"/>
+        <result property="isActive" column="is_active"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- ===== 게시판 정의 ===== -->
+
+    <select id="findBoards" resultMap="BoardResultMap">
+        SELECT * FROM boards
+        ORDER BY sort_order ASC, board_code ASC
+    </select>
+
+    <select id="findBoardById" resultMap="BoardResultMap">
+        SELECT * FROM boards WHERE board_seq = #{id}
+    </select>
+
+    <select id="findBoardByCode" resultMap="BoardResultMap">
+        SELECT * FROM boards WHERE board_code = #{boardCode}
+    </select>
+
+    <insert id="insertBoard" parameterType="com.worksystem.dto.BoardDTO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO boards (
+            board_code, board_name, description, is_active, sort_order
+        ) VALUES (
+            #{boardCode}, #{boardName}, #{description},
+            COALESCE(#{isActive}, TRUE), COALESCE(#{sortOrder}, 0)
+        )
+    </insert>
+
+    <!-- 게시판 수정 (board_code 비즈니스 키는 변경 불가 — SQL에서 제외) -->
+    <update id="updateBoard" parameterType="com.worksystem.dto.BoardDTO">
+        UPDATE boards SET
+            board_name = #{boardName},
+            description = #{description},
+            is_active = COALESCE(#{isActive}, TRUE),
+            sort_order = COALESCE(#{sortOrder}, 0)
+        WHERE board_seq = #{id}
+    </update>
+
+    <!-- 게시판 삭제 (게시글은 FK ON DELETE CASCADE) -->
+    <delete id="deleteBoard">
+        DELETE FROM boards WHERE board_seq = #{id}
+    </delete>
+
+    <!-- ===== 게시글 ===== -->
+
+    <!-- 게시글 목록 (고정글 우선 + 최신순, LIMIT 1000) -->
+    <select id="findPosts" resultType="com.worksystem.dto.BoardPostDTO">
+        SELECT
+            post_seq    AS postSeq,
+            board_code  AS boardCode,
+            title,
+            author_id   AS authorId,
+            author_name AS authorName,
+            is_pinned   AS isPinned,
+            is_active   AS isActive,
+            view_count  AS viewCount,
+            created_at  AS createdAt,
+            updated_at  AS updatedAt
+        FROM board_posts
+        WHERE board_code = #{boardCode}
+          AND is_active = TRUE
+        <if test="title != null and title != ''">
+            AND LOWER(title) LIKE CONCAT('%', LOWER(#{title}), '%')
+        </if>
+        <if test="author != null and author != ''">
+            AND (LOWER(author_name) LIKE CONCAT('%', LOWER(#{author}), '%')
+                 OR LOWER(author_id) LIKE CONCAT('%', LOWER(#{author}), '%'))
+        </if>
+        ORDER BY is_pinned DESC, created_at DESC, post_seq DESC
+        LIMIT 1000
+    </select>
+
+    <!-- 게시글 상세 (content 포함) -->
+    <select id="findPostBySeq" resultType="com.worksystem.dto.BoardPostDTO">
+        SELECT
+            post_seq    AS postSeq,
+            board_code  AS boardCode,
+            title,
+            content,
+            author_id   AS authorId,
+            author_name AS authorName,
+            is_pinned   AS isPinned,
+            is_active   AS isActive,
+            view_count  AS viewCount,
+            created_at  AS createdAt,
+            updated_at  AS updatedAt
+        FROM board_posts
+        WHERE post_seq = #{postSeq}
+    </select>
+
+    <insert id="insertPost" parameterType="com.worksystem.dto.BoardPostDTO" useGeneratedKeys="true" keyProperty="postSeq">
+        INSERT INTO board_posts (
+            board_code, title, content, author_id, author_name, is_pinned, is_active
+        ) VALUES (
+            #{boardCode}, #{title}, #{content}, #{authorId}, #{authorName},
+            COALESCE(#{isPinned}, FALSE), COALESCE(#{isActive}, TRUE)
+        )
+    </insert>
+
+    <!-- 게시글 수정 (작성자 컬럼은 변경 불가 — notices 전례) -->
+    <update id="updatePost" parameterType="com.worksystem.dto.BoardPostDTO">
+        UPDATE board_posts SET
+            title = #{title},
+            content = #{content},
+            is_pinned = COALESCE(#{isPinned}, FALSE),
+            is_active = COALESCE(#{isActive}, TRUE)
+        WHERE post_seq = #{postSeq}
+    </update>
+
+    <delete id="deletePost">
+        DELETE FROM board_posts WHERE post_seq = #{postSeq}
+    </delete>
+
+    <update id="increaseViewCount">
+        UPDATE board_posts SET view_count = view_count + 1 WHERE post_seq = #{postSeq}
+    </update>
+
+</mapper>

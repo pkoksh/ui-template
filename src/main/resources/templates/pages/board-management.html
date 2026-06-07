@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common :: ibsheet-head}"></th:block>
+    <title>게시판 관리</title>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div class="p-6 flex flex-col h-full">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">게시판 관리</h3>
+            <div class="flex items-center space-x-2">
+                <button id="save-btn" class="bg-[#2563EB] hover:bg-[#2563EB]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                    <i class='bx bx-save text-lg'></i>
+                    <span class="font-medium">저장</span>
+                </button>
+                <button id="add-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-4 py-2.5 rounded-xl flex items-center space-x-1 shadow-sm transition-all duration-200">
+                    <i class='bx bx-plus'></i><span>추가</span>
+                </button>
+                <button id="del-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-4 py-2.5 rounded-xl flex items-center space-x-1 shadow-sm transition-all duration-200">
+                    <i class='bx bx-minus'></i><span>삭제</span>
+                </button>
+                <button id="refresh-btn" class="bg-[#6C757D] hover:bg-[#6C757D]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                    <i class='bx bx-refresh text-lg'></i>
+                    <span class="font-medium">조회</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 사용 안내: 게시판 신설 2단계 -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                <i class='bx bx-info-circle text-lg mr-1 text-blue-500'></i> 게시판 신설 방법 (코드 작성 불필요)
+            </h4>
+            <ol class="text-xs text-gray-500 dark:text-gray-400 list-decimal list-inside space-y-1">
+                <li>아래 그리드에서 게시판을 추가하고 저장합니다. (게시판 코드: 소문자 영문/숫자/하이픈)</li>
+                <li><strong>메뉴 관리</strong>에서 URL <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">/board/{게시판코드}</code> 로 메뉴를 등록하고, <strong>그룹 관리</strong>에서 접근 권한을 부여하면 완료됩니다.</li>
+            </ol>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                * 게시판을 <strong>삭제하면 해당 게시판의 모든 게시글도 함께 삭제</strong>됩니다. 일시 중단은 <strong>사용 여부 해제(비활성화)</strong>를 권장합니다.
+            </p>
+        </div>
+
+        <!-- 게시판 정의 그리드 -->
+        <div class="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 flex flex-col min-h-0">
+            <div class="flex-1 min-h-0">
+                <div id="board-grid" style="height: 100%; min-height: 300px;"></div>
+            </div>
+        </div>
+
+        <!-- 로딩 표시 -->
+        <th:block th:replace="~{fragments/common :: loading-spinner}"></th:block>
+    </div>
+
+    <!-- 페이지별 스크립트 -->
+    <script>
+        let boardGrid = null;
+
+        const API_BASE = '/api/boards';
+
+        // 페이지 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initGrid();
+            loadBoards();
+            setupEventListeners();
+        });
+
+        // IBSheet 그리드 초기화
+        function initGrid() {
+            const config = {
+                Cfg: {
+                    SearchMode: 0,
+                    CanEdit: 1  // 필수 — 미설정/0이면 컬럼 AddEdit 등이 전부 무력화됨
+                },
+                Def: {
+                    Row: { CanFormula: 1 },
+                    Col: { RelWidth: 1 }
+                },
+                Cols: [
+                    { Header: "No", Type: "Int", Name: "SEQ", Width: 50, Align: "Center", CanEdit: 0, RelWidth: 0 },
+                    { Header: "상태", Name: "status", Extend: IB_Preset.CSTATUS, RelWidth: 0, Width: 50 },
+                    // 비즈니스 키(URL path): 신규만 입력 가능, 기존 행 수정 잠금 (서버에서도 변경 차단)
+                    { Header: "게시판 코드", Type: "Text", Name: "boardCode", MinWidth: 120, CanEdit: 1, AddEdit: 1, ChangeEdit: 0, Required: 1 },
+                    { Header: "게시판명", Type: "Text", Name: "boardName", MinWidth: 140, CanEdit: 1, Required: 1 },
+                    { Header: "설명", Type: "Text", Name: "description", MinWidth: 200, CanEdit: 1 },
+                    { Header: "사용", Type: "Bool", Name: "isActive", Width: 60, Align: "Center", CanEdit: 1, RelWidth: 0 },
+                    { Header: "정렬", Type: "Int", Name: "sortOrder", Width: 60, Align: "Center", CanEdit: 1, RelWidth: 0 },
+                    // 날짜 표준: 서버 'yyyy-MM-dd HH:mm:ss' 문자열 + Type:'Text' (CLAUDE.md)
+                    { Header: "생성일시", Type: "Text", Name: "createdAt", Width: 160, Align: "Center", CanEdit: 0, RelWidth: 0 }
+                ]
+            };
+
+            boardGrid = IBSheet.create({
+                id: "board-grid",
+                el: "board-grid",
+                options: config
+            });
+        }
+
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            document.getElementById('refresh-btn').addEventListener('click', loadBoards);
+            document.getElementById('save-btn').addEventListener('click', saveAllBoards);
+            document.getElementById('add-btn').addEventListener('click', addBoard);
+            document.getElementById('del-btn').addEventListener('click', delBoard);
+        }
+
+        // 게시판 목록 로드 (조회 버튼용 — 미저장 변경 보호)
+        async function loadBoards() {
+            if (boardGrid && boardGrid.hasUnsavedData()) {
+                const answer = await showConfirm('저장하지 않은 변경사항이 있습니다. 버리고 조회하시겠습니까?', '확인', '조회', '취소');
+                if (!answer.isConfirmed) return;
+            }
+            await fetchBoards();
+        }
+
+        // 서버 재조회 (가드 없음 — 저장 성공 콜백은 그리드가 아직 dirty 상태이므로 이쪽 사용)
+        async function fetchBoards() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const response = await apiGet(API_BASE);
+                boardGrid.loadSearchData({data: response.data});
+            } catch (error) {
+                console.error('게시판 목록 로드 실패:', error);
+                showError('게시판 목록을 불러올 수 없습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 게시판 추가
+        function addBoard() {
+            boardGrid.addRow({ init: { isActive: true, sortOrder: 0 } });
+        }
+
+        // 게시판 삭제 (토글)
+        function delBoard() {
+            const frow = boardGrid.getFocusedRow();
+            if (!frow || frow.Kind === 'Header') {
+                showWarning('삭제할 게시판을 선택해주세요.');
+                return;
+            }
+            if (frow.Deleted) {
+                boardGrid.deleteRow(frow, 0); // 삭제 해제
+            } else {
+                showDeleteConfirm('게시판을 삭제하면 해당 게시판의 모든 게시글도 함께 삭제됩니다. 삭제 표시하시겠습니까?')
+                    .then(function(answer) {
+                        if (answer.isConfirmed) boardGrid.deleteRow(frow);
+                    });
+            }
+        }
+
+        // 게시판 일괄 저장 (공통 저장 함수 — I/U/D 배열 전송)
+        async function saveAllBoards() {
+            await saveAllData(boardGrid, API_BASE, {}, fetchBoards);
+        }
+
+        // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단
+        function onPageClose() {
+            if (boardGrid && boardGrid.hasUnsavedData()) {
+                return '저장하지 않은 변경사항이 있습니다. 정말 페이지를 닫으시겠습니까?';
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>

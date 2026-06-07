@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common :: ibsheet-head}"></th:block>
+    <title>게시판</title>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div class="p-6 flex flex-col h-full">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h3 id="board-title" class="text-2xl font-bold text-gray-800 dark:text-gray-200">게시판</h3>
+                <p id="board-description" class="text-sm text-gray-400 dark:text-gray-500 mt-1"></p>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="write-btn" class="bg-[#2563EB] hover:bg-[#2563EB]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                    <i class='bx bx-pencil text-lg'></i>
+                    <span class="font-medium">글쓰기</span>
+                </button>
+                <button id="refresh-btn" class="bg-[#6C757D] hover:bg-[#6C757D]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                    <i class='bx bx-refresh text-lg'></i>
+                    <span class="font-medium">조회</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 검색 필터 -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">제목 검색</label>
+                    <input type="text" id="search-title" placeholder="제목을 입력하세요"
+                           class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">작성자 검색</label>
+                    <input type="text" id="search-author" placeholder="작성자명 또는 ID를 입력하세요"
+                           class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                </div>
+            </div>
+        </div>
+
+        <!-- 게시글 그리드 (읽기 전용 — 작성/수정은 모달) -->
+        <div class="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 flex flex-col min-h-0">
+            <div class="flex-1 min-h-0">
+                <div id="post-grid" style="height: 100%; min-height: 300px;"></div>
+            </div>
+        </div>
+
+        <!-- 로딩 표시 -->
+        <th:block th:replace="~{fragments/common :: loading-spinner}"></th:block>
+    </div>
+
+    <!-- 게시글 모달 (조회/작성/수정 겸용) -->
+    <div id="post-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+                <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h4 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                        <span id="modal-title">게시글 작성</span>
+                    </h4>
+                    <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <i class='bx bx-x text-2xl'></i>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto max-h-[70vh]">
+                    <form id="post-form" class="space-y-6">
+                        <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-8">
+                                <label for="post-title" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    제목 <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="post-title" required
+                                       class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200"
+                                       placeholder="제목을 입력하세요">
+                            </div>
+                            <div class="col-span-2">
+                                <label for="post-author" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">작성자</label>
+                                <input type="text" id="post-author" readonly
+                                       class="w-full px-3 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-600 dark:text-gray-100 transition-all duration-200">
+                            </div>
+                            <div class="col-span-2">
+                                <label for="post-date" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">작성일</label>
+                                <input type="text" id="post-date" readonly
+                                       class="w-full px-3 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-600 dark:text-gray-100 transition-all duration-200">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="post-pinned"
+                                   class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                            <label for="post-pinned" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                상단 고정
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                내용 <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="post-content" required rows="10"
+                                      class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200 resize-none"
+                                      placeholder="내용을 입력하세요"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="flex justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                    <button id="cancel-post-btn" type="button" class="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200">
+                        닫기
+                    </button>
+                    <!-- 삭제/저장: 작성자 본인 또는 ADMIN에게만 표시 (서버에서도 재검사) -->
+                    <button id="delete-post-btn" type="button" class="hidden px-6 py-2.5 bg-[#6C757D] hover:bg-[#6C757D]/80 text-white rounded-xl transition-all duration-200">
+                        삭제
+                    </button>
+                    <button id="save-post-btn" type="button" class="hidden px-6 py-2.5 bg-[#2563EB] hover:bg-[#2563EB]/80 text-white rounded-xl transition-all duration-200">
+                        저장
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 페이지별 스크립트 -->
+    <script th:inline="javascript">
+        // MainController가 주입 — 미존재/비활성 게시판이면 boardName === null
+        const BOARD_CODE = /*[[${boardCode}]]*/ 'free';
+        const BOARD_NAME = /*[[${boardName}]]*/ null;
+
+        let postGrid = null;
+        let currentUser = null;      // { userId, name, isAdmin } — /api/auth/user에서 로드
+        let currentPostSeq = null;   // 수정 모드인 게시글 번호 (null = 신규 작성)
+        let modalEditable = false;   // 현재 모달이 편집 가능 상태인지 (onPageClose dirty 검사용)
+
+        // 게시판 코드는 URL path로 들어가므로 인코딩 필수
+        const API_BASE = `/api/boards/${encodeURIComponent(BOARD_CODE)}`;
+
+        // 페이지 초기화
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (!BOARD_NAME) {
+                // 게시판 미존재/비활성 — 그리드 초기화 없이 안내만 표시
+                document.getElementById('board-title').textContent = '게시판을 찾을 수 없습니다';
+                document.getElementById('board-description').textContent =
+                    `'${BOARD_CODE}' 게시판이 존재하지 않거나 비활성화되어 있습니다. 관리자에게 문의하세요.`;
+                document.getElementById('write-btn').classList.add('hidden');
+                document.getElementById('refresh-btn').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('board-title').textContent = BOARD_NAME;
+
+            initGrid();
+            setupEventListeners();
+            await loadCurrentUser();
+            loadBoardInfo();
+            loadPosts();
+        });
+
+        // 현재 사용자 정보 로드 — 행 소유자 버튼 분기에 사용 (서버가 최종 검사)
+        async function loadCurrentUser() {
+            try {
+                // /api/auth/user는 표준 ApiResponse 미적용 (authenticated 플래그 응답)
+                const res = await axios.get('/api/auth/user');
+                const u = res.data;
+                currentUser = {
+                    userId: u.userId,
+                    name: u.name,
+                    isAdmin: (u.authorities || []).some(a => a.authority === 'ROLE_ADMIN')
+                };
+            } catch (error) {
+                console.error('사용자 정보 로드 실패:', error);
+                currentUser = null;
+            }
+        }
+
+        // 게시판 설명 로드
+        async function loadBoardInfo() {
+            try {
+                const response = await apiGet(`${API_BASE}/info`);
+                document.getElementById('board-description').textContent = response.data.description || '';
+            } catch (error) {
+                console.error('게시판 정보 로드 실패:', error);
+            }
+        }
+
+        // IBSheet 그리드 초기화 (읽기 전용 — 목록에는 content 미포함)
+        function initGrid() {
+            const config = {
+                Cfg: {
+                    SearchMode: 0
+                },
+                Def: {
+                    Row: { CanFormula: 1 },
+                    Col: { CanEdit: 0, RelWidth: 1 }
+                },
+                Cols: [
+                    { Header: "No", Type: "Int", Name: "postSeq", Width: 60, Align: "Center", RelWidth: 0 },
+                    { Header: "고정", Type: "Bool", Name: "isPinned", Width: 50, Align: "Center", RelWidth: 0 },
+                    { Header: "제목", Type: "Text", Name: "title", MinWidth: 250, TextStyle: 5, Cursor: "pointer" },
+                    { Header: "작성자", Type: "Text", Name: "authorName", Width: 100, Align: "Center", RelWidth: 0 },
+                    { Header: "조회수", Type: "Int", Name: "viewCount", Width: 70, Align: "Center", RelWidth: 0 },
+                    // 날짜 표준: 서버 'yyyy-MM-dd HH:mm:ss' 문자열 + Type:'Text' (CLAUDE.md)
+                    { Header: "작성일", Type: "Text", Name: "createdAt", Width: 160, Align: "Center", RelWidth: 0 },
+                    { Header: "작성ID", Type: "Text", Name: "authorId", Visible: 0 }
+                ],
+                Events: {
+                    // 제목 클릭 → 상세 조회 모달 (조회수 +1)
+                    onAfterClick: function(evt) {
+                        if (evt.row.Kind === 'Data' && evt.col === 'title') {
+                            openPostDetail(evt.row.postSeq);
+                        }
+                    }
+                }
+            };
+
+            postGrid = IBSheet.create({
+                id: "post-grid",
+                el: "post-grid",
+                options: config
+            });
+        }
+
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            document.getElementById('write-btn').addEventListener('click', function() { showPostModal(null); });
+            document.getElementById('refresh-btn').addEventListener('click', loadPosts);
+
+            document.getElementById('close-modal-btn').addEventListener('click', closePostModal);
+            document.getElementById('cancel-post-btn').addEventListener('click', closePostModal);
+            document.getElementById('save-post-btn').addEventListener('click', savePost);
+            document.getElementById('delete-post-btn').addEventListener('click', deletePost);
+
+            document.getElementById('search-title').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loadPosts();
+            });
+            document.getElementById('search-author').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loadPosts();
+            });
+        }
+
+        // 게시글 목록 로드 (고정글 우선 + 최신순)
+        async function loadPosts() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const params = {};
+                const title = document.getElementById('search-title').value.trim();
+                const author = document.getElementById('search-author').value.trim();
+                if (title) params.title = title;
+                if (author) params.author = author;
+
+                const response = await apiGet(`${API_BASE}/posts`, params);
+                postGrid.loadSearchData({data: response.data});
+            } catch (error) {
+                console.error('게시글 목록 로드 실패:', error);
+                showError('게시글 목록을 불러올 수 없습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 게시글 상세 열기 — 항상 서버에서 재조회 (content는 목록에 없음 + 조회수 +1)
+        async function openPostDetail(postSeq) {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const response = await apiGet(`${API_BASE}/posts/${postSeq}`);
+                showPostModal(response.data);
+            } catch (error) {
+                console.error('게시글 조회 실패:', error);
+                showError('게시글을 불러올 수 없습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 게시글 모달 표시 (post=null이면 신규 작성)
+        function showPostModal(post) {
+            currentPostSeq = post?.postSeq || null;
+
+            // 작성자 본인 또는 ADMIN만 편집 가능 (화면 분기 — 서버에서도 재검사)
+            const isOwner = post && currentUser && post.authorId === currentUser.userId;
+            modalEditable = !post || isOwner || (currentUser && currentUser.isAdmin);
+
+            document.getElementById('modal-title').textContent =
+                !post ? '게시글 작성' : (modalEditable ? '게시글 수정' : '게시글 조회');
+
+            document.getElementById('post-title').value = post?.title || '';
+            document.getElementById('post-content').value = post?.content || '';
+            document.getElementById('post-author').value = post ? post.authorName : (currentUser?.name || '');
+            document.getElementById('post-date').value = post?.createdAt || '';
+            document.getElementById('post-pinned').checked = post?.isPinned || false;
+
+            // 편집 가능 여부에 따라 입력/버튼 상태 전환
+            document.getElementById('post-title').readOnly = !modalEditable;
+            document.getElementById('post-content').readOnly = !modalEditable;
+            document.getElementById('post-pinned').disabled = !modalEditable;
+            document.getElementById('save-post-btn').classList.toggle('hidden', !modalEditable);
+            document.getElementById('delete-post-btn').classList.toggle('hidden', !(post && modalEditable));
+
+            document.getElementById('post-modal').classList.remove('hidden');
+        }
+
+        // 모달 닫기
+        function closePostModal() {
+            document.getElementById('post-modal').classList.add('hidden');
+            currentPostSeq = null;
+            modalEditable = false;
+        }
+
+        // 게시글 저장 (신규 POST / 수정 PUT)
+        async function savePost() {
+            const title = document.getElementById('post-title').value.trim();
+            const content = document.getElementById('post-content').value.trim();
+
+            if (!title) {
+                showWarning('제목을 입력해주세요.');
+                document.getElementById('post-title').focus();
+                return;
+            }
+            if (!content) {
+                showWarning('내용을 입력해주세요.');
+                document.getElementById('post-content').focus();
+                return;
+            }
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+
+                // 작성자는 서버가 세션에서 주입 — 클라이언트는 보내지 않음
+                const postData = {
+                    title: title,
+                    content: content,
+                    isPinned: document.getElementById('post-pinned').checked
+                };
+
+                if (currentPostSeq) {
+                    await apiPut(`${API_BASE}/posts/${currentPostSeq}`, postData);
+                    showSuccess('게시글이 수정되었습니다.');
+                } else {
+                    await apiPost(`${API_BASE}/posts`, postData);
+                    showSuccess('게시글이 등록되었습니다.');
+                }
+
+                closePostModal();
+                loadPosts();
+            } catch (error) {
+                console.error('게시글 저장 실패:', error);
+                const msg = error.response?.data?.message;
+                showError(msg ? `저장에 실패했습니다: ${msg}` : '게시글 저장에 실패했습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 게시글 삭제 (모달에서 — 본인 또는 ADMIN)
+        async function deletePost() {
+            if (!currentPostSeq) return;
+
+            const answer = await showDeleteConfirm('이 게시글을 삭제하시겠습니까?');
+            if (!answer.isConfirmed) return;
+
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                await apiDelete(`${API_BASE}/posts/${currentPostSeq}`);
+                showSuccess('게시글이 삭제되었습니다.');
+                closePostModal();
+                loadPosts();
+            } catch (error) {
+                console.error('게시글 삭제 실패:', error);
+                const msg = error.response?.data?.message;
+                showError(msg ? `삭제에 실패했습니다: ${msg}` : '게시글 삭제에 실패했습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 탭 닫기 전 셸(tabs.js)이 호출 — 작성/수정 중인 모달이 열려 있으면 확인창
+        function onPageClose() {
+            const modalOpen = !document.getElementById('post-modal').classList.contains('hidden');
+            if (modalOpen && modalEditable) {
+                return '작성 중인 게시글이 있습니다. 정말 페이지를 닫으시겠습니까?';
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>

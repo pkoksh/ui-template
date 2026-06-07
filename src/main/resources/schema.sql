@@ -106,7 +106,9 @@ INSERT INTO menus (menu_id, parent_id, title, url, icon, sort_order) VALUES
 ('notice', 'system', '공지사항', '/notice', '', 4),
 ('my-profile', 'system', '개인 정보 관리', '/my-profile', 'bx-id-card', 5),
 ('code-management', 'system', '공통코드 관리', '/code-management', 'bx-code-block', 6),
-('session-log', 'system', '접속 로그', '/session-log', 'bx-history', 7);
+('session-log', 'system', '접속 로그', '/session-log', 'bx-history', 7),
+('board-management', 'system', '게시판 관리', '/board-management', 'bx-table', 8),
+('board-free', 'system', '자유게시판', '/board/free', 'bx-message-dots', 9);
 
 -- 사용자-그룹 매핑
 INSERT INTO user_group_mappings (user_id, group_id) VALUES
@@ -127,16 +129,20 @@ INSERT INTO group_menu_permissions (group_id, menu_id, can_read, can_write, can_
 ('ADMIN', 'my-profile', TRUE, TRUE, FALSE, FALSE),
 ('ADMIN', 'code-management', TRUE, TRUE, TRUE, TRUE),
 ('ADMIN', 'session-log', TRUE, TRUE, TRUE, TRUE),
+('ADMIN', 'board-management', TRUE, TRUE, TRUE, TRUE),
+('ADMIN', 'board-free', TRUE, TRUE, TRUE, TRUE),
 
 -- MANAGER: 대시보드 + 개인 정보 관리
 ('MANAGER', 'dashboard', TRUE, TRUE, FALSE, FALSE),
 ('MANAGER', 'system', TRUE, FALSE, FALSE, FALSE),
 ('MANAGER', 'my-profile', TRUE, TRUE, FALSE, FALSE),
+('MANAGER', 'board-free', TRUE, TRUE, FALSE, FALSE),
 
 -- USER: 대시보드(읽기만) + 개인 정보 관리
 ('USER', 'dashboard', TRUE, FALSE, FALSE, FALSE),
 ('USER', 'system', TRUE, FALSE, FALSE, FALSE),
-('USER', 'my-profile', TRUE, TRUE, FALSE, FALSE);
+('USER', 'my-profile', TRUE, TRUE, FALSE, FALSE),
+('USER', 'board-free', TRUE, TRUE, FALSE, FALSE);
 
 -- 7. 사용자별 접근 가능한 메뉴 조회 뷰
 CREATE VIEW v_user_menus AS
@@ -288,6 +294,45 @@ CREATE TABLE login_history (
     INDEX idx_lh_user (user_id, created_at DESC),
     INDEX idx_lh_created (created_at DESC)
 ) COMMENT='로그인 이력';
+
+-- ============================================================
+-- 게시판 정의 (자유게시판/Q&A 등을 데이터로 동적 정의)
+-- 게시판 신설 = boards 행 추가 + 메뉴 등록(menu_id=board-{code}, url=/board/{code})
+-- ============================================================
+CREATE TABLE boards (
+    board_seq    BIGINT AUTO_INCREMENT PRIMARY KEY,
+    board_code   VARCHAR(50)  NOT NULL UNIQUE COMMENT '게시판 코드 (비즈니스 키 + URL path, 예: free) — 소문자 슬러그',
+    board_name   VARCHAR(100) NOT NULL COMMENT '게시판명 (화면 제목)',
+    description  VARCHAR(255) NULL COMMENT '설명',
+    is_active    BOOLEAN NOT NULL DEFAULT TRUE COMMENT '사용 여부 (FALSE면 게시판 접근 404)',
+    sort_order   INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_bd_board_code (board_code)
+) COMMENT='게시판 정의';
+
+-- ============================================================
+-- 게시글 (수정/삭제는 작성자 본인 또는 ADMIN만 — 행 소유자 권한)
+-- ============================================================
+CREATE TABLE board_posts (
+    post_seq     BIGINT AUTO_INCREMENT PRIMARY KEY,
+    board_code   VARCHAR(50)  NOT NULL COMMENT '소속 게시판',
+    title        VARCHAR(255) NOT NULL COMMENT '제목',
+    content      TEXT NOT NULL COMMENT '내용',
+    author_id    VARCHAR(20)  NOT NULL COMMENT '작성자 ID (서버 주입 — 행 소유자 권한 기준)',
+    author_name  VARCHAR(100) NOT NULL COMMENT '작성자명 (서버 주입)',
+    is_pinned    BOOLEAN NOT NULL DEFAULT FALSE COMMENT '상단 고정',
+    is_active    BOOLEAN NOT NULL DEFAULT TRUE COMMENT '노출 여부 (게시글은 즉시 노출)',
+    view_count   INT NOT NULL DEFAULT 0 COMMENT '조회수',
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_bp_list (board_code, is_pinned DESC, created_at DESC),
+    FOREIGN KEY (board_code) REFERENCES boards(board_code) ON DELETE CASCADE
+) COMMENT='게시글';
+
+-- 게시판 시드 (본보기)
+INSERT INTO boards (board_code, board_name, description, sort_order) VALUES
+('free', '자유게시판', '누구나 글을 쓸 수 있는 게시판 예시', 1);
 
 
 

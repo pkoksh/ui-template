@@ -2,6 +2,7 @@ package com.worksystem.controller;
 
 import com.worksystem.dto.UserDTO;
 import com.worksystem.entity.User;
+import com.worksystem.service.BoardService;
 import com.worksystem.service.UserService;
 import com.worksystem.util.EnumMaker;
 
@@ -29,6 +30,9 @@ public class MainController {
 
     @Autowired
     private EnumMaker enumMaker;
+
+    @Autowired
+    private BoardService boardService;
 
     /**
      * 메인 페이지 - Thymeleaf 템플릿 사용
@@ -110,6 +114,31 @@ public class MainController {
         model.addAttribute("levelEnum", enumMaker.getCommonCodeEnum("GROUP_LEVEL"));
 
         return "pages/group-management";
+    }
+
+    /**
+     * 게시판 정의 관리 페이지 (ADMIN — 데이터는 /api/boards 로 로드)
+     */
+    @GetMapping("/board-management")
+    public String boardManagement(Model model) {
+        model.addAttribute("pageTitle", "게시판 관리");
+        return "pages/board-management";
+    }
+
+    /**
+     * 게시판 페이지 — 단일 동적 라우트: 모든 게시판이 이 라우트 + board.html 한 장으로 동작
+     * (미존재/비활성 게시판은 boardName=null로 두고 페이지 JS가 404 처리 —
+     *  @Controller는 GlobalExceptionHandler 미적용이라 예외 대신 폴백)
+     */
+    @GetMapping("/board/{boardCode}")
+    public String board(@org.springframework.web.bind.annotation.PathVariable String boardCode, Model model) {
+        model.addAttribute("boardCode", boardCode);
+        try {
+            model.addAttribute("boardName", boardService.requireActiveBoard(boardCode).getBoardName());
+        } catch (Exception e) {
+            model.addAttribute("boardName", null);
+        }
+        return "pages/board";
     }
 
     /**
