@@ -1,57 +1,35 @@
 // search.js - 메뉴 검색 기능
 
 // 검색 가능한 메뉴 데이터 생성 함수
+// (메뉴 데이터 구조: window.menuItems = [{id, title, icon, url, Items:[...]}] — menu.js 참조)
 function generateSearchableMenus() {
     const searchableMenus = [];
-    
+
     function addMenuToSearch(item, parentTitle = null) {
-        // path가 있는 메뉴만 검색 대상 (실제 페이지가 있는 메뉴)
-        if (item.path) {
-            let category = parentTitle || '기타';
-            let description = `${item.title} 페이지`;
-            
-            // 카테고리별 아이콘 설정
-            if (!parentTitle && item.icon) {
-                if (item.icon.includes('tachometer')) category = '홈';
-                else if (item.icon.includes('chart')) category = '분석';
-                else if (item.icon.includes('cog')) category = '시스템';
-            }
-            
-            // 설명 설정
-            if (item.id === 'dashboard') description = '전체 현황을 한눈에 확인';
-            else if (item.id === 'projects') description = '진행 중인 모든 프로젝트 보기';
-            else if (item.id === 'project-new') description = '새로운 프로젝트 생성';
-            else if (item.id === 'project-templates') description = '프로젝트 템플릿 관리';
-            else if (item.id === 'project-archive') description = '완료되거나 보관된 프로젝트';
-            else if (item.id === 'tasks') description = '칸반 형태의 업무 관리';
-            else if (item.id === 'task-calendar') description = '달력 형태로 업무 일정 확인';
-            else if (item.id === 'task-timeline') description = '업무 진행 상황을 시간순으로 확인';
-            else if (item.id === 'task-my') description = '나에게 할당된 업무 목록';
-            else if (item.id === 'reports') description = '각종 통계 및 보고서';
-            else if (item.id === 'settings') description = '시스템 설정 및 환경설정';
-            
+        // url이 있는 메뉴만 검색 대상 (실제 페이지가 있는 메뉴)
+        if (item.url) {
             searchableMenus.push({
                 id: item.id,
                 title: item.title,
-                description: description,
-                category: category,
+                description: item.url,
+                category: parentTitle || '메뉴',
                 icon: item.icon || 'bx-file'
             });
         }
-        
+
         // 자식 메뉴가 있으면 재귀적으로 처리
-        if (item.children && Array.isArray(item.children)) {
-            item.children.forEach(child => {
+        if (item.Items && Array.isArray(item.Items)) {
+            item.Items.forEach(child => {
                 addMenuToSearch(child, item.title);
             });
         }
     }
-    
+
     // 모든 최상위 메뉴 아이템 처리
-    window.menuItems.forEach(item => {
+    (window.menuItems || []).forEach(item => {
         addMenuToSearch(item);
     });
-    
+
     return searchableMenus;
 }
 
@@ -77,33 +55,43 @@ let searchResults;
 let currentFocusIndex = -1;
 let isSearchResultsVisible = false;
 
+// 검색 색인(Fuse) 재구성 — 메뉴는 비동기 로드되므로 메뉴 갱신 시마다 호출됨
+function rebuildSearchIndex() {
+    fuse = new Fuse(generateSearchableMenus(), fuseOptions);
+}
+
 // 검색 기능 초기화
 function initializeSearch() {
-    // 검색 가능한 메뉴 데이터 생성
-    const searchableMenus = generateSearchableMenus();
-    
-    // Fuse 인스턴스 생성
-    fuse = new Fuse(searchableMenus, fuseOptions);
-    
+    // 검색 색인 생성 (메뉴가 아직 로드 전이면 빈 색인 — 메뉴 로드 완료 시 reindex됨)
+    rebuildSearchIndex();
+
     searchInput = document.getElementById('menu-search');
     searchResults = document.getElementById('search-results');
-    
+
     if (!searchInput || !searchResults) {
         console.warn('검색 요소를 찾을 수 없습니다.');
         return;
     }
-    
+
     // 이벤트 리스너 등록
     searchInput.addEventListener('input', handleSearchInput);
     searchInput.addEventListener('keydown', handleSearchKeydown);
     searchInput.addEventListener('focus', handleSearchFocus);
     searchInput.addEventListener('blur', handleSearchBlur);
-    
+
     // 검색 결과 클릭 이벤트
     searchResults.addEventListener('click', handleSearchResultClick);
-    
+
     // 외부 클릭 시 검색 결과 숨기기
     document.addEventListener('click', handleDocumentClick);
+
+    // Ctrl+K / Cmd+K 단축키로 검색창 포커스
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+        }
+    });
 }
 
 // 검색 입력 처리
@@ -253,9 +241,9 @@ function updateFocusedItem(resultItems) {
     });
 }
 
-// 검색 결과 선택
+// 검색 결과 선택 → 해당 메뉴 탭 열기
 function selectSearchResult(menuId) {
-    const menuItem = window.menuItems[menuId];
+    const menuItem = window.findMenuItem(menuId);
     if (menuItem) {
         openTab(menuId, menuItem);
         searchInput.value = '';
@@ -300,5 +288,6 @@ window.menuSearch = {
             hideSearchResults();
         }
     },
-    isVisible: () => isSearchResultsVisible
+    isVisible: () => isSearchResultsVisible,
+    reindex: rebuildSearchIndex   // 메뉴 로드/갱신 후 색인 재구성 (menu.js generateMenu가 호출)
 };

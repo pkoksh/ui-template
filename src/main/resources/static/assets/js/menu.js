@@ -192,7 +192,12 @@ async function generateMenu() {
     
     // 메뉴 로드 완료 후 이벤트 바인딩
     bindMenuEvents();
-    
+
+    // 메뉴 검색 색인 재구성 (메뉴가 비동기 로드되므로 이 시점에 갱신)
+    if (window.menuSearch && window.menuSearch.reindex) {
+        window.menuSearch.reindex();
+    }
+
     if (!success) {
         // API 실패 시 알림 (선택사항)
         console.warn('메뉴를 서버에서 로드하지 못했습니다. 기본 메뉴를 사용합니다.');
