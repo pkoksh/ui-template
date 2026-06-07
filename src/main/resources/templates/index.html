@@ -48,7 +48,7 @@
     <!-- 메인 컨테이너 -->
     <div class="flex h-full">
         <!-- 사이드바 -->
-        <aside id="sidebar" class="sidebar-transition bg-white dark:bg-gray-800 shadow-lg w-64 flex-shrink-0 transform -translate-x-full lg:translate-x-0 fixed lg:relative h-full z-20 border-r border-gray-200 dark:border-gray-700">
+        <aside id="sidebar" class="sidebar-transition bg-white dark:bg-gray-800 shadow-lg w-64 flex-shrink-0 transform -translate-x-full lg:translate-x-0 fixed lg:relative h-full z-20 border-r border-gray-200 dark:border-gray-700 flex flex-col">
             <div class="px-4 py-4">
                 <div class="flex items-center justify-between mb-3">
                     <h1 class="text-xl font-bold text-gray-800 dark:text-gray-200" th:text="${systemName}">업무시스템</h1>
@@ -67,8 +67,8 @@
                 </div>
             </div>
             
-            <!-- 메뉴 리스트 (동적 생성) -->
-            <nav class="mt-4">
+            <!-- 메뉴 리스트 (동적 생성) — 메뉴가 길어지면 이 영역만 스크롤 -->
+            <nav class="mt-4 flex-1 overflow-y-auto pb-4">
                 <ul class="space-y-2 px-4">
                     <!-- 메뉴가 JavaScript로 동적 생성됩니다 -->
                 </ul>
