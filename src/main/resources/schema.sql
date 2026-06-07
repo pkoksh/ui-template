@@ -104,7 +104,8 @@ INSERT INTO menus (menu_id, parent_id, title, url, icon, sort_order) VALUES
 ('menu-management', 'system', '메뉴 관리', '/menu-management', 'bx-menu', 2),
 ('group-management', 'system', '그룹 관리', '/group-management', 'bx-group', 3),
 ('notice', 'system', '공지사항', '/notice', '', 4),
-('my-profile', 'system', '개인 정보 관리', '/my-profile', 'bx-id-card', 5);
+('my-profile', 'system', '개인 정보 관리', '/my-profile', 'bx-id-card', 5),
+('code-management', 'system', '공통코드 관리', '/code-management', 'bx-code-block', 6);
 
 -- 사용자-그룹 매핑
 INSERT INTO user_group_mappings (user_id, group_id) VALUES
@@ -123,6 +124,7 @@ INSERT INTO group_menu_permissions (group_id, menu_id, can_read, can_write, can_
 ('ADMIN', 'group-management', TRUE, TRUE, TRUE, TRUE),
 ('ADMIN', 'notice', TRUE, TRUE, TRUE, TRUE),
 ('ADMIN', 'my-profile', TRUE, TRUE, FALSE, FALSE),
+('ADMIN', 'code-management', TRUE, TRUE, TRUE, TRUE),
 
 -- MANAGER: 대시보드 + 개인 정보 관리
 ('MANAGER', 'dashboard', TRUE, TRUE, FALSE, FALSE),
@@ -215,6 +217,58 @@ CREATE TABLE notices (
     INDEX idx_author (author_id),
     INDEX idx_created_at (created_at DESC)
 ) COMMENT='공지사항';
+
+-- ============================================================
+-- 공통코드 그룹 (예: GROUP_LEVEL=권한 레벨, DEPT_TYPE=부서 구분)
+-- ============================================================
+CREATE TABLE common_code_groups (
+    group_seq    BIGINT AUTO_INCREMENT PRIMARY KEY,
+    group_code   VARCHAR(50)  NOT NULL UNIQUE COMMENT '코드 그룹 코드 (비즈니스 키, 예: GROUP_LEVEL)',
+    group_name   VARCHAR(100) NOT NULL COMMENT '코드 그룹명 (예: 권한 레벨)',
+    description  VARCHAR(255) NULL COMMENT '설명',
+    is_system    BOOLEAN NOT NULL DEFAULT FALSE COMMENT '시스템 필수 그룹 (TRUE면 그룹 삭제/group_code 변경/하위 코드 삭제 금지)',
+    is_active    BOOLEAN NOT NULL DEFAULT TRUE COMMENT '사용 여부',
+    sort_order   INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_ccg_group_code (group_code)
+) COMMENT='공통코드 그룹';
+
+-- ============================================================
+-- 공통코드 상세 (그룹에 속한 개별 코드)
+-- 주의: 업무 테이블이 코드값을 '값'으로 참조하므로 코드는 삭제보다 is_active=FALSE 비활성화 권장
+-- ============================================================
+CREATE TABLE common_codes (
+    code_seq     BIGINT AUTO_INCREMENT PRIMARY KEY,
+    group_code   VARCHAR(50)  NOT NULL COMMENT '소속 코드 그룹',
+    code         VARCHAR(50)  NOT NULL COMMENT '코드값 (예: 10)',
+    code_name    VARCHAR(100) NOT NULL COMMENT '코드명 (화면 표시, 예: 슈퍼관리자)',
+    description  VARCHAR(255) NULL COMMENT '설명',
+    ref_value    VARCHAR(255) NULL COMMENT '예비 참조값 (색상/약어/외부키 등 — 그룹별 용도는 그룹 description에 명시)',
+    is_active    BOOLEAN NOT NULL DEFAULT TRUE COMMENT '사용 여부 (FALSE면 소비 API에서 제외)',
+    sort_order   INT NOT NULL DEFAULT 0 COMMENT '그룹 내 정렬 순서',
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_cc_group_code (group_code, code),
+    INDEX idx_cc_lookup (group_code, is_active, sort_order),
+    FOREIGN KEY (group_code) REFERENCES common_code_groups(group_code) ON DELETE CASCADE
+) COMMENT='공통코드 상세';
+
+-- 공통코드 시드 (본보기: 그룹 관리의 권한 레벨 + 부서 구분 예시)
+INSERT INTO common_code_groups (group_code, group_name, description, is_system, sort_order) VALUES
+('GROUP_LEVEL', '권한 레벨', '그룹 관리의 권한 레벨 선택지. ref_value 미사용', TRUE, 1),
+('DEPT_TYPE',   '부서 구분', '사용자 부서 선택지 예시. ref_value 미사용', FALSE, 2);
+
+INSERT INTO common_codes (group_code, code, code_name, sort_order) VALUES
+('GROUP_LEVEL', '10', '슈퍼관리자', 1),
+('GROUP_LEVEL', '8',  '관리자',     2),
+('GROUP_LEVEL', '6',  '매니저',     3),
+('GROUP_LEVEL', '4',  '팀장',       4),
+('GROUP_LEVEL', '1',  '일반사용자', 5),
+('GROUP_LEVEL', '0',  '게스트',     6),
+('DEPT_TYPE',   'SYS',   '시스템관리부', 1),
+('DEPT_TYPE',   'PLAN',  '기획부',       2),
+('DEPT_TYPE',   'SALES', '영업부',       3);
 
 
 

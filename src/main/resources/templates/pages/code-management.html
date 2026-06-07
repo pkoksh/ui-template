@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{fragments/common :: ibsheet-head}"></th:block>
+    <title>공통코드 관리</title>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <div class="p-6 flex flex-col h-full">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">공통코드 관리</h3>
+            <div class="flex items-center space-x-2">
+                <button id="refresh-btn" class="bg-[#6C757D] hover:bg-[#6C757D]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
+                    <i class='bx bx-refresh text-lg'></i>
+                    <span class="font-medium">조회</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 검색 필터 -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">그룹명 검색</label>
+                    <input type="text" id="search-group-name" placeholder="그룹명을 입력하세요"
+                           class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 transition-all duration-200">
+                </div>
+                <div class="md:col-span-3 flex items-end">
+                    <p class="text-xs text-gray-400 dark:text-gray-500 pb-3">
+                        * 업무 테이블이 코드값을 참조할 수 있으므로 코드는 삭제보다 <strong>사용 여부 해제(비활성화)</strong>를 권장합니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 마스터-디테일 그리드 영역 (좌: 코드 그룹 / 우: 상세 코드) -->
+        <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
+            <!-- 코드 그룹 (마스터) -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+                        <i class='bx bx-folder text-xl mr-2 text-blue-500'></i> 코드 그룹
+                    </h4>
+                    <div class="flex items-center space-x-2">
+                        <button id="save-groups-btn" class="bg-[#2563EB] hover:bg-[#2563EB]/80 text-white px-4 py-2 rounded-xl flex items-center space-x-1 text-sm shadow-sm transition-all duration-200">
+                            <i class='bx bx-save'></i><span>저장</span>
+                        </button>
+                        <button id="add-group-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-4 py-2 rounded-xl flex items-center space-x-1 text-sm shadow-sm transition-all duration-200">
+                            <i class='bx bx-plus'></i><span>추가</span>
+                        </button>
+                        <button id="del-group-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-4 py-2 rounded-xl flex items-center space-x-1 text-sm shadow-sm transition-all duration-200">
+                            <i class='bx bx-minus'></i><span>삭제</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 min-h-0">
+                    <div id="group-grid" style="height: 100%; min-height: 300px;"></div>
+                </div>
+            </div>
+
+            <!-- 상세 코드 (디테일) -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 flex flex-col">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 flex items-center">
+                        <i class='bx bx-list-ul text-xl mr-2 text-emerald-500'></i> 상세 코드
+                        <span id="selected-group-label" class="ml-2 text-sm font-normal text-gray-400">- 그룹을 선택하세요</span>
+                    </h4>
+                    <div class="flex items-center space-x-2">
+                        <button id="save-codes-btn" class="bg-[#2563EB] hover:bg-[#2563EB]/80 text-white px-4 py-2 rounded-xl flex items-center space-x-1 text-sm shadow-sm transition-all duration-200">
+                            <i class='bx bx-save'></i><span>저장</span>
+                        </button>
+                        <button id="add-code-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-4 py-2 rounded-xl flex items-center space-x-1 text-sm shadow-sm transition-all duration-200">
+                            <i class='bx bx-plus'></i><span>추가</span>
+                        </button>
+                        <button id="del-code-btn" class="bg-[#ADB5BD] hover:bg-[#ADB5BD]/80 text-white px-4 py-2 rounded-xl flex items-center space-x-1 text-sm shadow-sm transition-all duration-200">
+                            <i class='bx bx-minus'></i><span>삭제</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 min-h-0">
+                    <div id="code-grid" style="height: 100%; min-height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 로딩 표시 -->
+        <th:block th:replace="~{fragments/common :: loading-spinner}"></th:block>
+    </div>
+
+    <!-- 페이지별 스크립트 -->
+    <script>
+        let groupGrid = null;   // 코드 그룹 그리드 (마스터)
+        let codeGrid = null;    // 상세 코드 그리드 (디테일)
+        let currentGroupCode = null;        // 현재 선택된 그룹 코드
+        let bypassBeforeFocus = false;      // onBeforeFocus 우회 플래그 (미저장 confirm 후 이동용)
+
+        // API 기본 설정
+        const API_BASE = '/api/common-codes';
+
+        // 페이지 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            initGrids();
+            loadGroups();
+            setupEventListeners();
+        });
+
+        // IBSheet 그리드 초기화
+        function initGrids() {
+            // ===== 마스터: 코드 그룹 =====
+            // 주의: 마스터에는 IgnoreFocused를 설정하지 않는다 (키보드 이동 동작 보장)
+            const groupGridConfig = {
+                Cfg: {
+                    SearchMode: 0,
+                    CanEdit: 1  // 필수 — 미설정/0이면 컬럼 AddEdit 등이 전부 무력화됨
+                },
+                Def: {
+                    Row: { CanFormula: 1 },
+                    Col: { RelWidth: 1 }
+                },
+                Cols: [
+                    { Header: "No", Type: "Int", Name: "SEQ", Width: 50, Align: "Center", CanEdit: 0, RelWidth: 0 },
+                    { Header: "상태", Name: "status", Extend: IB_Preset.CSTATUS, RelWidth: 0, Width: 50 },
+                    // 비즈니스 키: 신규만 입력 가능, 기존 행 수정 잠금 (서버에서도 변경 차단)
+                    { Header: "그룹코드", Type: "Text", Name: "groupCode", MinWidth: 130, CanEdit: 1, AddEdit: 1, ChangeEdit: 0, Required: 1 },
+                    { Header: "그룹명", Type: "Text", Name: "groupName", MinWidth: 120, CanEdit: 1, Required: 1 },
+                    { Header: "설명", Type: "Text", Name: "description", MinWidth: 150, CanEdit: 1 },
+                    { Header: "시스템", Type: "Bool", Name: "isSystem", Width: 70, Align: "Center", CanEdit: 1, RelWidth: 0 },
+                    { Header: "사용", Type: "Bool", Name: "isActive", Width: 60, Align: "Center", CanEdit: 1, RelWidth: 0 },
+                    { Header: "정렬", Type: "Int", Name: "sortOrder", Width: 60, Align: "Center", CanEdit: 1, RelWidth: 0 }
+                ],
+                Events: {
+                    // 행 포커스 → 상세 코드 재조회 (키보드 이동에도 반응)
+                    onFocus: function(evt) {
+                        if (evt.row === evt.orow) return;           // 동일 행 재포커스 가드
+                        if (!evt.row || evt.row.Kind === 'Header') return;
+                        handleGroupFocus(evt.row);
+                    },
+                    // 미저장 디테일 변경 보호 — 차단 후 confirm, 확인 시 bypass 플래그로 재이동
+                    onBeforeFocus: function(evt) {
+                        if (bypassBeforeFocus) { bypassBeforeFocus = false; return; }
+                        if (evt.row === evt.orow) return;
+                        if (codeGrid && codeGrid.hasUnsavedData()) {
+                            const target = evt.row;
+                            showConfirm('저장하지 않은 코드 변경사항이 있습니다. 버리고 이동하시겠습니까?', '확인', '이동', '취소')
+                                .then(function(answer) {
+                                    if (answer.isConfirmed) {
+                                        bypassBeforeFocus = true;
+                                        // ignoreEvent 없이 재호출 — onFocus가 정상 발화해 디테일 재조회(변경 자연 폐기)
+                                        groupGrid.focus(target);
+                                    }
+                                });
+                            return true; // 이동 차단
+                        }
+                    },
+                    // loadSearchData는 onFocus를 발화하지 않으므로 첫 행 focus를 명시 호출
+                    onSearchFinish: function(evt) {
+                        const first = groupGrid.getDataRows()[0];
+                        if (first) {
+                            groupGrid.focus(first);
+                        } else {
+                            clearCodeGrid();
+                        }
+                    }
+                }
+            };
+
+            groupGrid = IBSheet.create({
+                id: "group-grid",
+                el: "group-grid",
+                options: groupGridConfig
+            });
+
+            // ===== 디테일: 상세 코드 =====
+            const codeGridConfig = {
+                Cfg: {
+                    SearchMode: 0,
+                    CanEdit: 1,
+                    IgnoreFocused: 2  // 마스터 방향키 이동 중 포커스 강탈 방지 (1은 금지)
+                },
+                Def: {
+                    Row: { CanFormula: 1 },
+                    Col: { RelWidth: 1 }
+                },
+                Cols: [
+                    { Header: "No", Type: "Int", Name: "SEQ", Width: 50, Align: "Center", CanEdit: 0, RelWidth: 0 },
+                    { Header: "상태", Name: "status", Extend: IB_Preset.CSTATUS, RelWidth: 0, Width: 50 },
+                    // 소속 그룹 (직렬화용 — 화면에는 숨김)
+                    { Header: "그룹", Type: "Text", Name: "groupCode", Visible: 0, CanEdit: 0 },
+                    // 비즈니스 키: 신규만 입력 가능
+                    { Header: "코드", Type: "Text", Name: "code", MinWidth: 90, CanEdit: 1, AddEdit: 1, ChangeEdit: 0, Required: 1 },
+                    { Header: "코드명", Type: "Text", Name: "codeName", MinWidth: 120, CanEdit: 1, Required: 1 },
+                    { Header: "설명", Type: "Text", Name: "description", MinWidth: 130, CanEdit: 1 },
+                    { Header: "참조값", Type: "Text", Name: "refValue", MinWidth: 90, CanEdit: 1 },
+                    { Header: "사용", Type: "Bool", Name: "isActive", Width: 60, Align: "Center", CanEdit: 1, RelWidth: 0 },
+                    { Header: "정렬", Type: "Int", Name: "sortOrder", Width: 60, Align: "Center", CanEdit: 1, RelWidth: 0 }
+                ]
+            };
+
+            codeGrid = IBSheet.create({
+                id: "code-grid",
+                el: "code-grid",
+                options: codeGridConfig
+            });
+        }
+
+        // 이벤트 리스너 설정
+        function setupEventListeners() {
+            document.getElementById('refresh-btn').addEventListener('click', loadGroups);
+            document.getElementById('save-groups-btn').addEventListener('click', saveAllGroups);
+            document.getElementById('add-group-btn').addEventListener('click', addGroup);
+            document.getElementById('del-group-btn').addEventListener('click', delGroup);
+            document.getElementById('save-codes-btn').addEventListener('click', saveAllCodes);
+            document.getElementById('add-code-btn').addEventListener('click', addCode);
+            document.getElementById('del-code-btn').addEventListener('click', delCode);
+
+            document.getElementById('search-group-name').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loadGroups();
+            });
+        }
+
+        // ===== 마스터: 코드 그룹 =====
+
+        // 그룹 목록 로드
+        async function loadGroups() {
+            try {
+                document.getElementById('loading').classList.remove('hidden');
+                const groupName = document.getElementById('search-group-name').value.trim();
+                // apiGet은 표준 ApiResponse 바디({success,message,data})를 반환
+                const response = await apiGet(`${API_BASE}/groups`, groupName ? { groupName: groupName } : {});
+                groupGrid.loadSearchData({data: response.data});
+                // 첫 행 focus는 onSearchFinish에서 처리 → 디테일 자동 표시
+            } catch (error) {
+                console.error('코드 그룹 로드 실패:', error);
+                showError('코드 그룹을 불러올 수 없습니다.');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // 그룹 행 포커스 처리 → 상세 코드 재조회
+        function handleGroupFocus(row) {
+            const groupCode = groupGrid.getValue(row, 'groupCode');
+            if (row.Added || !groupCode) {
+                // 미저장 신규 그룹 — 서버에 없으므로 코드 그리드 비움
+                clearCodeGrid('- 그룹을 먼저 저장하세요');
+                return;
+            }
+            currentGroupCode = groupCode;
+            document.getElementById('selected-group-label').textContent = `- ${groupCode}`;
+            loadCodes(groupCode);
+        }
+
+        // 그룹 추가
+        function addGroup() {
+            groupGrid.addRow();
+        }
+
+        // 그룹 삭제 (토글)
+        function delGroup() {
+            const frow = groupGrid.getFocusedRow();
+            if (!frow || frow.Kind === 'Header') {
+                showWarning('삭제할 그룹을 선택해주세요.');
+                return;
+            }
+            if (frow.isSystem) {
+                showWarning('시스템 필수 그룹은 삭제할 수 없습니다.');
+                return;
+            }
+            if (frow.Deleted) {
+                groupGrid.deleteRow(frow, 0); // 삭제 해제
+            } else {
+                showDeleteConfirm('그룹을 삭제하면 하위 코드도 함께 삭제됩니다. 삭제 표시하시겠습니까?')
+                    .then(function(answer) {
+                        if (answer.isConfirmed) groupGrid.deleteRow(frow);
+                    });
+            }
+        }
+
+        // 그룹 일괄 저장 (공통 저장 함수)
+        async function saveAllGroups() {
+            await saveAllData(groupGrid, `${API_BASE}/groups`, {}, loadGroups);
+        }
+
+        // ===== 디테일: 상세 코드 =====
+
+        // 상세 코드 로드
+        async function loadCodes(groupCode) {
+            try {
+                const response = await apiGet(`${API_BASE}/groups/${groupCode}/codes`);
+                codeGrid.loadSearchData({data: response.data});
+            } catch (error) {
+                console.error('상세 코드 로드 실패:', error);
+                showError('상세 코드를 불러올 수 없습니다.');
+            }
+        }
+
+        // 코드 그리드 비우기
+        function clearCodeGrid(label) {
+            currentGroupCode = null;
+            codeGrid.removeAll();
+            document.getElementById('selected-group-label').textContent = label || '- 그룹을 선택하세요';
+        }
+
+        // 코드 추가 (선택된 그룹에 귀속)
+        function addCode() {
+            if (!currentGroupCode) {
+                showWarning('코드를 추가할 그룹을 먼저 선택해주세요. (신규 그룹은 저장 후 가능)');
+                return;
+            }
+            codeGrid.addRow({ init: { groupCode: currentGroupCode } });
+        }
+
+        // 코드 삭제 (토글)
+        function delCode() {
+            const frow = codeGrid.getFocusedRow();
+            if (!frow || frow.Kind === 'Header') {
+                showWarning('삭제할 코드를 선택해주세요.');
+                return;
+            }
+            if (frow.Deleted) {
+                codeGrid.deleteRow(frow, 0); // 삭제 해제
+            } else {
+                codeGrid.deleteRow(frow);
+            }
+        }
+
+        // 코드 일괄 저장 (공통 저장 함수)
+        async function saveAllCodes() {
+            if (!currentGroupCode) {
+                showWarning('그룹을 먼저 선택해주세요.');
+                return;
+            }
+            await saveAllData(codeGrid, `${API_BASE}/codes`, {}, function() { loadCodes(currentGroupCode); });
+        }
+
+        // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단
+        // (좌우 상시 표시 구조이므로 두 그리드를 조건 없이 모두 검사)
+        function onPageClose() {
+            const dirty = (groupGrid && groupGrid.hasUnsavedData())
+                || (codeGrid && codeGrid.hasUnsavedData());
+            if (dirty) {
+                return '저장하지 않은 변경사항이 있습니다. 정말 페이지를 닫으시겠습니까?';
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>

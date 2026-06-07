@@ -109,6 +109,11 @@ public class SecurityConfig {
             // 3. 인증된 사용자만 접근 가능한 API
             .requestMatchers("/api/auth/user").authenticated()
             .requestMatchers("/api/users/**").authenticated()
+
+            // 공통코드: 소비(enum) API는 인증 사용자 전체, 관리 API는 ADMIN 전용
+            // (선선언 우선 — enum 규칙이 반드시 관리 규칙보다 먼저 와야 함)
+            .requestMatchers("/api/common-codes/enum/**").authenticated()
+            .requestMatchers("/api/common-codes/**").hasRole("ADMIN")
             
             // 4. 메인 페이지는 인증 필요하지만 forward는 허용
             .requestMatchers("/", "/index.html").authenticated()

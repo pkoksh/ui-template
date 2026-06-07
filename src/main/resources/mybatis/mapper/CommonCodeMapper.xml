@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.worksystem.mapper.CommonCodeMapper">
+
+    <!-- Result Map: 코드 그룹 (group_seq → id : IBSheet ___id 보관용) -->
+    <resultMap id="CodeGroupResultMap" type="com.worksystem.entity.CommonCodeGroup">
+        <id property="id" column="group_seq"/>
+        <result property="groupCode" column="group_code"/>
+        <result property="groupName" column="group_name"/>
+        <result property="description" column="description"/>
+        <result property="isSystem" column="is_system"/>
+        <result property="isActive" column="is_active"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- Result Map: 상세 코드 (code_seq → id) -->
+    <resultMap id="CodeResultMap" type="com.worksystem.entity.CommonCode">
+        <id property="id" column="code_seq"/>
+        <result property="groupCode" column="group_code"/>
+        <result property="code" column="code"/>
+        <result property="codeName" column="code_name"/>
+        <result property="description" column="description"/>
+        <result property="refValue" column="ref_value"/>
+        <result property="isActive" column="is_active"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- ===== 코드 그룹 ===== -->
+
+    <!-- 그룹 목록 조회 (검색 조건 선택) -->
+    <select id="findGroups" resultMap="CodeGroupResultMap">
+        SELECT * FROM common_code_groups
+        WHERE 1=1
+        <if test="groupName != null and groupName != ''">
+            AND LOWER(group_name) LIKE CONCAT('%', LOWER(#{groupName}), '%')
+        </if>
+        <if test="isActive != null">
+            AND is_active = #{isActive}
+        </if>
+        ORDER BY sort_order ASC, group_code ASC
+    </select>
+
+    <!-- 그룹 단건 조회 (PK) -->
+    <select id="findGroupById" resultMap="CodeGroupResultMap">
+        SELECT * FROM common_code_groups
+        WHERE group_seq = #{id}
+    </select>
+
+    <!-- 그룹 단건 조회 (비즈니스 키) -->
+    <select id="findGroupByCode" resultMap="CodeGroupResultMap">
+        SELECT * FROM common_code_groups
+        WHERE group_code = #{groupCode}
+    </select>
+
+    <!-- 그룹 생성 -->
+    <insert id="insertGroup" parameterType="com.worksystem.dto.CommonCodeGroupDTO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO common_code_groups (
+            group_code, group_name, description, is_system, is_active, sort_order
+        ) VALUES (
+            #{groupCode}, #{groupName}, #{description},
+            COALESCE(#{isSystem}, FALSE), COALESCE(#{isActive}, TRUE), COALESCE(#{sortOrder}, 0)
+        )
+    </insert>
+
+    <!-- 그룹 수정 (group_code 비즈니스 키는 변경 불가 — SQL에서 제외) -->
+    <update id="updateGroup" parameterType="com.worksystem.dto.CommonCodeGroupDTO">
+        UPDATE common_code_groups SET
+            group_name = #{groupName},
+            description = #{description},
+            is_system = COALESCE(#{isSystem}, FALSE),
+            is_active = COALESCE(#{isActive}, TRUE),
+            sort_order = COALESCE(#{sortOrder}, 0)
+        WHERE group_seq = #{id}
+    </update>
+
+    <!-- 그룹 삭제 (하위 코드는 FK ON DELETE CASCADE) -->
+    <delete id="deleteGroup">
+        DELETE FROM common_code_groups
+        WHERE group_seq = #{id}
+    </delete>
+
+    <!-- ===== 상세 코드 ===== -->
+
+    <!-- 그룹의 상세 코드 목록 조회 -->
+    <select id="findCodesByGroup" resultMap="CodeResultMap">
+        SELECT * FROM common_codes
+        WHERE group_code = #{groupCode}
+        ORDER BY sort_order ASC, code ASC
+    </select>
+
+    <!-- 상세 코드 단건 조회 (PK) -->
+    <select id="findCodeById" resultMap="CodeResultMap">
+        SELECT * FROM common_codes
+        WHERE code_seq = #{id}
+    </select>
+
+    <!-- 코드 중복 확인 -->
+    <select id="existsCode" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM common_codes
+        WHERE group_code = #{groupCode} AND code = #{code}
+    </select>
+
+    <!-- 상세 코드 생성 -->
+    <insert id="insertCode" parameterType="com.worksystem.dto.CommonCodeDTO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO common_codes (
+            group_code, code, code_name, description, ref_value, is_active, sort_order
+        ) VALUES (
+            #{groupCode}, #{code}, #{codeName}, #{description}, #{refValue},
+            COALESCE(#{isActive}, TRUE), COALESCE(#{sortOrder}, 0)
+        )
+    </insert>
+
+    <!-- 상세 코드 수정 (group_code/code 비즈니스 키는 변경 불가 — SQL에서 제외) -->
+    <update id="updateCode" parameterType="com.worksystem.dto.CommonCodeDTO">
+        UPDATE common_codes SET
+            code_name = #{codeName},
+            description = #{description},
+            ref_value = #{refValue},
+            is_active = COALESCE(#{isActive}, TRUE),
+            sort_order = COALESCE(#{sortOrder}, 0)
+        WHERE code_seq = #{id}
+    </update>
+
+    <!-- 상세 코드 삭제 -->
+    <delete id="deleteCode">
+        DELETE FROM common_codes
+        WHERE code_seq = #{id}
+    </delete>
+
+    <!-- ===== 소비(enum)용: 활성 코드만 정렬 순으로 ===== -->
+    <select id="findActiveCodesByGroup" resultMap="CodeResultMap">
+        SELECT * FROM common_codes
+        WHERE group_code = #{groupCode}
+          AND is_active = TRUE
+        ORDER BY sort_order ASC, code ASC
+    </select>
+
+</mapper>

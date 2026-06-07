@@ -111,6 +111,15 @@ public class MainController {
     }
 
     /**
+     * 공통코드 관리 페이지 (마스터-디테일 — 데이터는 /api/common-codes 로 로드)
+     */
+    @GetMapping("/code-management")
+    public String codeManagement(Model model) {
+        model.addAttribute("pageTitle", "공통코드 관리");
+        return "pages/code-management";
+    }
+
+    /**
      * 개인 정보 관리 페이지 (내 프로필 — 데이터는 /api/users/me 로 로드)
      */
     @GetMapping("/my-profile")
