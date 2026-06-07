@@ -400,12 +400,13 @@
            saveAllData(noticeGrid, API_BASE, loadNotices)
         }
 
-        // 페이지 종료시 호출 (부모 프레임에서 호출)
+        // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단
         function onPageClose() {
             // 변경사항이 있는지 확인하고 경고
-            if (noticeGrid && noticeGrid.getChangedData().length > 0) {
+            if (noticeGrid && noticeGrid.hasUnsavedData()) {
                 return '저장하지 않은 변경사항이 있습니다. 정말 페이지를 닫으시겠습니까?';
             }
+            return true;
         }
     </script>
 </body>

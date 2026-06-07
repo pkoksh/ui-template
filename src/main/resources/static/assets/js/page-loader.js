@@ -184,6 +184,11 @@ function switchToTab(contentId) {
     }
 }
 
+// 페이지 iframe 조회 함수 (탭 닫기 전 onPageClose 호출 등에 사용)
+function getPageIframe(contentId) {
+    return iframeMap.get(contentId) || null;
+}
+
 // 페이지 정리 함수 (탭 닫기 시 호출)
 function cleanupPage(contentId) {
     removeIframe(contentId);

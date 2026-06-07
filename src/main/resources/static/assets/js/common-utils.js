@@ -570,11 +570,18 @@ window.formatRelativeTime = function(date) {
 // ================================
 
 /**
- * 페이지 종료시 호출되는 함수 (iframe용)
+ * 페이지(탭) 닫기 전 셸(tabs.js)이 호출하는 함수 (iframe용 기본 구현)
+ *
+ * 각 페이지에서 같은 이름의 함수를 정의해 덮어쓰면 된다. 반환값 계약:
+ * - false        → 탭 닫기 차단 (페이지가 자체적으로 안내한 경우)
+ * - 문자열       → 셸이 해당 메시지로 확인창 표시, 사용자가 취소하면 닫기 중단
+ * - true/없음    → 탭 닫기 진행
+ * - Promise      → resolve 값에 위 규칙 적용 (비동기 확인 가능)
  */
 window.onPageClose = function() {
     console.log('페이지가 종료됩니다.');
     // 필요시 정리 작업 수행
+    return true;
 };
 
 /**

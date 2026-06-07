@@ -92,11 +92,60 @@ function switchToTab(contentId) {
     updateTabCount();
 }
 
+// 닫기 진행 중인 탭 (확인창 중복 표시 방지)
+const closingTabs = new Set();
+
+// 페이지(iframe)에 닫아도 되는지 묻기
+// onPageClose() 반환값 계약: false → 닫기 차단, 문자열 → 확인창 표시(취소 시 차단),
+// true/undefined → 닫기 진행, Promise → resolve 값에 동일 규칙 적용
+async function requestPageClose(contentId) {
+    try {
+        const iframe = window.getPageIframe ? window.getPageIframe(contentId) : null;
+        const handler = iframe && iframe.contentWindow && iframe.contentWindow.onPageClose;
+        if (typeof handler !== 'function') {
+            return true;
+        }
+        const result = await handler();
+
+        if (result === false) {
+            return false;
+        }
+
+        if (typeof result === 'string') {
+            // 페이지가 경고 메시지를 반환하면 확인창 표시 (common-utils.js 공통 헬퍼)
+            const answer = await showConfirm(result, '페이지 닫기', '닫기', '취소');
+            return answer.isConfirmed;
+        }
+
+        return true;
+    } catch (error) {
+        // 오류가 닫기를 영구 차단하지 않도록 닫기 진행 (fail-open)
+        console.error(`페이지 닫기 확인 중 오류 (${contentId}):`, error);
+        return true;
+    }
+}
+
 // 탭 닫기
-function closeTab(contentId) {
+async function closeTab(contentId) {
     console.log('closeTab 함수 호출됨:', contentId);
     console.log('현재 열린 탭 수:', openTabs.length);
-    
+
+    // 이미 닫기 확인이 진행 중이면 무시
+    if (closingTabs.has(contentId)) {
+        return;
+    }
+
+    // 페이지에 닫기 가능 여부 확인 (미저장 변경 경고 등)
+    closingTabs.add(contentId);
+    try {
+        const canClose = await requestPageClose(contentId);
+        if (!canClose) {
+            return;
+        }
+    } finally {
+        closingTabs.delete(contentId);
+    }
+
     // iframe 정리
     if (window.cleanupPage) {
         window.cleanupPage(contentId);
@@ -107,13 +156,17 @@ function closeTab(contentId) {
     if (tabIndex !== -1) {
         openTabs.splice(tabIndex, 1);
     }
-    
-    // 닫은 탭이 활성 탭인 경우 다른 탭으로 전환
-    if (activeTab === contentId) {
-        if (openTabs.length > 0) {
-            const newActiveTab = openTabs[Math.max(0, tabIndex - 1)];
-            switchToTab(newActiveTab.id);
-        } else {
+
+    // 닫은 탭이 활성 탭이고 다른 탭이 남아 있으면 해당 탭으로 전환
+    // (셸 전역 switchToTab(script.js)이 내부에서 renderTabs()를 호출함)
+    if (activeTab === contentId && openTabs.length > 0) {
+        const newActiveTab = openTabs[Math.max(0, tabIndex - 1)];
+        window.switchToTab(newActiveTab.id);
+    } else {
+        // 비활성 탭을 닫았거나 마지막 탭을 닫은 경우 즉시 탭 바 갱신 (잔재 요소 방지)
+        renderTabs();
+
+        if (activeTab === contentId) {
             // 모든 탭이 닫혔을 때 환영 화면 표시
             activeTab = null;
             if (window.showWelcomeScreen) {
@@ -124,8 +177,6 @@ function closeTab(contentId) {
             }
             document.title = '업무시스템'; // 브라우저 탭 제목 초기화
         }
-    } else {
-        renderTabs();
     }
     
     // 탭이 하나도 없으면 환영 화면 표시 (추가 안전장치)

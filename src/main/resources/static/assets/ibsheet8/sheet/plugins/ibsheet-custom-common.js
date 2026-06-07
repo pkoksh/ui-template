@@ -16,6 +16,14 @@ IBSheet.CommonOptions.Def.InfoRow =  {Color:"#f9fafb"};
 IBSheet.CommonOptions.Def.Row.Height = 40;
 IBSheet.CommonOptions.Def.Header.Height = 40;
 
+// 저장하지 않은 변경(추가/수정/삭제)이 있는지 확인
+// (getSaveJson은 필수값 검증 실패 시 빈 데이터를 반환하므로 dirty 체크에는 상태 조회를 사용)
+IBSheet.Plugins.hasUnsavedData = function() {
+  return this.getRowsByStatus('Added').length > 0
+      || this.getRowsByStatus('Changed').length > 0
+      || this.getRowsByStatus('Deleted').length > 0;
+};
+
 // getSaveJson() 함수 커스터마이즈
 IBSheet.Plugins.getSaveJson2 = function(params) {
   let result;

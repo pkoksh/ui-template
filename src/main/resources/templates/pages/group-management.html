@@ -473,12 +473,20 @@
             }
         }
 
-        // 페이지 종료시 호출 (부모 프레임에서 호출)
+        // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단
         function onPageClose() {
-            // 변경사항이 있는지 확인하고 경고
-            if (groupGrid && groupGrid.getChangedData().length > 0) {
+            // 그룹 그리드 변경사항 확인
+            if (groupGrid && groupGrid.hasUnsavedData()) {
                 return '저장하지 않은 변경사항이 있습니다. 정말 페이지를 닫으시겠습니까?';
             }
+            // 권한 설정 모달이 열려 있으면 권한 그리드 변경사항도 확인
+            // (모달이 닫혀 있으면 검사하지 않음 — 모달은 열 때마다 loadSearchData로 재적재되므로
+            //  닫힌 모달의 잔여 변경 상태는 이미 폐기된 것으로 간주)
+            const permissionModalOpen = !document.getElementById('permission-modal').classList.contains('hidden');
+            if (permissionModalOpen && permissionGrid && permissionGrid.hasUnsavedData()) {
+                return '저장하지 않은 권한 변경사항이 있습니다. 정말 페이지를 닫으시겠습니까?';
+            }
+            return true;
         }
     </script>
 </body>
