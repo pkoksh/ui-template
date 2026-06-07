@@ -88,6 +88,20 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(message);
     }
 
+    /**
+     * DB 무결성 제약 위반 (UNIQUE 중복, FK 참조 오류 등) — 도메인 검사를 통과하지 못한 경우의 안전망.
+     * 가능하면 각 서비스에서 사전 검사로 더 구체적인 메시지를 제공할 것 (예: "이미 존재하는 메뉴 ID입니다: X").
+     */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException e) {
+        log.warn("데이터 무결성 위반: {}", e.getMessage());
+        String message = (e instanceof org.springframework.dao.DuplicateKeyException)
+                ? "이미 존재하는 값이 있어 저장할 수 없습니다."
+                : "데이터 제약 조건을 위반했습니다. (중복 또는 참조 오류)";
+        return ApiResponse.error(message);
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleException(Exception e) {

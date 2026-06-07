@@ -143,6 +143,10 @@ public class MenuService {
      * 메뉴 생성
      */
     public MenuDTO createMenu(MenuDTO menuDTO) {
+        // 메뉴 ID 중복 검사 — DB UNIQUE 위반(500) 대신 구체 메시지로 400 응답
+        if (menuMapper.findByMenuId(menuDTO.getMenuId()) != null) {
+            throw new IllegalArgumentException("이미 존재하는 메뉴 ID입니다: " + menuDTO.getMenuId());
+        }
         Menu menu = convertToEntity(menuDTO);
         menuMapper.insert(menu);
         return convertToDTO(menu);
