@@ -80,9 +80,10 @@ public class GroupController {
 
     /**
      * 그룹 저장 (IBSheet 일괄 저장 — status 'I'/'U'/'D' 분기)
+     * 주의: @Valid는 List 요소로 전파되지 않으므로 List<@Valid ...> 요소 제약 사용 (클래스 @Validated와 함께 동작)
      */
     @PostMapping
-    public ApiResponse<List<Group>> saveGroup(@Valid @RequestBody List<GroupDTO> groupDTOs) {
+    public ApiResponse<List<Group>> saveGroup(@RequestBody List<@Valid GroupDTO> groupDTOs) {
         log.info("그룹 저장 API 호출 - 그룹 수: {}", groupDTOs.size());
 
         boolean result = groupService.saveGroup(groupDTOs);

@@ -118,9 +118,10 @@ public class UserController {
 
     /**
      * 사용자 저장 (IBSheet 일괄 저장 — status 'I'/'U'/'D' 분기)
+     * 주의: @Valid는 List 요소로 전파되지 않으므로 List<@Valid ...> 요소 제약 사용 (클래스 @Validated와 함께 동작)
      */
     @PostMapping
-    public ApiResponse<Void> saveUsers(@Valid @RequestBody List<UserDTO> userDTOs) {
+    public ApiResponse<Void> saveUsers(@RequestBody List<@Valid UserDTO> userDTOs) {
         log.info("사용자 저장 API 호출 - 사용자 수: {}", userDTOs.size());
 
         boolean result = userService.saveUsers(userDTOs);
