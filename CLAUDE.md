@@ -73,6 +73,7 @@ SPA 셸 + iframe 페이지 구조:
 - `assets/js/common-utils.js`: 전역 헬퍼 — `showToast/showSuccess/showError/showConfirm/showDeleteConfirm`(SweetAlert2), `apiGet/apiPost/apiPut/apiDelete`(Axios), `getFormData`, `formatDate`, `getEnumInfo` 등. 직접 fetch/alert 대신 이것들을 사용할 것. **api 헬퍼는 응답 바디(ApiResponse)를 반환하며, 2xx라도 `success===false`면 reject** — 호출부는 catch만 처리하면 됨. 그리드 적재는 `grid.loadSearchData({data: response.data})` 형태(IBSheet는 `data` 키를 가진 객체를 기대, **숨겨진(비활성 탭) 그리드는 적재 거부**하므로 보이는 상태에서 호출)
 - `assets/js/library-config.js`: Axios 전역 인터셉터 — 401(세션만료→로그인 이동, iframe 내부면 부모 reload)/403(권한없음) 공통 처리
 - `assets/ibsheet8/sheet/plugins/ibsheet-custom-common.js`: IBSheet8 공통 — `IB_Preset.CSTATUS`(행 상태 아이콘 컬럼), `getSaveJson2(sheet, params)`(Bool→0/1 변환, 트리면 `params.treeId`로 parentId 부착), `saveAllData(grid, apiBase, opt, callback)`(표준 저장 함수). **ibsheet-head fragment를 include한 페이지에서만 사용 가능**
+- **공통코드 소비 패턴**: 코드성 선택지(IBSheet Enum 컬럼, select 옵션)는 하드코딩 금지 — 서버 주입(`EnumMaker.getCommonCodeEnum("그룹코드")` → 모델 → `getEnumInfo(enum)`) 또는 동적 로드(`GET /api/common-codes/enum/{groupCode}`) 사용. 마스터-디테일 그리드 페이지는 `code-management.html`이 본보기(onFocus cascade, `IgnoreFocused:2`, `onSearchFinish` 첫행 focus, `onBeforeFocus` 미저장 보호)
 - `templates/fragments/common.html`: head fragment 모음 — `common-head`(Tailwind/jQuery/Axios/SweetAlert2/공통JS), `ibsheet-head`(common + IBSheet), `loading-spinner` 등. 사용법: `<th:block th:replace="~{fragments/common :: ibsheet-head}">` (상세는 manual.txt)
 
 ### 데이터베이스
@@ -107,13 +108,13 @@ SPA 셸 + iframe 페이지 구조:
 | 탭 닫기 시 미저장 변경 경고 (`onPageClose()` 계약 + 닫기 취소) | ✅ |
 | REST 응답 표준 (`ApiResponse` + `GlobalExceptionHandler` 전역 예외 처리) | ✅ |
 | 개인 정보 관리 (내 프로필 수정 + 본인 비밀번호 변경 — `/api/users/me`, 폼 기반 페이지 본보기) | ✅ |
+| 공통코드 관리 (그룹/상세 2테이블, 마스터-디테일 화면, 소비 API `{code,text}` — 설계: `docs/common-code-design.md`) | ✅ |
 | 대시보드 | ⚠️ stub — 통계가 Math.random() 더미, 실데이터 API 없음 |
 
 ### 로드맵 (목표 메뉴 구조 대비 미구현 — "앞으로 만들 것")
 
-목표 메뉴 트리(시스템 관리 하위): 메뉴관리✅ / 사용자관리✅ / 그룹관리✅ / 개인 정보 관리✅ / **공통코드 관리❌ / 접속 로그(세션)❌ / 게시판 관리(범용)❌ / 다국어❌**
+목표 메뉴 트리(시스템 관리 하위): 메뉴관리✅ / 사용자관리✅ / 그룹관리✅ / 개인 정보 관리✅ / 공통코드 관리✅ / **접속 로그(세션)❌ / 게시판 관리(범용)❌ / 다국어❌**
 
-- **공통코드 관리**: 테이블/CRUD/API/페이지 전부 신규. 현재는 EnumMaker(util/)가 그룹 한정으로만 IBSheet Enum 공급
 - **접속 로그(세션) 관리**: 로그인 이력 테이블 + 활성 세션 조회/강제만료 화면 (SessionRegistry Bean은 이미 있음, SPRING_SESSION 테이블 활용 가능)
 - **게시판 관리**: 범용 게시판(게시판 정의 + 게시글). 현재 notices는 단일 공지 기능
 - **다국어(i18n)**: MessageSource/리소스/관리 화면 전부 신규

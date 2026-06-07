@@ -43,17 +43,20 @@ public class CommonCodeService {
 
     /**
      * 코드 그룹 일괄 저장 (IBSheet status 'I'/'U'/'D' 분기)
+     * D를 먼저 처리한다 — 같은 키를 삭제 후 재생성(D+I)하는 요청이 행 순서와 무관하게 동작하도록.
      */
     @Transactional
     public boolean saveGroups(List<CommonCodeGroupDTO> groups) {
         log.info("공통코드 그룹 저장 요청 - {}건", groups.size());
 
+        groups.forEach(dto -> requireValidStatus(dto.getStatus()));
+        for (CommonCodeGroupDTO dto : groups) {
+            if ("D".equals(dto.getStatus())) deleteGroup(dto);
+        }
         for (CommonCodeGroupDTO dto : groups) {
             switch (dto.getStatus()) {
-                case "I" -> createGroup(dto);
                 case "U" -> updateGroup(dto);
-                case "D" -> deleteGroup(dto);
-                default -> log.warn("알 수 없는 상태: {}", dto.getStatus());
+                case "I" -> createGroup(dto);
             }
         }
         return true;
@@ -87,6 +90,9 @@ public class CommonCodeService {
 
     /** U/D 대상 기존 그룹 조회 — id(대리키) 우선, 없으면 groupCode로 보조 식별 */
     private CommonCodeGroup findExistingGroup(Long id, String groupCode) {
+        if (id == null && (groupCode == null || groupCode.isBlank())) {
+            throw new IllegalArgumentException("그룹 식별자(id 또는 groupCode)가 없습니다.");
+        }
         CommonCodeGroup existing = (id != null)
                 ? commonCodeMapper.findGroupById(id)
                 : commonCodeMapper.findGroupByCode(groupCode);
@@ -94,6 +100,13 @@ public class CommonCodeService {
             throw new NoSuchElementException("그룹을 찾을 수 없습니다: " + (id != null ? "seq=" + id : groupCode));
         }
         return existing;
+    }
+
+    /** IBSheet 행 상태 검증 — null/미지원 값은 400으로 통일 (조용한 무시 방지) */
+    private void requireValidStatus(String status) {
+        if (!"I".equals(status) && !"U".equals(status) && !"D".equals(status)) {
+            throw new IllegalArgumentException("알 수 없는 행 상태입니다: " + status);
+        }
     }
 
     // ===== 상세 코드 =====
@@ -105,17 +118,20 @@ public class CommonCodeService {
 
     /**
      * 상세 코드 일괄 저장 (IBSheet status 'I'/'U'/'D' 분기)
+     * D를 먼저 처리한다 — 같은 키를 삭제 후 재생성(D+I)하는 요청이 행 순서와 무관하게 동작하도록.
      */
     @Transactional
     public boolean saveCodes(List<CommonCodeDTO> codes) {
         log.info("공통코드 저장 요청 - {}건", codes.size());
 
+        codes.forEach(dto -> requireValidStatus(dto.getStatus()));
+        for (CommonCodeDTO dto : codes) {
+            if ("D".equals(dto.getStatus())) deleteCode(dto);
+        }
         for (CommonCodeDTO dto : codes) {
             switch (dto.getStatus()) {
-                case "I" -> createCode(dto);
                 case "U" -> updateCode(dto);
-                case "D" -> deleteCode(dto);
-                default -> log.warn("알 수 없는 상태: {}", dto.getStatus());
+                case "I" -> createCode(dto);
             }
         }
         return true;

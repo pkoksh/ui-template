@@ -1,6 +1,7 @@
 package com.worksystem.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +24,7 @@ public class CommonCodeDTO {
 
     @NotBlank(message = "코드값은 필수입니다")
     @Size(max = 50, message = "코드값은 50자 이하여야 합니다")
+    @Pattern(regexp = "[A-Za-z0-9_-]+", message = "코드값은 영문/숫자/언더스코어/하이픈만 사용할 수 있습니다")
     private String code;
 
     @NotBlank(message = "코드명은 필수입니다")

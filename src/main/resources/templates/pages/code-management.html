@@ -135,6 +135,8 @@
                         handleGroupFocus(evt.row);
                     },
                     // 미저장 디테일 변경 보호 — 차단 후 confirm, 확인 시 bypass 플래그로 재이동
+                    // (마스터 자신의 미저장 변경은 검사하지 않음 — 행 이동으로 폐기되지 않고
+                    //  그리드에 그대로 남아 '그룹 저장' 버튼으로 일괄 반영되므로 유실이 없음)
                     onBeforeFocus: function(evt) {
                         if (bypassBeforeFocus) { bypassBeforeFocus = false; return; }
                         if (evt.row === evt.orow) return;
@@ -183,8 +185,8 @@
                 Cols: [
                     { Header: "No", Type: "Int", Name: "SEQ", Width: 50, Align: "Center", CanEdit: 0, RelWidth: 0 },
                     { Header: "상태", Name: "status", Extend: IB_Preset.CSTATUS, RelWidth: 0, Width: 50 },
-                    // 소속 그룹 (직렬화용 — 화면에는 숨김)
-                    { Header: "그룹", Type: "Text", Name: "groupCode", Visible: 0, CanEdit: 0 },
+                    // 소속 그룹 (직렬화용 — 화면에는 숨김. Required로 init 누락을 직렬화 전에 차단)
+                    { Header: "그룹", Type: "Text", Name: "groupCode", Visible: 0, CanEdit: 0, Required: 1 },
                     // 비즈니스 키: 신규만 입력 가능
                     { Header: "코드", Type: "Text", Name: "code", MinWidth: 90, CanEdit: 1, AddEdit: 1, ChangeEdit: 0, Required: 1 },
                     { Header: "코드명", Type: "Text", Name: "codeName", MinWidth: 120, CanEdit: 1, Required: 1 },
@@ -221,6 +223,12 @@
 
         // 그룹 목록 로드
         async function loadGroups() {
+            // 재조회는 onSearchFinish → 첫행 focus → 디테일 재적재로 이어져 미저장 코드 변경이 폐기됨
+            // (onBeforeFocus를 거치지 않는 경로이므로 여기서 별도 보호)
+            if (codeGrid && codeGrid.hasUnsavedData()) {
+                const answer = await showConfirm('저장하지 않은 코드 변경사항이 있습니다. 버리고 조회하시겠습니까?', '확인', '조회', '취소');
+                if (!answer.isConfirmed) return;
+            }
             try {
                 document.getElementById('loading').classList.remove('hidden');
                 const groupName = document.getElementById('search-group-name').value.trim();
@@ -329,7 +337,9 @@
                 showWarning('그룹을 먼저 선택해주세요.');
                 return;
             }
-            await saveAllData(codeGrid, `${API_BASE}/codes`, {}, function() { loadCodes(currentGroupCode); });
+            // 저장 진행 중 그룹이 바뀌어도 저장 시점의 그룹을 재조회하도록 캡처
+            const groupCode = currentGroupCode;
+            await saveAllData(codeGrid, `${API_BASE}/codes`, {}, function() { loadCodes(groupCode); });
         }
 
         // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단

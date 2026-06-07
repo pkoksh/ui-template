@@ -43,9 +43,10 @@ public class CommonCodeController {
 
     /**
      * 코드 그룹 일괄 저장 (IBSheet status 'I'/'U'/'D')
+     * 주의: @Valid는 List 요소로 전파되지 않으므로 List<@Valid ...> 요소 제약 사용 (클래스 @Validated와 함께 동작)
      */
     @PostMapping("/groups")
-    public ApiResponse<Void> saveGroups(@Valid @RequestBody List<CommonCodeGroupDTO> groups) {
+    public ApiResponse<Void> saveGroups(@RequestBody List<@Valid CommonCodeGroupDTO> groups) {
         log.info("공통코드 그룹 저장 API 호출 - {}건", groups.size());
         commonCodeService.saveGroups(groups);
         return ApiResponse.okMessage("코드 그룹이 성공적으로 저장되었습니다.");
@@ -63,7 +64,7 @@ public class CommonCodeController {
      * 상세 코드 일괄 저장 (IBSheet status 'I'/'U'/'D')
      */
     @PostMapping("/codes")
-    public ApiResponse<Void> saveCodes(@Valid @RequestBody List<CommonCodeDTO> codes) {
+    public ApiResponse<Void> saveCodes(@RequestBody List<@Valid CommonCodeDTO> codes) {
         log.info("공통코드 저장 API 호출 - {}건", codes.size());
         commonCodeService.saveCodes(codes);
         return ApiResponse.okMessage("코드가 성공적으로 저장되었습니다.");

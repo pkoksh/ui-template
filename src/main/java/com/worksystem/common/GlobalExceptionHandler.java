@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.util.NoSuchElementException;
 
@@ -54,6 +55,34 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .orElse("입력값이 올바르지 않습니다.");
+        log.warn("입력 검증 실패: {}", message);
+        return ApiResponse.error(message);
+    }
+
+    /**
+     * 컨테이너 요소 검증 실패 (예: List<@Valid Dto> — IBSheet 일괄 저장의 행 단위 검증)
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMethodValidation(HandlerMethodValidationException e) {
+        String message = e.getAllErrors().stream()
+                .findFirst()
+                .map(err -> err.getDefaultMessage())
+                .orElse("입력값이 올바르지 않습니다.");
+        log.warn("입력 검증 실패: {}", message);
+        return ApiResponse.error(message);
+    }
+
+    /**
+     * @Validated 클래스의 메서드 파라미터 검증 실패 (List<@Valid Dto> 요소 제약이 이 경로로 들어옴)
+     */
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleConstraintViolation(jakarta.validation.ConstraintViolationException e) {
+        String message = e.getConstraintViolations().stream()
+                .findFirst()
+                .map(v -> v.getMessage())
                 .orElse("입력값이 올바르지 않습니다.");
         log.warn("입력 검증 실패: {}", message);
         return ApiResponse.error(message);

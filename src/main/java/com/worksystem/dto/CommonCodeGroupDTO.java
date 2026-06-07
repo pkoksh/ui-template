@@ -1,6 +1,7 @@
 package com.worksystem.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,6 +21,7 @@ public class CommonCodeGroupDTO {
 
     @NotBlank(message = "그룹 코드는 필수입니다")
     @Size(max = 50, message = "그룹 코드는 50자 이하여야 합니다")
+    @Pattern(regexp = "[A-Za-z0-9_-]+", message = "그룹 코드는 영문/숫자/언더스코어/하이픈만 사용할 수 있습니다")
     private String groupCode;
 
     @NotBlank(message = "그룹명은 필수입니다")

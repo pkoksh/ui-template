@@ -1,6 +1,8 @@
 # 공통코드 관리 설계문서
 
-> 작성일: 2026-06-07 · 상태: **설계 확정(구현 전)** · 로드맵: CLAUDE.md "공통코드 관리"
+> 작성일: 2026-06-07 · 상태: **구현 완료** (커밋 3d3c988 기능, 8f37737 적용 사례) · 로드맵: CLAUDE.md "공통코드 관리"
+>
+> 구현 시 설계 보강 1건: 비즈니스 키(group_code/code) 변경은 is_system 여부와 무관하게 **전면 금지** — FK CASCADE에 ON UPDATE가 없어 일반 그룹도 키 변경 시 FK가 깨지기 때문 (§6의 is_system 한정 검증보다 강화됨)
 
 ## 1. 개요
 
@@ -96,6 +98,8 @@ CREATE TABLE common_codes (
 > ⚠️ 업무 테이블이 코드값을 **값으로 참조**(FK 아님)하는 경우 그룹/코드 삭제 시 끊긴 참조가 생길 수 있다. 코드는 삭제보다 **is_active=false 비활성화**를 권장 — 관리 화면 안내 문구에 포함할 것.
 
 ### 시드 데이터 (본보기 — 실제 이중 관리 제거 사례)
+
+> 구현 시 메뉴/권한 시드는 아래 별도 블록이 아니라 schema.sql 상단의 기존 menus/group_menu_permissions 통합 INSERT에 합쳐졌다 (기능 동일).
 
 ```sql
 INSERT INTO common_code_groups (group_code, group_name, description, is_system, sort_order) VALUES
