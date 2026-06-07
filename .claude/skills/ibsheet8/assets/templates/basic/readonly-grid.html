@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>조회용 그리드</title>
+  <link rel="stylesheet" href="../../../ibsheet/css/default/main.css">
+  <script src="../../../ibsheet/ibsheet.js"></script>
+  <script src="../../../ibsheet/locale/ko.js"></script>
+</head>
+<body>
+  <div id="sheetContainer" style="width:100%;height:500px;"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      IBSheet.create({
+        id: "sheet",
+        el: "sheetContainer",
+        options: {
+          Cfg: {
+            SearchMode: 0,  // FastLoad (가상 스크롤)
+            CanEdit: 0,
+            ShowFilter: 1  // 필터행 표시
+          },
+          Cols: [
+            { Header: "주문번호", Name: "orderNo", Type: "Text", Width: 100 },
+            { Header: "고객명", Name: "customerName", Type: "Text", Width: 100 },
+            { Header: "상품명", Name: "productName", Type: "Text", Width: 150 },
+            { Header: "수량", Name: "quantity", Type: "Int", Width: 80, Align: "Right", FormulaRow: "Sum" },
+            { Header: "단가", Name: "price", Type: "Int", Width: 100, Align: "Right", Format: "#,##0", FormulaRow: "Avg" },
+            { Header: "금액", Name: "amount", Type: "Int", Width: 100, Align: "Right", Format: "#,##0", FormulaRow: "Sum" },
+            { Header: "상태", Name: "status", Type: "Text", Width: 80, Align: "Center" },
+            { Header: "주문일", Name: "orderDate", Type: "Date", Width: 100, Format: "yyyy-MM-dd" }
+          ],
+          Events: {
+            onRenderFirstFinish: function(evt) {
+              evt.sheet.loadSearchData({
+                data: [
+                  { orderNo: "ORD-001", customerName: "홍길동", productName: "노트북", quantity: 1, price: 1500000, amount: 1500000, status: "완료", orderDate: "2024-01-15" },
+                  { orderNo: "ORD-002", customerName: "김철수", productName: "마우스", quantity: 5, price: 25000, amount: 125000, status: "배송중", orderDate: "2024-01-18" },
+                  { orderNo: "ORD-003", customerName: "이영희", productName: "키보드", quantity: 2, price: 80000, amount: 160000, status: "준비중", orderDate: "2024-01-20" }
+                ]
+              });
+            },
+            onDblClick: function(evt) {
+              alert("주문번호: " + evt.sheet.getValue(evt.row, "orderNo"));
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>일괄 저장 CRUD</title>
+  <link rel="stylesheet" href="../../../ibsheet/css/default/main.css">
+  <script src="../../../ibsheet/ibsheet.js"></script>
+  <script src="../../../ibsheet/locale/ko.js"></script>
+</head>
+<body>
+  <button onclick="addNewRow()">행 추가</button>
+  <button onclick="addMultipleRows()">10행 추가</button>
+  <button onclick="deleteChecked()">선택 삭제</button>
+  <button onclick="cancelChanges()">변경 취소</button>
+  <button onclick="saveAll()">일괄 저장</button>
+  <div id="sheetContainer" style="width:100%;height:500px;"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      IBSheet.create({
+        id: "sheet",
+        el: "sheetContainer",
+        options: {
+          Cfg: {
+            SearchMode: 0,
+            CanEdit: 1
+          },
+          Cols: [
+            { Header: "선택", Name: "chk", Type: "Bool", Width: 50 },
+            { Header: "주문일", Name: "orderDate", Type: "Date", Width: 110, Align: "Center", Format: "yyyy-MM-dd", Required: 1 },
+            { Header: "고객명", Name: "customerName", Type: "Text", Width: 120, Required: 1 },
+            { Header: "연락처", Name: "phone", Type: "Text", Width: 120, EditMask: "^[0-9\\-]*$" },
+            { Header: "상품명", Name: "productName", Type: "Text", Width: 150, Required: 1 },
+            { Header: "수량", Name: "quantity", Type: "Int", Width: 70, Align: "Right", DefaultValue: 1 },
+            { Header: "단가", Name: "unitPrice", Type: "Int", Width: 100, Align: "Right", Format: "#,##0" },
+            { Header: "금액", Name: "amount", Type: "Int", Width: 120, Align: "Right", Format: "#,##0원", CanEdit: 0 },
+            { Header: "배송지", Name: "address", Type: "Text", Width: 200 },
+            { Header: "비고", Name: "remark", Type: "Text", Width: 150 }
+          ],
+          Events: {
+            onRenderFirstFinish: function(evt) {
+              // 샘플 데이터 로드
+              evt.sheet.loadSearchData({
+                data: [
+                  { orderDate: "2024-03-01", customerName: "홍길동", phone: "010-1234-5678", productName: "노트북", quantity: 2, unitPrice: 1500000, amount: 3000000, address: "서울시 강남구", remark: "" },
+                  { orderDate: "2024-03-02", customerName: "김철수", phone: "010-2345-6789", productName: "모니터", quantity: 3, unitPrice: 350000, amount: 1050000, address: "서울시 서초구", remark: "27인치" },
+                  { orderDate: "2024-03-03", customerName: "이영희", phone: "010-3456-7890", productName: "키보드", quantity: 5, unitPrice: 80000, amount: 400000, address: "경기도 성남시", remark: "기계식" },
+                  { orderDate: "2024-03-04", customerName: "박민수", phone: "010-4567-8901", productName: "마우스", quantity: 10, unitPrice: 45000, amount: 450000, address: "인천시 남동구", remark: "" },
+                  { orderDate: "2024-03-05", customerName: "최수진", phone: "010-5678-9012", productName: "헤드셋", quantity: 4, unitPrice: 120000, amount: 480000, address: "부산시 해운대구", remark: "무선" }
+                ]
+              });
+            },
+            onAfterChange: function(evt) {
+              // 금액 자동 계산
+              if (evt.col === "quantity" || evt.col === "unitPrice") {
+                let qty = evt.sheet.getValue(evt.row, "quantity") || 0;
+                let price = evt.sheet.getValue(evt.row, "unitPrice") || 0;
+                evt.sheet.setValue(evt.row, "amount", qty * price);
+              }
+            },
+            onKeyDown: function(evt) {
+              // Ctrl+S: 저장
+              if (evt.ctrlKey && evt.keyCode === 83) {
+                evt.event.preventDefault();
+                saveAll();
+                return 1;
+              }
+              // Ctrl+Enter: 행 추가
+              if (evt.ctrlKey && evt.keyCode === 13) {
+                evt.event.preventDefault();
+                addNewRow();
+                return 1;
+              }
+            }
+          }
+        }
+      });
+    });
+
+    function addNewRow() {
+      let sheet = window["sheet"];
+      let today = new Date().toISOString().slice(0, 10);
+      sheet.addRow({
+        init: { orderDate: today, quantity: 1 }
+      });
+    }
+
+    function addMultipleRows() {
+      for (let i = 0; i < 10; i++) {
+        addNewRow();
+      }
+    }
+
+    function deleteChecked() {
+      let sheet = window["sheet"];
+      let checkedRows = sheet.getRowsByChecked("chk");
+      if (checkedRows.length === 0) {
+        alert("삭제할 항목을 선택하세요.");
+        return;
+      }
+      if (!confirm(checkedRows.length + "건을 삭제하시겠습니까?")) return;
+      for (let i = 0; i < checkedRows.length; i++) {
+        sheet.deleteRow(checkedRows[i]);
+      }
+    }
+
+    function cancelChanges() {
+      let sheet = window["sheet"];
+      if (!confirm("모든 변경사항을 취소하시겠습니까?")) return;
+      sheet.revertData();
+    }
+
+    function saveAll() {
+      let sheet = window["sheet"];
+      sheet.doSave({
+        url: "/api/orders/save",
+        quest: 1
+      });
+    }
+  </script>
+</body>
+</html>

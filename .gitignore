@@ -137,3 +137,4 @@ files/
 
 # 캐시 디렉토리
 .cache/
+.playwright-mcp/

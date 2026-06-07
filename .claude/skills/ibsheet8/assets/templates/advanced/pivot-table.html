@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>피벗 테이블 - makePivotTable 활용</title>
+  <link rel="stylesheet" href="../../../ibsheet/css/default/main.css">
+  <script src="../../../ibsheet/ibsheet.js"></script>
+  <script src="../../../ibsheet/locale/ko.js"></script>
+  <style>
+    .btn-area { padding: 10px 0; }
+    .btn-area button { padding: 6px 14px; margin-right: 6px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <!-- 원본 시트 (피벗의 소스 데이터) -->
+  <div id="sheet" style="width:100%;height:300px;"></div>
+
+  <div class="btn-area">
+    <button onclick="doPivot()">피벗 생성</button>
+    <button onclick="switchToOriginal()">원본 시트 보기</button>
+    <button onclick="switchToPivot()">피벗 시트 보기</button>
+    <button onclick="disposePivot()">피벗 제거</button>
+  </div>
+
+  <script>
+    // 원본 데이터: 지역별/분기별 매출·비용
+    var rawData = [
+      { region: "서울", quarter: "Q1", sales: 150000000, cost: 90000000 },
+      { region: "서울", quarter: "Q2", sales: 180000000, cost: 100000000 },
+      { region: "서울", quarter: "Q3", sales: 200000000, cost: 110000000 },
+      { region: "서울", quarter: "Q4", sales: 220000000, cost: 120000000 },
+      { region: "경기", quarter: "Q1", sales: 120000000, cost: 75000000 },
+      { region: "경기", quarter: "Q2", sales: 140000000, cost: 85000000 },
+      { region: "경기", quarter: "Q3", sales: 160000000, cost: 95000000 },
+      { region: "경기", quarter: "Q4", sales: 180000000, cost: 105000000 },
+      { region: "부산", quarter: "Q1", sales: 80000000, cost: 50000000 },
+      { region: "부산", quarter: "Q2", sales: 95000000, cost: 58000000 },
+      { region: "부산", quarter: "Q3", sales: 110000000, cost: 68000000 },
+      { region: "부산", quarter: "Q4", sales: 125000000, cost: 78000000 },
+      { region: "대구", quarter: "Q1", sales: 60000000, cost: 38000000 },
+      { region: "대구", quarter: "Q2", sales: 72000000, cost: 45000000 },
+      { region: "대구", quarter: "Q3", sales: 85000000, cost: 52000000 },
+      { region: "대구", quarter: "Q4", sales: 98000000, cost: 60000000 }
+    ];
+
+    document.addEventListener("DOMContentLoaded", function() {
+      // 원본 시트 생성
+      IBSheet.create({
+        id: "sheet",
+        el: "sheet",
+        options: {
+          Cfg: {
+            SearchMode: 0,
+            CanEdit: 0,
+            ClickPivotFilter: true  // 피벗 셀 클릭 시 원본 시트에서 해당 데이터만 필터 표시
+          },
+          Cols: [
+            { Header: "지역", Name: "region", Type: "Text", Width: 100, Align: "Center" },
+            { Header: "분기", Name: "quarter", Type: "Text", Width: 80, Align: "Center" },
+            { Header: "매출", Name: "sales", Type: "Int", Width: 150, Align: "Right", Format: "#,##0" },
+            { Header: "비용", Name: "cost", Type: "Int", Width: 150, Align: "Right", Format: "#,##0" }
+          ],
+          Events: {
+            // 데이터 로드 완료 후 피벗 자동 생성
+            onSearchFinish: function(evt) {
+              doPivot();
+            }
+          }
+        }
+      });
+
+      // 원본 시트에 데이터 로드
+      window["sheet"].loadSearchData({ data: rawData });
+    });
+
+    // makePivotTable()을 사용한 피벗 생성
+    function doPivot() {
+      var sheet = window["sheet"];
+
+      // 피벗 대상 열 후보군 (사용자가 피벗 구성 변경 시 선택 가능한 열)
+      var criterias = {
+        row: "region,quarter",
+        col: "region,quarter",
+        data: "sales,cost"
+      };
+
+      // 실제 피벗 구성: 행=지역, 열=분기, 값=매출,비용
+      var init = {
+        row: "region",
+        col: "quarter",
+        data: "sales,cost"
+      };
+
+      sheet.makePivotTable(
+        criterias,                          // 피벗 대상 열 후보
+        init,                               // 실제 피벗 구성 (row, col, data)
+        "#,##0",                            // 값 포맷
+        "Sum,Sum",                          // 집계함수 (data 열 수와 일치: sales=Sum, cost=Sum)
+        function(evt) {                     // 피벗 생성 완료 콜백 (onRenderFirstFinish 시점)
+          console.log("피벗 시트 생성 완료:", evt.sheet.id);
+        },
+        { hideTotalRow: false, hideTotalCol: false }  // 행/열 합계 모두 표시
+      );
+    }
+
+    // 피벗 시트로 전환
+    function switchToPivot() {
+      var pivotSheet = window["pivotSheet_sheet"];
+      if (pivotSheet) {
+        pivotSheet.switchPivotSheet(1);
+      } else {
+        alert("피벗 시트가 생성되지 않았습니다. '피벗 생성' 버튼을 먼저 클릭하세요.");
+      }
+    }
+
+    // 원본 시트로 전환
+    function switchToOriginal() {
+      var pivotSheet = window["pivotSheet_sheet"];
+      if (pivotSheet) {
+        pivotSheet.switchPivotSheet(0);
+      }
+    }
+
+    // 피벗 시트 제거
+    function disposePivot() {
+      var sheet = window["sheet"];
+      if (sheet.PivotSheet) {
+        sheet.PivotSheet.dispose();
+        sheet.PivotSheet.switchPivotSheet();
+        delete sheet.PivotSheet;
+        console.log("피벗 시트가 제거되었습니다.");
+      }
+    }
+  </script>
+</body>
+</html>

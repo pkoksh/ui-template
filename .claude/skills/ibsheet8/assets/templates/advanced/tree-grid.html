@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>트리 그리드</title>
+  <link rel="stylesheet" href="../../../ibsheet/css/default/main.css">
+  <script src="../../../ibsheet/ibsheet.js"></script>
+  <script src="../../../ibsheet/plugins/ibsheet-common.js"></script>
+  <script src="../../../ibsheet/locale/ko.js"></script>
+</head>
+<body>
+  <button onclick="doExpandAll()">전체 펼치기</button>
+  <button onclick="doCollapseAll()">전체 접기</button>
+  <button onclick="doExpandLevel2()">2단계까지</button>
+  <button onclick="addSibling()">같은 레벨에 추가</button>
+  <button onclick="addChild()">하위레벨로 추가</button>
+  <button onclick="saveData()">저장</button>
+  <div id="sheetContainer" style="width:100%;height:500px;"></div>
+  <script>
+    // 트리 데이터 (Level 기반 평면 구조)
+    // Level 값으로 계층을 표현: 최상위 0, 하위는 부모보다 1씩 증가
+    var treeData = {
+      Data: [
+        { Level: 0, name: "대표이사", code: "CEO", headcount: 1, budget: 0 },
+        { Level: 1, name: "경영지원본부", code: "MGT", headcount: 15, budget: 500000000 },
+        { Level: 2, name: "인사팀", code: "HR", headcount: 5, budget: 100000000 },
+        { Level: 2, name: "재무팀", code: "FIN", headcount: 6, budget: 150000000 },
+        { Level: 2, name: "총무팀", code: "GA", headcount: 4, budget: 80000000 },
+        { Level: 1, name: "개발본부", code: "DEV", headcount: 45, budget: 2000000000 },
+        { Level: 2, name: "개발1팀", code: "DEV1", headcount: 15, budget: 600000000 },
+        { Level: 2, name: "개발2팀", code: "DEV2", headcount: 15, budget: 600000000 },
+        { Level: 2, name: "개발3팀", code: "DEV3", headcount: 10, budget: 400000000 },
+        { Level: 2, name: "QA팀", code: "QA", headcount: 5, budget: 200000000 },
+        { Level: 1, name: "영업본부", code: "SALES", headcount: 25, budget: 800000000 },
+        { Level: 2, name: "국내영업팀", code: "DOM", headcount: 15, budget: 500000000 },
+        { Level: 2, name: "해외영업팀", code: "INT", headcount: 10, budget: 300000000 },
+        { Level: 1, name: "마케팅본부", code: "MKT", headcount: 12, budget: 600000000 },
+        { Level: 2, name: "브랜드팀", code: "BRAND", headcount: 5, budget: 300000000 },
+        { Level: 2, name: "디지털마케팅팀", code: "DMKT", headcount: 7, budget: 300000000 }
+      ]
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+      IBSheet.create({
+        id: "sheet",
+        el: "sheetContainer",
+        options: {
+          Cfg: {
+            SearchMode: 0,
+            CanEdit: 1,
+            MainCol: "name",  // 트리가 표시될 열
+            CanDrag: 1
+          },
+          Cols: [
+            { Header: "조직명", Name: "name", Type: "Text", Width: 250, Required: 1 },
+            { Header: "코드", Name: "code", Type: "Text", Width: 80, Align: "Center" },
+            { Header: "인원", Name: "headcount", Type: "Int", Width: 70, Align: "Right" },
+            { Header: "예산", Name: "budget", Type: "Int", Width: 130, Align: "Right", Format: "#,##0원" }
+          ],
+          Events: {
+            onRenderFirstFinish: function(evt) {
+              // Level 기반 데이터를 Items 기반 계층 구조로 변환 후 로드
+              var convertData = IBSheet.v7.convertTreeData(treeData);
+              evt.sheet.loadSearchData(convertData);
+              evt.sheet.showTreeLevel(3, 0, 2);  // 3레벨까지 펼침
+            }
+          }
+        }
+      });
+    });
+
+    function doExpandAll() {
+      var sheet = window["sheet"];
+      sheet.showTreeLevel(99, 0, 2);  // 전체 펼치기
+    }
+
+    function doCollapseAll() {
+      var sheet = window["sheet"];
+      sheet.showTreeLevel(1);  // 최상위만 표시
+    }
+
+    function doExpandLevel2() {
+      var sheet = window["sheet"];
+      sheet.showTreeLevel(2, 0, 2);  // 2단계까지 펼침
+    }
+
+    // 현재 포커스된 행과 같은 레벨에 추가 (아래쪽 형제로)
+    function addSibling() {
+      var sheet = window["sheet"];
+      var focusedRow = sheet.getFocusedRow();
+      if (!focusedRow) { alert("행을 선택하세요."); return; }
+      var nextRow = sheet.getNextSiblingRow(focusedRow);
+      var parentRow = focusedRow.parentNode;
+      sheet.addRow({
+        next: nextRow,
+        parent: parentRow,
+        init: { name: "새 조직", code: "NEW", headcount: 0, budget: 0 }
+      });
+    }
+
+    // 현재 포커스된 행의 하위 레벨로 추가 (자식 노드 끝에)
+    function addChild() {
+      var sheet = window["sheet"];
+      var focusedRow = sheet.getFocusedRow();
+      if (!focusedRow) { alert("행을 선택하세요."); return; }
+      sheet.addRow({
+        parent: focusedRow,
+        init: { name: "새 조직", code: "NEW", headcount: 0, budget: 0 }
+      });
+    }
+
+    function saveData() {
+      var sheet = window["sheet"];
+      sheet.doSave({
+        url: "/api/organization/save",
+        quest: 1,
+        useLevel: 1
+      });
+    }
+  </script>
+</body>
+</html>

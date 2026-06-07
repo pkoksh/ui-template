@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>표준 CRUD</title>
+  <link rel="stylesheet" href="../../../ibsheet/css/default/main.css">
+  <script src="../../../ibsheet/ibsheet.js"></script>
+  <script src="../../../ibsheet/locale/ko.js"></script>
+</head>
+<body>
+  <button onclick="addRow()">행 추가</button>
+  <button onclick="deleteChecked()">선택행 삭제</button>
+  <button onclick="saveData()">저장</button>
+  <div id="sheetContainer" style="width:100%;height:500px;"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      IBSheet.create({
+        id: "sheet",
+        el: "sheetContainer",
+        options: {
+          Cfg: {
+            SearchMode: 0,  // FastLoad
+            CanEdit: 1
+          },
+          Def: {
+            Row: {
+              CanFormula: 1,
+              CalcOrder: "total"
+            }
+          },
+          Cols: [
+            { Header: "선택", Name: "chk", Type: "Bool", Width: 50 },
+            { Header: "ID", Name: "prodId", Type: "Int", Width: 60, CanEdit: 0, Align: "Center" },
+            { Header: "상품코드", Name: "productCode", Type: "Text", Width: 100, Required: 1 },
+            { Header: "상품명", Name: "productName", Type: "Text", Width: 200, Required: 1 },
+            {
+              Header: "카테고리",
+              Name: "category",
+              Type: "Enum",
+              Width: 100,
+              Enum: "|전자제품|의류|식품|기타",
+              EnumKeys: "|ELEC|CLOTH|FOOD|ETC"
+            },
+            { Header: "단가", Name: "price", Type: "Int", Width: 100, Align: "Right", Format: "#,##0" },
+            { Header: "수량", Name: "quantity", Type: "Int", Width: 80, Align: "Right", Format: "#,##0" },
+            {
+              Header: "합계",
+              Name: "total",
+              Type: "Int",
+              Width: 120,
+              Align: "Right",
+              Format: "#,##0원",
+              CanEdit: 0,
+              Formula: function(fr) {
+                return (fr.Row["price"] || 0) * (fr.Row["quantity"] || 0);
+              }
+            },
+            {
+              Header: "상태",
+              Name: "saleStatus",
+              Type: "Enum",
+              Width: 80,
+              Align: "Center",
+              Enum: "|판매중|중지",
+              EnumKeys: "|Y|N"
+            },
+            { Header: "등록일", Name: "regDate", Type: "Date", Width: 100, Align: "Center", Format: "yyyy-MM-dd" },
+            { Header: "비고", Name: "remark", Type: "Text", Width: 150 }
+          ],
+          Events: {
+            onRenderFirstFinish: function(evt) {
+              evt.sheet.loadSearchData({
+                data: [
+                  { prodId: 1, productCode: "P001", productName: "노트북", category: "ELEC", price: 1500000, quantity: 10, saleStatus: "Y", regDate: "2024-01-15" },
+                  { prodId: 2, productCode: "P002", productName: "마우스", category: "ELEC", price: 35000, quantity: 100, saleStatus: "Y", regDate: "2024-01-16", remark: "무선" },
+                  { prodId: 3, productCode: "P003", productName: "티셔츠", category: "CLOTH", price: 29000, quantity: 50, saleStatus: "Y", regDate: "2024-01-17" },
+                  { prodId: 4, productCode: "P004", productName: "청바지", category: "CLOTH", price: 59000, quantity: 30, saleStatus: "N", regDate: "2024-01-18", remark: "품절" },
+                  { prodId: 5, productCode: "P005", productName: "과자세트", category: "FOOD", price: 15000, quantity: 200, saleStatus: "Y", regDate: "2024-01-19" }
+                ]
+              });
+            },
+            onBeforeRowDelete: function(evt) {
+              if (evt.type === 0) {
+                var name = evt.sheet.getValue(evt.row, "productName") || "(이름 없음)";
+                return !confirm("'" + name + "' 항목을 삭제하시겠습니까?");
+              }
+            }
+          }
+        }
+      });
+    });
+
+    function addRow() {
+      var sheet = window["sheet"];
+      sheet.addRow({
+        init: {
+          category: "ETC",
+          saleStatus: "Y",
+          regDate: new Date().toISOString().slice(0, 10)
+        }
+      });
+    }
+
+    function deleteChecked() {
+      var sheet = window["sheet"];
+      var checkedRows = sheet.getRowsByChecked("chk");
+      if (checkedRows.length === 0) {
+        alert("삭제할 항목을 선택하세요.");
+        return;
+      }
+      if (!confirm(checkedRows.length + "건을 삭제하시겠습니까?")) return;
+      for (var i = 0; i < checkedRows.length; i++) {
+        sheet.deleteRow(checkedRows[i]);
+      }
+    }
+
+    function saveData() {
+      var sheet = window["sheet"];
+      sheet.doSave({
+        url: "/api/products/save",
+        quest: 1
+      });
+    }
+  </script>
+</body>
+</html>
