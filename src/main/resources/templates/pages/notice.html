@@ -9,10 +9,6 @@
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-200">공지사항 관리</h3>
             <div class="flex items-center space-x-2">
-                <button id="save-all-btn" class="bg-[#2563EB] hover:bg-[#2563EB]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
-                    <i class='bx bx-save text-lg'></i>
-                    <span class="font-medium">저장</span>
-                </button>
                 <button id="refresh-btn" class="bg-[#6C757D] hover:bg-[#6C757D]/80 text-white px-5 py-2.5 rounded-xl flex items-center space-x-2 shadow-sm transition-all duration-200 hover:shadow-md">
                     <i class='bx bx-refresh text-lg'></i>
                     <span class="font-medium">조회</span>
@@ -170,7 +166,6 @@
                 },
                 Cols: [
                     { Header: "No", Type: "Int", Name: "seq", MinWidth: 50, Align: "Center" },
-                    { Header: "상태", Name: "status", Extend: IB_Preset.CSTATUS},
                     { Header: "제목", Type: "Text", Name: "title", MinWidth: 220, RelWidth: 1, TextStyle: 5, Cursor: "pointer" },
                     { Header: "내용", Type: "Text", Name: "content", Visible: 0 },
                     { Header: "작성자", Type: "Text", Name: "authorName", MinWidth: 80 },
@@ -215,7 +210,6 @@
         function setupEventListeners() {
             document.getElementById('add-btn').addEventListener('click', function(){showNoticeModal()});
             document.getElementById('del-btn').addEventListener('click', function(){delNotice()});
-            document.getElementById('save-all-btn').addEventListener('click', function(){saveAllNotices()});
             document.getElementById('refresh-btn').addEventListener('click', function(){performSearch()});
             
             // 모달 관련 이벤트
@@ -365,11 +359,6 @@
             }
         }
 
-        // 새 공지사항 추가 (기존 함수 - 더 이상 사용하지 않음)
-        function addNotice() {
-            showNoticeModal();
-        }
-
         // 선택된 공지사항 삭제
         async function delNotice() {
             const frow = noticeGrid.getFocusedRow();
@@ -394,16 +383,11 @@
           
         }
 
-        // 전체 공지사항 저장 (공통 저장 함수 사용)
-        async function saveAllNotices() {
-           await saveAllData(noticeGrid, API_BASE, {}, loadNotices);
-        }
-
-        // 탭 닫기 전 셸(tabs.js)이 호출 — 문자열 반환 시 확인창 표시, 취소하면 닫기 중단
+        // 탭 닫기 전 셸(tabs.js)이 호출 — 모달 CRUD 전용 페이지라 그리드 변경분은 없음.
+        // 작성/수정 중인 모달이 열려 있으면 확인창으로 보호
         function onPageClose() {
-            // 변경사항이 있는지 확인하고 경고
-            if (noticeGrid && noticeGrid.hasUnsavedData()) {
-                return '저장하지 않은 변경사항이 있습니다. 정말 페이지를 닫으시겠습니까?';
+            if (!document.getElementById('notice-modal').classList.contains('hidden')) {
+                return '작성 중인 공지사항이 있습니다. 정말 페이지를 닫으시겠습니까?';
             }
             return true;
         }
