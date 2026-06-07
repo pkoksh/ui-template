@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <script>
+        // 세션 만료 등으로 이 페이지가 iframe(컨텐츠 탭) 안에 로드되면
+        // 최상위 창 전체를 로그인 페이지로 이동시킨다 (탭 안에 로그인 화면이 갇히는 것 방지)
+        if (window.self !== window.top) {
+            window.top.location.replace('/login.html');
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>로그인 - 업무시스템</title>

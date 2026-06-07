@@ -25,16 +25,21 @@ async function loadPage(contentId, url, tabName) {
         if (!iframe) {
             // 새 iframe 생성
             iframe = createIframe(contentId, url);
-
-            if(iframe.contentDocument.location.href.endsWith("login.html")) {
-                location.href = '/login.html';
-                return false;
-            }
-
             iframeMap.set(contentId, iframe);
-            
+
             // iframe 로드 완료 대기
             await waitForIframeLoad(iframe);
+
+            // 세션 만료로 서버가 로그인 페이지로 리다이렉트한 경우 → 최상위 창을 로그인으로 이동
+            // (login.html 자체의 frame-busting이 1차 방어선이고, 이는 보조 방어선)
+            try {
+                if (iframe.contentWindow.location.pathname.endsWith('/login.html')) {
+                    window.top.location.replace('/login.html');
+                    return false;
+                }
+            } catch (e) {
+                // cross-origin 등으로 접근 불가 시 무시
+            }
         } else {
             // 기존 iframe 표시
             iframe.style.display = 'block';
@@ -66,8 +71,9 @@ function createIframe(contentId, url) {
     iframe.style.display = 'block';
     
     // iframe 속성 설정
+    // allow-top-navigation: 세션 만료 시 iframe에 로드된 login.html이 최상위 창을 로그인으로 이동시킬 수 있도록 허용
     iframe.setAttribute('loading', 'lazy');
-    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation');
     
     // iframe 컨테이너에 추가
     const container = document.getElementById('iframe-container');
