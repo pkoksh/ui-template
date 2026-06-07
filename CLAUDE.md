@@ -119,9 +119,10 @@ SPA 셸 + iframe 페이지 구조:
 
 ### 템플릿 배포 전 정리(클린업) 대상
 
-- 보안: `encode-passwords` 백도어 제거, login.js의 DEMO_ACCOUNTS/테스트계정 안내 팝업 제거, application.properties의 `spring.security.user.*` 잔재 제거, DEBUG 로깅→INFO, 하드코딩 자격증명·remember-me key 외부화
-- dead code: `config/CustomAuthenticationSuccessHandler·FailureHandler`(SecurityConfig 미등록 — 실제는 LoginSuccessHandler 사용), `controller/StaticResourceController.java`(0바이트), `test/PasswordHashTest.java`·`util/PasswordEncoderUtil.java`(해시 생성 main 유틸), 루트 `GenerateHash.java`(0바이트)
-- 구버전 잔재: `assets/js/page-loader-old.js`·`page-loader-iframe.js`(page-loader.js와 동일 내용 중복본)·`page-manager-backup.js`·`search.js`, `static/index.html.backup`, `static/pages/*.html` 데모 11종, `schema-bak.sql`, `sql/menus.sql`(**schema.sql과 충돌하는 구버전 메뉴 시드 — 절대 적용 금지**), 루트 `ui-template_20250926.zip`(208MB)
+대부분 정리 완료(2026-06: 보안 백도어 `encode-passwords`, dead code, 구버전 JS/데모 페이지/스키마 백업 일괄 삭제). 남은 항목:
+
+- DEBUG 로깅→INFO 전환 (개발 단계라 의도적으로 유지 중), DB 자격증명·remember-me key 외부화
+- `assets/js/search.js` — 현재 무동작(item.path 의존)이지만 index.html이 로드 중이므로 삭제하지 말 것. 로드맵의 "수리" 대상
 
 ## 주의사항
 

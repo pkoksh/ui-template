@@ -18,28 +18,6 @@ const forgotPasswordLink = document.getElementById('forgotPassword');
 const userIdError = document.getElementById('userIdError');
 const passwordError = document.getElementById('passwordError');
 
-// 테스트용 계정 정보
-const DEMO_ACCOUNTS = {
-    'admin': {
-        password: 'admin123',
-        name: '관리자',
-        groupId: 'ADMIN',
-        department: '시스템관리부'
-    },
-    'user1': {
-        password: 'user123',
-        name: '김직원',
-        groupId: 'USER',
-        department: '영업부'
-    },
-    'manager': {
-        password: 'manager123',
-        name: '이팀장',
-        groupId: 'MANAGER',
-        department: '기획부'
-    }
-};
-
 // 그룹 표시명 반환
 function getGroupDisplayName(groupId) {
     const groupNames = {
@@ -309,20 +287,9 @@ function handleForgotPassword(event) {
         title: '비밀번호 찾기',
         html: `
             <div class="text-left space-y-4">
-                <p class="text-gray-600 mb-4">테스트 계정 정보:</p>
-                <div class="space-y-2 text-sm">
-                    <div class="bg-gray-50 p-3 rounded">
-                        <strong>관리자:</strong> admin / admin123
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded">
-                        <strong>사용자:</strong> user1 / user123
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded">
-                        <strong>팀장:</strong> manager / manager123
-                    </div>
-                </div>
+                <p class="text-gray-600">비밀번호를 잊으셨다면 시스템 관리자에게 초기화를 요청하세요.</p>
                 <p class="text-xs text-gray-500 mt-4">
-                    * 실제 운영 환경에서는 이메일이나 SMS를 통한 비밀번호 재설정 기능이 제공됩니다.
+                    * 관리자는 사용자 관리 화면에서 비밀번호를 초기화할 수 있습니다.
                 </p>
             </div>
         `,

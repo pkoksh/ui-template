@@ -1,4 +1,4 @@
-// page-loader-iframe.js - iframe 기반 페이지 로딩
+// page-loader.js - iframe 기반 페이지 로딩
 
 // iframe 관리 변수
 let currentPageId = null;

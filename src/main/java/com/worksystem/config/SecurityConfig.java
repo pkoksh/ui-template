@@ -104,7 +104,6 @@ public class SecurityConfig {
             // 2. 로그인 관련 페이지와 API 허용
             .requestMatchers("/login.html", "/login").permitAll()
             .requestMatchers("/api/auth/login").permitAll()
-            .requestMatchers("/api/auth/encode-passwords").permitAll()
             .requestMatchers("/error").permitAll()
             
             // 3. 인증된 사용자만 접근 가능한 API

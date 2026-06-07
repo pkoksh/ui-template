@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -23,9 +22,6 @@ public class AuthRestController {
 
     @Autowired
     private UserService userService;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     /**
      * 현재 로그인한 사용자 정보 반환
@@ -58,18 +54,5 @@ public class AuthRestController {
         response.put("authorities", auth.getAuthorities());
 
         return ResponseEntity.ok(response);
-    }
-
-    /**
-     * 비밀번호 암호화 (개발용)
-     */
-    @PostMapping("/encode-passwords")
-    public ResponseEntity<Map<String, String>> encodePasswords() {
-        Map<String, String> encoded = new HashMap<>();
-        encoded.put("admin123", passwordEncoder.encode("admin123"));
-        encoded.put("user123", passwordEncoder.encode("user123"));
-        encoded.put("manager123", passwordEncoder.encode("manager123"));
-        
-        return ResponseEntity.ok(encoded);
     }
 }
