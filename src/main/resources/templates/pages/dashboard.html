@@ -24,8 +24,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">총 프로젝트</p>
-                        <p id="total-projects" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">-</p>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">활성 사용자</p>
+                        <p id="stat-users" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">-</p>
                     </div>
                 </div>
             </div>
@@ -38,8 +38,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">완료된 업무</p>
-                        <p id="completed-tasks" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">-</p>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">활성 그룹</p>
+                        <p id="stat-groups" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">-</p>
                     </div>
                 </div>
             </div>
@@ -52,8 +52,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">진행 중인 업무</p>
-                        <p id="active-tasks" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">-</p>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">활성 메뉴</p>
+                        <p id="stat-menus" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">-</p>
                     </div>
                 </div>
             </div>
@@ -66,8 +66,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">지연된 업무</p>
-                        <p id="delayed-tasks" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">-</p>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">공지사항</p>
+                        <p id="stat-notices" class="text-2xl font-semibold text-gray-900 dark:text-gray-100">-</p>
                     </div>
                 </div>
             </div>
@@ -76,7 +76,7 @@
         <!-- 최근 활동 -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
             <div class="px-6 py-4 border-b dark:border-gray-700">
-                <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">최근 활동</h4>
+                <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">최근 공지사항</h4>
             </div>
             <div class="p-6">
                 <div class="space-y-4" id="recent-activities">
@@ -104,21 +104,14 @@
     </div>
 
     <script>
-        // 대시보드 통계 갱신 스크립트
-        let updateInterval;
+        // 대시보드 통계 — /api/dashboard/stats 실데이터 (조회 전용 도메인 본보기)
 
-        // 통계 데이터 로드 (시뮬레이션 - 실제로는 API 호출로 대체)
-        function loadStats() {
+        // 통계 데이터 로드
+        async function loadStats() {
             try {
-                // const stats = await apiGet('/api/dashboard/stats');
-                const stats = {
-                    totalProjects: Math.floor(Math.random() * 20) + 5,
-                    completedTasks: Math.floor(Math.random() * 50) + 20,
-                    activeTasks: Math.floor(Math.random() * 15) + 5,
-                    delayedTasks: Math.floor(Math.random() * 8) + 1
-                };
-
-                updateUI(stats);
+                // apiGet은 표준 ApiResponse 바디({success,message,data})를 반환
+                const response = await apiGet('/api/dashboard/stats');
+                updateUI(response.data);
             } catch (error) {
                 console.error('통계 데이터 로드 실패:', error);
             }
@@ -127,18 +120,20 @@
         // UI 업데이트
         function updateUI(stats) {
             const elements = {
-                'total-projects': stats.totalProjects,
-                'completed-tasks': stats.completedTasks,
-                'active-tasks': stats.activeTasks,
-                'delayed-tasks': stats.delayedTasks
+                'stat-users': stats.userCount,
+                'stat-groups': stats.groupCount,
+                'stat-menus': stats.menuCount,
+                'stat-notices': stats.noticeCount
             };
 
             for (const [id, value] of Object.entries(elements)) {
                 const element = document.getElementById(id);
                 if (element) {
-                    element.textContent = value.toLocaleString();
+                    element.textContent = Number(value).toLocaleString();
                 }
             }
+
+            renderRecentNotices(stats.recentNotices || []);
 
             const lastUpdated = document.getElementById('last-updated');
             if (lastUpdated) {
@@ -146,22 +141,50 @@
             }
         }
 
+        // 최근 공지 목록 렌더링 (XSS 방지를 위해 textContent만 사용)
+        function renderRecentNotices(notices) {
+            const container = document.getElementById('recent-activities');
+            container.innerHTML = '';
+
+            if (notices.length === 0) {
+                const empty = document.createElement('p');
+                empty.className = 'text-sm text-gray-400 text-center py-2';
+                empty.textContent = '등록된 공지사항이 없습니다.';
+                container.appendChild(empty);
+                return;
+            }
+
+            notices.forEach(function(notice) {
+                const row = document.createElement('div');
+                row.className = 'flex items-center space-x-3';
+
+                const dot = document.createElement('div');
+                dot.className = 'w-2 h-2 rounded-full flex-shrink-0 ' + (notice.pinned ? 'bg-red-400' : 'bg-blue-400');
+
+                const title = document.createElement('p');
+                title.className = 'text-sm text-gray-600 dark:text-gray-400 flex-1 truncate';
+                title.textContent = notice.title;
+
+                const meta = document.createElement('span');
+                meta.className = 'text-xs text-gray-400 flex-shrink-0';
+                meta.textContent = (notice.authorName || '') + ' · ' + formatDate(notice.createdAt);
+
+                row.appendChild(dot);
+                row.appendChild(title);
+                row.appendChild(meta);
+                container.appendChild(row);
+            });
+        }
+
         // 이벤트 리스너
         document.getElementById('refresh-stats').addEventListener('click', loadStats);
 
         // 페이지 로드 시 초기화
-        document.addEventListener('DOMContentLoaded', function() {
-            loadStats();
+        document.addEventListener('DOMContentLoaded', loadStats);
 
-            // 10초마다 자동 업데이트
-            updateInterval = setInterval(loadStats, 10000);
-        });
-
-        // 탭이 닫힐 때 호출되는 정리 함수 (page-loader가 호출)
+        // 탭 닫기 전 셸(tabs.js)이 호출 — 조회 전용 페이지라 닫기 진행
         window.onPageClose = function() {
-            if (updateInterval) {
-                clearInterval(updateInterval);
-            }
+            return true;
         };
     </script>
 </body>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.worksystem.mapper.DashboardMapper">
+
+    <select id="countActiveUsers" resultType="long">
+        SELECT COUNT(*) FROM users WHERE is_active = TRUE
+    </select>
+
+    <select id="countActiveGroups" resultType="long">
+        SELECT COUNT(*) FROM user_groups WHERE is_active = TRUE
+    </select>
+
+    <select id="countActiveMenus" resultType="long">
+        SELECT COUNT(*) FROM menus WHERE is_active = TRUE
+    </select>
+
+    <select id="countNotices" resultType="long">
+        SELECT COUNT(*) FROM notices
+    </select>
+
+    <!-- 최근 공지 (최신순 상위 N건) -->
+    <select id="findRecentNotices" resultType="com.worksystem.dto.NoticeDTO">
+        SELECT
+            seq,
+            title,
+            author_name AS authorName,
+            is_pinned   AS pinned,
+            is_active   AS active,
+            created_at  AS createdAt
+        FROM notices
+        ORDER BY created_at DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
